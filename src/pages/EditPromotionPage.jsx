@@ -2,7 +2,7 @@ import React from 'react'
 
 const EditPromotion = () => {
   return (
-    <div >EditPromotion</div>
+    <div >EdistPromotion</div>
   )
 }
 
