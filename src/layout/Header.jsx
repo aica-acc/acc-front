@@ -48,7 +48,7 @@ const Header = () => {
           </span>
 
           {/* 업그레이드 */}
-          <button className="px-4 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition">
+          <button className="px-4 py-1 bg-indigo-500 text-gray-600 hover:bg-indigo-600 transition">
             업그레이드
           </button>
 
