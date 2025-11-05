@@ -1,16 +1,16 @@
 
 import Approuter from "./utils/routes";
 import './App.css'
-import Layout from "./layout/Layout";
+import MainLayout from "./layout/MainLayout";
 
 
 function App() {
   
 
   return (
-      <Layout>
+      <>
       <Approuter />
-      </Layout>
+      </>
   )
 }
 
