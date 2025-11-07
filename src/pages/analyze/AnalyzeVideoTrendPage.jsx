@@ -1,9 +1,9 @@
 import React from 'react'
 
-const CreateVideoPromptPage = () => {
+const AnalyzeVideoTrendPage = () => {
   return (
     <div>CreateVideoPromptPage</div>
   )
 }
 
-export default CreateVideoPromptPage
+export default AnalyzeVideoTrendPage

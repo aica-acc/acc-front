@@ -7,8 +7,8 @@ import BackButton from '../components/buttons/BackButton';
 const MainLayout = () => {
     return (
         <div className="flex flex-col min-h-screen mt-20">
-            <BackButton/>
             <Header/>
+            <BackButton/>
             <StepProgress/>
             <main className="container mx-auto px-4">
                 <Outlet />

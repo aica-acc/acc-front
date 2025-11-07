@@ -5,7 +5,7 @@ const steps = [
   { id: 1, title: "홍보물 선택", path: "/select" },
   { id: 2, title: "기획서 업로드", path: "/upload" },
   { id: 3, title: "분석", path: "/analyze" },
-  { id: 4, title: "프롬프트 생성", path: "/prompt" },
+  { id: 4, title: "프롬프트 생성", path: "/create" },
   { id: 5, title: "수정", path: "/edit" },
 ];
 
@@ -15,7 +15,9 @@ const StepProgress = () => {
 
   // 현재 경로 기반으로 활성 단계 계산
   const currentStep =
-    steps.findIndex((step) => step.path === location.pathname) + 1 || 1;
+    steps.findIndex((step) =>
+      location.pathname.startsWith(step.path)
+    ) + 1 || 1;
 
   return (
     <div className="flex justify-center items-center gap-6 py-6">
