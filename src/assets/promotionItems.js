@@ -40,7 +40,7 @@ export const promotionItems = [
     subOptions: ["지도", "부스 소개", "행사 일정", "축제 개요"],
   },
   {
-    id: "mascot",
+    id: "mascort",
     title: "마스코트",
     icon: "😊",
     colors: {

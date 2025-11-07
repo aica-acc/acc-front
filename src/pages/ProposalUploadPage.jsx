@@ -9,6 +9,9 @@ const ProposalUploadPage = () => {
   const [theme, setTheme] = useState("");
   const [file, setFile] = useState(null);
 
+  const navigate = useNavigate();
+
+
   // ✅ 저장된 데이터 복원
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("festivalForm") || "{}");
@@ -40,6 +43,13 @@ const ProposalUploadPage = () => {
   // ✅ 키워드 삭제
   const handleRemoveKeyword = (word) => {
     setKeywords(keywords.filter((k) => k !== word));
+  };
+
+   
+
+  const handleNextButton = () => {
+    alert("✅ 입력값이 저장되었습니다.");
+    navigate("/analyze"); // ✅ 원하는 페이지로 이동
   };
 
   // ✅ 파일 업로드
@@ -178,7 +188,8 @@ const ProposalUploadPage = () => {
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
         disabled={!isFormValid}
-        onClick={() => alert("✅ 입력값이 저장되었습니다.")}
+        onClick={handleNextButton}
+        
       >
         분석 시작하기
       </button>
