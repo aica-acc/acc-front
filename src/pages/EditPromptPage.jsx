@@ -7,4 +7,3 @@ const EditPrompt = () => {
 }
 
 export default EditPrompt
-/*/
