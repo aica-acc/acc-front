@@ -3,6 +3,7 @@ import SelectModal from "../components/select_promotion/SelectModal";
 import { useNavigate } from "react-router-dom";
 import { promotionItems } from "../assets/promotionItems";
 import PromotionCard from "../components/select_promotion/PromotionCard";
+
 export default function SelectPromotionPage() {
   const navigate = useNavigate();
 
@@ -39,8 +40,8 @@ export default function SelectPromotionPage() {
   };
 
   return (
-    <div className="px-8 py-10">
-      <div className="flex justify-end gap-2 mb-4">
+    <div className="bg-neutral-900 px-8 py-10">
+      <div className="bg-neutral-900 flex justify-end gap-2 mb-4">
         <button
           onClick={handleSelectAll}
           className="border border-blue-500 text-blue-500 hover:bg-blue-50 transition rounded-md px-4 py-2 text-sm font-medium"

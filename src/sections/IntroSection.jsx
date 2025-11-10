@@ -1,0 +1,46 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import mainVideo from "../assets/sections/video/main_video.mp4";
+
+
+const IntroSection = () => {
+  const navigate = useNavigate();
+
+  return (
+    <section className="relative w-full h-screen overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover"
+      >
+        <source src={mainVideo} type="video/mp4" />
+      </video>
+
+      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center text-white">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          AI 동영상 생성기:
+          <br /> AI로 놀라운 동영상 만들기
+        </h1>
+        <p className="text-lg md:text-xl mb-8 text-gray-200">
+          텍스트, 이미지 또는 동영상 프롬프트를 간단한 프롬프트로
+          고품질 동영상으로 변환하세요.<br />
+          기술적 지식이 필요하지 않습니다.
+        </p>
+       
+          {/* 버튼 */}
+          <button
+            onClick={() => navigate("/select")}
+            className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 
+                       bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
+                       hover:brightness-110 hover:scale-105"
+          >
+            DeeVid AI 시작하기
+          </button>
+      </div>
+    </section>
+  );
+};
+
+export default IntroSection;

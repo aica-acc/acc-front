@@ -17,7 +17,7 @@ export const promotionItems = [
       base: "bg-blue-100",
       active: "bg-[#2563eb]", // 파란색 진한톤
     },
-    subOptions: ["온라인 - 유튜브", "온라인 - 인스타그램", "오프라인 - A1", "오프라인 - A2"],
+    subOptions: ["Instagram(1:1)", "A3(3:4)", "Mobile", "16:9"],
   },
   {
     id: "banner",
@@ -27,7 +27,7 @@ export const promotionItems = [
       base: "bg-green-100",
       active: "bg-[#16a34a]", // 초록 진한톤
     },
-    subOptions: ["현수막", "배너"],
+    subOptions: ["가로형", "세로형"],
   },
   {
     id: "cardnews",

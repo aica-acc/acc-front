@@ -53,7 +53,7 @@ export default function AnalyzeLayout() {
 
   return (
     
-    <div className="flex flex-col min-h-screen mt-20">
+    <div className="bg-neutral-900 flex flex-col min-h-screen mt-20">
       <Header/>
       <BackButton/>
       
