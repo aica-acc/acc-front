@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AccStartButton from "../components/buttons/AccStartButton";
 
-import img1 from "../assets/sections/mascort/damdam.png";
-import img2 from "../assets/sections/mascort/flower.png";
-import img3 from "../assets/sections/mascort/mud.png";
-import img4 from "../assets/sections/mascort/4.jpg";
-import img5 from "../assets/sections/mascort/5.jpg";
+import img1 from "../assets/sections/mascort/mud.png";
+import img2 from "../assets/sections/mascort/damdam.png";
+import img3 from "../assets/sections/mascort/flower.png";
+import img4 from "../assets/sections/mascort/tong.png";
+import img5 from "../assets/sections/mascort/gwang.png";
 
-const FESTIVALS = ["보령머드축제","담양산타축제","광양매화축제","광양매화축제","김치축제"];
+const FESTIVALS = ["보령머드축제","담양산타축제","광양매화축제","통영어부축제","광주 억새축제"];
 const POSTERS = [img1, img2, img3, img4, img5];
 
 // 🔧 사이즈 조정 (가로폭 늘림)
@@ -76,7 +76,7 @@ export default function MascortSection() {
 
   return (
     <section className="bg-neutral-900 text-white py-20 px-5 flex flex-col items-center overflow-hidden">
-      <h2 className="text-4xl font-bold mb-10">Poster</h2>
+      <h2 className="text-4xl font-bold mb-10">Mascot</h2>
 
       {/* 축제 버튼 (캐러셀과 동기화) */}
       <div className="flex flex-wrap justify-center gap-3 mb-8">

@@ -14,8 +14,8 @@ const MainPage = () => {
         <IntroSection />       {/* 메인 영상 */}
         <PosterSection />      {/* 포스터 생성 섹션 */}
         <CardnewsSection />    {/* 카드뉴스 생성 섹션 */}
-        <VideoSection/>        {/* 동영상 생성 섹션 */}
         <MascortSection />     {/* 마스코트 생성 섹션 */}  
+        <VideoSection/>        {/* 동영상 생성 섹션 */}
       </main>
     </>
   );
