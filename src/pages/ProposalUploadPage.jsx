@@ -1,6 +1,7 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from "react";
+// (변경된 부분 중심으로 정리한 완성 코드)
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../utils/api/BaseAPI";
 
 const ProposalUploadPage = () => {
   const [festivalName, setFestivalName] = useState("");
@@ -11,8 +12,7 @@ const ProposalUploadPage = () => {
 
   const navigate = useNavigate();
 
-
-  // ✅ 저장된 데이터 복원
+  // 저장된 데이터 복원
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("festivalForm") || "{}");
     if (saved) {
@@ -23,7 +23,7 @@ const ProposalUploadPage = () => {
     }
   }, []);
 
-  // ✅ 데이터 변경 시마다 localStorage에 저장
+  // 변경 시 저장
   useEffect(() => {
     localStorage.setItem(
       "festivalForm",
@@ -31,7 +31,7 @@ const ProposalUploadPage = () => {
     );
   }, [festivalName, keywords, theme, file]);
 
-  // ✅ 키워드 추가
+  // 키워드 추가
   const handleAddKeyword = () => {
     if (keywordInput.trim() === "" || keywords.length >= 5) return;
     if (!keywords.includes(keywordInput.trim())) {
@@ -40,30 +40,38 @@ const ProposalUploadPage = () => {
     }
   };
 
-  // ✅ 키워드 삭제
+  // 키워드 삭제
   const handleRemoveKeyword = (word) => {
     setKeywords(keywords.filter((k) => k !== word));
   };
 
-   
-
-  const handleNextButton = () => {
-    alert("✅ 입력값이 저장되었습니다.");
-    navigate("/analyze"); // ✅ 원하는 페이지로 이동
-  };
-
-  // ✅ 파일 업로드
+  // 파일 업로드
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
-    if (selected) {
-      setFile({
-        name: selected.name,
-        size: (selected.size / (1024 * 1024)).toFixed(2) + " MB",
-      });
-    }
+    if (selected) setFile(selected);
   };
 
-  // ✅ 모든 필수값이 입력됐는지 확인
+  // 🔥 POST는 제거하고 로딩 페이지로 이동만 함
+  const handleAnalyze = () => {
+    if (!file || !theme || keywords.length === 0 || !festivalName) {
+      alert("모든 필수 항목을 입력해주세요.");
+      return;
+    }
+
+    // sessionStorage 초기화
+    localStorage.removeItem("festivalForm");
+
+    // loading 페이지로 form 데이터 전달                       
+    navigate("/proposalloading", {
+      state: {
+        file,
+        theme,
+        keywords,
+        festivalName,
+      },
+    });
+  };
+
   const isFormValid =
     festivalName.trim() !== "" &&
     keywords.length > 0 &&
@@ -84,7 +92,7 @@ const ProposalUploadPage = () => {
         placeholder="예: 제28회 보령머드축제"
         value={festivalName}
         onChange={(e) => setFestivalName(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:ring focus:ring-blue-200"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
       />
 
       {/* 키워드 */}
@@ -97,7 +105,7 @@ const ProposalUploadPage = () => {
           placeholder="보령, 머드, 축제"
           value={keywordInput}
           onChange={(e) => setKeywordInput(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
         />
         <button
           onClick={handleAddKeyword}
@@ -129,17 +137,17 @@ const ProposalUploadPage = () => {
         ))}
       </div>
 
-      {/* 축제 테마 */}
+      {/* 테마 */}
       <label className="block mb-1 font-medium text-gray-700">축제 테마 *</label>
       <textarea
-        placeholder="지구촌 최대의 여름축제로 국적, 언어, 연령의 구분없이 모두가 하나가되어 즐기는 체험형 축제입니다."
+        placeholder="지구촌 최대의 여름축제로..."
         value={theme}
         onChange={(e) => setTheme(e.target.value)}
         rows="3"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:ring focus:ring-blue-200"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
       ></textarea>
 
-      {/* 기획서 업로드 */}
+      {/* 파일 업로드 */}
       <label className="block mb-1 font-medium text-gray-700">
         기획서 업로드 *
       </label>
@@ -151,7 +159,9 @@ const ProposalUploadPage = () => {
         {file ? (
           <div>
             <div className="text-green-700 font-medium">{file.name}</div>
-            <div className="text-sm text-gray-600 mb-3">{file.size}</div>
+            <div className="text-sm text-gray-600 mb-3">
+              {`${(file.size / (1024 * 1024)).toFixed(2)} MB`}
+            </div>
             <button
               onClick={() => setFile(null)}
               className="px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-100"
@@ -188,12 +198,12 @@ const ProposalUploadPage = () => {
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
         disabled={!isFormValid}
-        onClick={handleNextButton}
-        
+        onClick={handleAnalyze}
       >
         분석 시작하기
       </button>
     </div>
   );
 };
-export default ProposalUploadPage
+
+export default ProposalUploadPage;

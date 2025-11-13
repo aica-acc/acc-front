@@ -53,14 +53,14 @@ export default function AnalyzeLayout() {
 
   return (
     
-    <div className="flex flex-col min-h-screen mt-20">
+    <div className=" flex flex-col min-h-screen mt-20">
       <Header/>
       <BackButton/>
-      <StepProgress/>
+      
       <div className="flex flex-1">  
       {/* 사이드바 */}
         <div
-          className={`sticky left-0 top-0 h-screen transition-all duration-300 bg-white border-r-amber-100 ${
+          className={`mt-8 sticky left-0 top-0 h-[calc(100vh-80px)] transition-all duration-300 ${
             collapsed ? "w-17" : "w-64"
           } flex flex-col bg-gray-50 shadow-md rounded-r-2xl`}
         >
@@ -179,6 +179,9 @@ export default function AnalyzeLayout() {
             collapsed ? "ml-14" : "ml-14"
           }`}
         >
+          <div className="mb-6">
+           <StepProgress/>
+          </div>
           <Outlet />
         </div>
       </div>

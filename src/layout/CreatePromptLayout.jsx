@@ -68,13 +68,13 @@ export default function CreatePromptLayout() {
       {/* 상단 공통 헤더 */}
       <Header />
       <BackButton />
-      <StepProgress />
+      
 
       {/* 본문 구조 */}
       <div className="flex flex-1">
         {/* ✅ 사이드바 */}
         <div
-          className={`sticky left-0 top-0 h-[calc(100vh-80px)] transition-all duration-300 ${
+          className={`mt-8 sticky left-0 top-0 h-[calc(100vh-80px)] transition-all duration-300 ${
             collapsed ? "w-24" : "w-64"
           } flex flex-col bg-gray-50 shadow-md rounded-r-2xl`}
         >
@@ -144,6 +144,9 @@ export default function CreatePromptLayout() {
 
         {/* ✅ 우측 콘텐츠 영역 */}
         <div className="flex-1 p-6 overflow-y-auto">
+          <div className="mb-6">
+           <StepProgress/>
+          </div>
           <Outlet />
         </div>
       </div>

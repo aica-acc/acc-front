@@ -3,6 +3,7 @@ import SelectModal from "../components/select_promotion/SelectModal";
 import { useNavigate } from "react-router-dom";
 import { promotionItems } from "../assets/promotionItems";
 import PromotionCard from "../components/select_promotion/PromotionCard";
+
 export default function SelectPromotionPage() {
   const navigate = useNavigate();
 
