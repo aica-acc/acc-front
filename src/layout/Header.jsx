@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle } from "lucide-react";
+import mainIcon from "../assets/icorn/main_icorn.png"; // ✅ 아이콘 경로 추가
 
 const Header = () => {
   const navigate = useNavigate();
@@ -20,24 +21,33 @@ const Header = () => {
 
   // ✅ 로고 클릭 시 메인 페이지로 이동
   const handleLogoClick = () => {
-    navigate("/"); // 👉 여기 페이지 경로는 너꺼 쓰면 돼
+    navigate("/"); // 👉 메인 경로로 이동
   };
 
   // ✅ 드롭다운 항목 클릭 시 페이지 이동
   const handleMenuClick = (path) => {
-    navigate(path); // 👉 path 예: "/mypage/project" 등
+    navigate(path);
     setIsDropdownOpen(false);
   };
 
   return (
-    <header className="w-full bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 z-50">
-      <div className="flex justify-between items-center px-8 py-3">
-        {/* 🟢 로고 */}
+    <header className="w-full h-20 bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 z-50">
+      <div className="flex justify-between items-center px-8 py-5">
+        {/* 🟢 로고 + 서비스명 */}
         <div
           onClick={handleLogoClick}
-          className="text-2xl font-bold text-gray-800 cursor-pointer hover:text-indigo-600 transition"
+          className="flex items-center gap-3 cursor-pointer group"
         >
-          ACC
+          {/* 로고 아이콘 */}
+          <img
+            src={mainIcon}
+            alt="logo"
+            className="w-10 h-10 object-contain transition-transform duration-200 group-hover:scale-110"
+          />
+          {/* 서비스명 */}
+          <span className="text-2xl font-bold text-gray-800 group-hover:text-indigo-600 transition">
+            ACC
+          </span>
         </div>
 
         {/* 🟣 오른쪽 메뉴 */}
@@ -48,7 +58,7 @@ const Header = () => {
           </span>
 
           {/* 업그레이드 */}
-          <button className="px-4 py-1 bg-indigo-500 text-gray-600 hover:bg-indigo-600 transition">
+          <button className="px-4 py-1 rounded-md bg-indigo-500 text-white hover:bg-indigo-600 transition">
             업그레이드
           </button>
 

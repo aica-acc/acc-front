@@ -1,21 +1,24 @@
-
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import Header from '../layout/Header';
+import React from "react";
+import Header from "../layout/Header";
+import IntroSection from "../sections/IntroSection";
+import PosterSection from "../sections/PosterSection";
+import CardnewsSection from "../sections/CardnewsSection";
+import VideoSection from "../sections/VideoSection";
+import MascortSection from "../sections/MascortSection";
 
 const MainPage = () => {
-const navigate = useNavigate();
   return (
     <>
-    <Header/>
-    <div className='flex justify-center mt-30'>
-    <div>MainPage</div>
-    <div className='flex '>  
-    <button onClick={() => navigate("/select")}>시작하기</button>
-    </div>
-    </div>
+      <Header />
+      <main className="w-full overflow-x-hidden">
+        <IntroSection />       {/* 메인 영상 */}
+        <PosterSection />      {/* 포스터 생성 섹션 */}
+        <CardnewsSection />    {/* 카드뉴스 생성 섹션 */}
+        <MascortSection />     {/* 마스코트 생성 섹션 */}  
+        <VideoSection/>        {/* 동영상 생성 섹션 */}
+      </main>
     </>
-  )
-}
+  );
+};
 
-export default MainPage
+export default MainPage;
