@@ -1,9 +1,189 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const AnalyzeProposalListPage = () => {
-  return (
-    <div>AnalyzeProposalListPage</div>
-  )
-}
+  const { state } = useLocation();
+  const navigate = useNavigate();
 
-export default AnalyzeProposalListPage
+  // 🔥 날짜 포맷 정리
+  const normalizeDate = (value) => {
+  if (!value) return "";
+
+  // 숫자(timestamp)인 경우
+  if (typeof value === "number") {
+    const d = new Date(value);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  // 문자열 형태 (예: "2024-11-30T00:00:00")
+  if (typeof value === "string") {
+    return value.split("T")[0].split(" ")[0];
+  }
+
+  return "";
+};
+
+  // 🔥 쉼표·배열 기반 → 줄바꿈 처리
+  const safeArrayMultilineText = (val) => {
+    if (!val || val.trim() === "[]") return "";
+    const trimmed = val.trim();
+
+    // ["a","b","c"] 형태
+    if (trimmed.startsWith("[") && trimmed.includes('"')) {
+      try {
+        const arr = JSON.parse(trimmed);
+        if (Array.isArray(arr)) return arr.join("\n");
+      } catch (_) {}
+    }
+
+    // [a, b, c] 형태
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      return trimmed.slice(1, -1).split(",").join("\n");
+    }
+
+    return val;
+  };
+
+  const [formData, setFormData] = useState(null);
+
+  useEffect(() => {
+    let data = state;
+
+    // sessionStorage 복구
+    if (!data) {
+      const saved = sessionStorage.getItem("proposalData");
+      if (saved) data = JSON.parse(saved);
+    }
+
+    if (!data) {
+      alert("분석된 기획서 데이터가 없습니다.");
+      navigate("/upload");
+      return;
+    }
+
+    // formData 구성
+    setFormData({
+      title: data.title,
+      festivalStartDate: normalizeDate(data.festivalStartDate),
+      festivalEndDate: normalizeDate(data.festivalEndDate),
+      location: data.location,
+      host: data.host,
+      organizer: data.organizer,
+      target: data.target,
+      contactInfo: data.contactInfo,
+      directions: data.directions,
+
+      visualKeywords: safeArrayMultilineText(data.visualKeywords),
+      programName: safeArrayMultilineText(data.programName),
+      eventName: safeArrayMultilineText(data.eventName),
+    });
+  }, [state, navigate]);
+
+  if (!formData) return null;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    // 🔥 수정된 formData를 sessionStorage에 저장
+
+    const updated = { ...formData };
+    sessionStorage.setItem("proposalData", JSON.stringify(updated));
+    setFormData(updated);
+    alert("저장이 완료되었습니다.");
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-xl p-8">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">기획서 정보</h2>
+
+      <div className="space-y-5">
+        {/* 축제 제목 */}
+        <div>
+          <label className="block text-sm font-semibold mb-1">축제 제목</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg"
+          />
+        </div>
+
+        {/* 🔥 날짜 1줄 표시 */}
+        <div>
+          <label className="block text-sm font-semibold mb-1">축제 기간</label>
+          <div className="flex gap-4">
+            <input
+              type="date"
+              name="festivalStartDate"
+              value={formData.festivalStartDate || ""}
+              onChange={handleChange}
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+            <input
+              type="date"
+              name="festivalEndDate" 
+              value={formData.festivalEndDate || ""}
+              onChange={handleChange}
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+
+        {/* 일반 입력 필드 + 줄바꿈 필드 분리 */}
+        {[
+          ["location", "장소"],
+          ["host", "주최"],
+          ["organizer", "주관"],
+          ["target", "타깃"],
+          ["contactInfo", "웹사이트"],
+          ["directions", "오시는 길"],
+
+          // 🔥 textarea 전환
+          ["visualKeywords", "시각 요소"],
+          ["programName", "프로그램"],
+          ["eventName", "이벤트"],
+        ].map(([key, label]) => (
+          <div key={key}>
+            <label className="block text-sm font-semibold mb-1">{label}</label>
+
+            {["visualKeywords", "programName", "eventName"].includes(key) ? (
+              <textarea
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
+                rows="4"
+                className="w-full px-4 py-2 border rounded-lg whitespace-pre-line"
+              ></textarea>
+            ) : (
+              <input
+                type="text"
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+        >
+          저장하기
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AnalyzeProposalListPage;
