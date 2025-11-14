@@ -28,7 +28,7 @@ import CreateleafletPromptPage from "../pages/create/CreateleafletPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
 import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
 
-import ProposalLoadingPage from "../pages/ProposalLodingPage";
+import ProposalLoadingPage from "../pages/ProposalLoadingPage";
 
 
 // ✅ 라우터 관리 컴포넌트
