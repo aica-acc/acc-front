@@ -67,6 +67,25 @@ const ProposalLoadingPage = () => {
       // 7️⃣ 결과 페이지 이동
       navigate("/analyze", { state: res.data });
 
+      // 🔹 (추가 1) 배너 트렌드 분석 요청을 "미리" 만들어두기
+      //     - 여기서 await 안 함 → 백그라운드에서 동시에 요청 날아감
+      const bannerTrendPromise = api.post("/api/analyze/banner", {
+        festivalName: state.festivalName, // 축제명
+        festivalTheme: state.theme,       // 축제 테마
+        keywords: state.keywords,         // 키워드 배열 그대로
+      });
+
+      // 🔹 (추가 2) 배너 트렌드 분석 결과 받기
+      //     - 아까 만들어둔 Promise의 결과를 여기서 한 번만 기다림
+      const bannerTrendRes = await bannerTrendPromise;
+
+      // 🔹 추가 3
+      sessionStorage.setItem(
+        "bannerTrendData",
+        JSON.stringify(bannerTrendRes.data)
+      );
+        
+
     } catch (err) {
       console.error("❌ 병렬 분석 실패:", err);
       alert("오류가 발생했습니다. 다시 시도해주세요.");

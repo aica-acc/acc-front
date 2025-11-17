@@ -13,8 +13,6 @@
 // src/pages/analyze/AnalyzeBannerTrendPage.jsx
 
 // ####################### 임 시 코 드 ##################################
-// src/pages/analyze/AnalyzeBannerTrendPage.jsx
-
 import React, { useEffect, useState } from "react";
 
 // acc-ai(이미지 서버) 기본 주소
@@ -87,9 +85,8 @@ const AnalyzeBannerTrendPage = () => {
         {relatedFestivals.length === 0 ? (
           <p className="text-sm text-gray-500">유사 테마 축제 정보가 없습니다.</p>
         ) : (
-          // ✅ 2x2(최대 4개) 카드 레이아웃
-          <div className="grid gap-4 sm:grid-cols-2">
-            {relatedFestivals.slice(0, 4).map((fest, idx) => {
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {relatedFestivals.map((fest, idx) => {
               const resolvedUrl = resolveImageUrl(fest.banner_image_url);
 
               return (
@@ -97,25 +94,30 @@ const AnalyzeBannerTrendPage = () => {
                   key={`${fest.festival_id ?? idx}-related`}
                   className="border rounded-lg p-3 shadow-sm bg-white"
                 >
-                  {/* 축제명 (유사도 뱃지 제거) */}
+                  {/* 축제명 + 유사도 점수 */}
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">
                       {fest.festival_name || "이름 없는 축제"}
                     </h3>
+                    {fest.score != null && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
+                        유사도 {fest.score}
+                      </span>
+                    )}
                   </div>
 
-                  {/* 위: 현수막 이미지 */}
+                  {/* ✅ 위: 현수막 이미지 */}
                   {resolvedUrl && (
                     <div className="mb-2">
                       <img
                         src={resolvedUrl}
                         alt={fest.festival_name || "축제 현수막 이미지"}
-                        className="w-full h-50 object-cover rounded border border-black-300 mb-5"
+                        className="w-full h-32 object-cover rounded"
                       />
                     </div>
                   )}
 
-                  {/* 아래: 이미지 설명 */}
+                  {/* ✅ 아래: 이미지 설명 */}
                   {fest.banner_image_description && (
                     <p className="text-xs text-gray-700 mb-2 whitespace-pre-line">
                       {fest.banner_image_description}
@@ -145,9 +147,8 @@ const AnalyzeBannerTrendPage = () => {
         {latestFestivals.length === 0 ? (
           <p className="text-sm text-gray-500">최근 축제 정보가 없습니다.</p>
         ) : (
-          // ✅ 2x2(최대 4개) 카드 레이아웃
-          <div className="grid gap-4 sm:grid-cols-2">
-            {latestFestivals.slice(0, 4).map((fest, idx) => {
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {latestFestivals.map((fest, idx) => {
               const resolvedUrl = resolveImageUrl(fest.banner_image_url);
 
               return (
@@ -167,7 +168,7 @@ const AnalyzeBannerTrendPage = () => {
                       <img
                         src={resolvedUrl}
                         alt={fest.festival_name || "축제 현수막 이미지"}
-                        className="w-full h-50 object-cover rounded border border-black-300 mb-5"
+                        className="w-full h-32 object-cover rounded"
                       />
                     </div>
                   )}
@@ -198,4 +199,3 @@ const AnalyzeBannerTrendPage = () => {
 };
 
 export default AnalyzeBannerTrendPage;
-
