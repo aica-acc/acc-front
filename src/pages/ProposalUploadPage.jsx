@@ -59,7 +59,7 @@ const ProposalUploadPage = () => {
     }
 
     // sessionStorage 초기화
-    localStorage.removeItem("festivalForm");
+    // localStorage.removeItem("festivalForm");
 
     // loading 페이지로 form 데이터 전달                       
     navigate("/proposalloading", {
