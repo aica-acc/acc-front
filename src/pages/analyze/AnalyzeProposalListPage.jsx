@@ -50,7 +50,7 @@ const AnalyzeProposalListPage = () => {
   const [formData, setFormData] = useState(null);
 
   useEffect(() => {
-    let data = state;
+    let data = state?.proposal;
 
     // sessionStorage 복구
     if (!data) {
