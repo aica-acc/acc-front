@@ -185,9 +185,7 @@ export default function AnalyzeLayout() {
           <Outlet />
         </div>
       </div>
-      <div className="pt-4">
-      <AnalyzeButton/>    
-      </div>
+      
     </div>
   );
 }
