@@ -158,8 +158,8 @@ export default function AnalyzeLayout() {
             </div>
           </div>
         </div>
-
       </div>
+      
     </div>
   );
 }
