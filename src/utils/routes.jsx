@@ -29,6 +29,7 @@ import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
 import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
 
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
+import EditorPage from "../pages/EditorPage";
 
 
 // ✅ 라우터 관리 컴포넌트
@@ -44,7 +45,7 @@ const Approuter = () => {
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
-          
+        <Route path="/editoroage" element={<EditorPage />} />  
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
             <Route index element={<AnalyzeProposalListPage />} />          
