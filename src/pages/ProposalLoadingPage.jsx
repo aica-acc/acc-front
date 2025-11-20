@@ -17,38 +17,118 @@ const ProposalLoadingPage = () => {
 
     const runAnalysis = async () => {
       try {
-        // 1️⃣ 분석 요청
-        const formData = new FormData();
-        formData.append("file", state.file);
-        formData.append("theme", state.theme);
-        formData.append("keywords", JSON.stringify(state.keywords));
-        formData.append("title", state.festivalName);
+        /* -------------------------------
+         * 1️⃣ 기획서 분석
+         * ------------------------------- */
+        const proposalData = new FormData();
+        proposalData.append("file", state.file);
+        proposalData.append("theme", state.theme);
+        proposalData.append("keywords", JSON.stringify(state.keywords));
+        proposalData.append("title", state.festivalName);
 
-        await api.post("/api/project/analyze/proposal", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+        const proposalRes = await api.post(
+          "/api/project/analyze/proposal",
+          proposalData
+        );
+
+        // 백엔드에서 저장된 최신 값 가져오기
+        const finalProposal = await api.get("/api/project/analyze/lastst");
+
+        sessionStorage.setItem(
+          "proposalData",
+          JSON.stringify(finalProposal.data)
+        );
+
+        setMessage("트렌드 및 홍보물 분석을 진행 중입니다...");
+
+        /* -------------------------------
+         * 2️⃣ 병렬 실행 - 모든 분석
+         * ------------------------------- */
+
+        const pd = finalProposal.data;
+
+        // 공통 FormData (trend, video, mascot, etc…)
+        const baseFD = () => {
+          const fd = new FormData();
+          fd.append("keyword", state.keywords[0]); // 메인 키워드
+          fd.append("title", pd.title);
+          fd.append("festivalStartDate", pd.festival_start_date);
+          return fd;
+        };
+
+        // ⭐ 2-1) 트렌드 분석 (최우선)
+        const trendReq = api.post(
+          "/api/project/analyze/total_trend",
+          baseFD()
+        );
+
+        // // ⭐ 2-2) 나머지 분석 – 일단 구조만 주석 처리한 상태로 둠
+        // const videoReq = api.post(
+        //   "/api/project/analyze/video",
+        //   baseFD()
+        // );
+
+        // const mascotReq = api.post(
+        //   "/api/project/analyze/mascot",
+        //   baseFD()
+        // );
+
+        // const posterReq = api.post(
+        //   "/api/project/analyze/poster",
+        //   baseFD()
+        // );
+
+        // const bannerReq = api.post(
+        //   "/api/project/analyze/banner",
+        //   baseFD()
+        // );
+
+        // const cardnewsReq = api.post(
+        //   "/api/project/analyze/cardnews",
+        //   baseFD()
+        // );
+
+        // const leafletReq = api.post(
+        //   "/api/project/analyze/leaflet",
+        //   baseFD()
+        // );
+
+        // 실제로 아직 API 없는 경우 주석처리 ↓↓↓
+        const results = await Promise.all([
+          trendReq,
+          // videoReq,
+          // mascotReq,
+          // posterReq,
+          // bannerReq,
+          // cardnewsReq,
+          // leafletReq
+        ]);
+
+        const trendRes = results[0];
+
+        sessionStorage.setItem(
+          "trendData",
+          JSON.stringify(trendRes.data)
+        );
+
+        /* -------------------------------
+         * 3️⃣ 최종 결과 페이지 이동
+         * ------------------------------- */
+        navigate("/analyze", {
+          state: {
+            proposal: finalProposal.data,
+            trend: trendRes.data,
+          },
         });
-
-        // 2️⃣ 로딩 메시지 변경
-        setMessage("분석 결과를 불러오는 중입니다...");
-
-        // 3️⃣ 최신 분석 결과 GET
-        const res = await api.get("/api/project/analyze/latest");
-
-        // 4️⃣ 세션스토리지 저장
-        sessionStorage.setItem("proposalData", JSON.stringify(res.data));
-
-        // 5️⃣ 분석 페이지로 이동
-        navigate("/analyze", { state: res.data });
-
       } catch (err) {
         console.error("❌ 분석 실패:", err);
-        alert("오류가 발생했습니다.");
+        alert("오류가 발생했습니다. 다시 시도해주세요.");
         navigate("/upload");
       }
     };
 
     runAnalysis();
-  }, [state, navigate]);
+  }, []);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
