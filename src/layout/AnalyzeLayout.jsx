@@ -3,27 +3,23 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Header from "./Header";
 import BackButton from "../components/buttons/BackButton";
 import StepProgress from "../components/step/StepProgress";
-import AnalyzeButton from "../components/buttons/AnalyzeButton";
 
 export default function AnalyzeLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [openPromotion, setOpenPromotion] = useState(false);
-  const [openProposal, setOpenProposal] = useState(false);
+  const [openPromotion, setOpenPromotion] = useState(true); // 기본 열림 추천
+  const [openProposal, setOpenProposal] = useState(true); // 기본 열림 추천
   const [selectedPromotions, setSelectedPromotions] = useState({});
 
-
-  // ✅ 세션에서 사용자가 선택한 홍보물 로드
   useEffect(() => {
     const raw = sessionStorage.getItem("selectedPromotions");
     if (raw) setSelectedPromotions(JSON.parse(raw));
   }, []);
 
-  // ✅ 사이드 항목 데이터 구성
   const promotionList = Object.keys(selectedPromotions || {});
-   // ✅ 기획서 하위 항목 (항상 고정)
+  
   const proposalSubItems = [
     { key: "overview", label: "개요", path: "/analyze/list" },
     { key: "theme", label: "테마", path: "/analyze/theme" },
@@ -31,162 +27,138 @@ export default function AnalyzeLayout() {
 
   const mainItems = [
     { label: "기획서", icon: "bi-file-earmark-text", path: "/analyze/proposal" },
-    {
-      label: "홍보물",
-      icon: "bi-megaphone",
-      hasSub: true,
-    },
+    { label: "홍보물", icon: "bi-megaphone", hasSub: true },
     { label: "최종보고서", icon: "bi-bar-chart", path: "/analyze/report" },
   ];
 
-  const getActiveClass = (path) => {
-    return location.pathname === path 
-      ? "bg-blue-600 text-white font-semibold"
-      : "bg-gray-100 text-gray-700 hover:bg-gray-200";
-  };
-
-  const getSubActiveClass = (path) => {
-    return location.pathname === path
-      ? "bg-blue-100 text-blue-600 font-medium"
-      : "text-gray-600 hover:bg-gray-100";
-  };
-
   return (
-    
-    <div className=" flex flex-col min-h-screen mt-20">
-      <Header/>
-      <BackButton/>
-      
-      <div className="flex flex-1">  
-      {/* 사이드바 */}
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* 헤더 (고정) */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+        <Header />
+      </div>
+
+      <div className="flex flex-1 pt-16"> {/* 헤더 높이만큼 패딩 */}
+        
+        {/* 사이드바 (왼쪽 고정) */}
         <div
-          className={`mt-8 sticky left-0 top-0 h-[calc(100vh-80px)] transition-all duration-300 ${
-            collapsed ? "w-17" : "w-64"
-          } flex flex-col bg-gray-50 shadow-md rounded-r-2xl`}
+          className={`fixed left-0 top-16 bottom-0 bg-gray-50 border-r border-gray-200 transition-all duration-300 z-40 flex flex-col ${
+            collapsed ? "w-20" : "w-64"
+          }`}
         >
-          
-          {/* 상단 헤더 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            {!collapsed && (
-              <span className="font-semibold text-gray-700 tracking-tight">
-                목차
-              </span>
-            )}
+          {/* 사이드바 헤더 */}
+          <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200">
+            {!collapsed && <span className="font-bold text-gray-700">목차</span>}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-lg hover:bg-gray-200 text-gray-600 transition"
+              className="p-2 rounded-lg hover:bg-gray-200 text-gray-500"
             >
-              {collapsed ? "▶" : "◀"}
+              <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`}></i>
             </button>
           </div>
 
           {/* 메뉴 리스트 */}
-          <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-2">
+          <nav className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div className="mb-4">
+               <BackButton /> {/* 뒤로가기 버튼을 사이드바 상단에 배치 */}
+            </div>
+
             {mainItems.map((item) => (
               <div key={item.label}>
                 <button
-                   onClick={() => {
-                    if (item.label === "기획서") {
-                      setOpenProposal((prev) => !prev);
-                    } else if (item.label === "홍보물") {
-                      setOpenPromotion((prev) => !prev);
-                    } else {
-                      navigate(item.path);
-                    }
+                  onClick={() => {
+                    if (item.label === "기획서") setOpenProposal(!openProposal);
+                    else if (item.label === "홍보물") setOpenPromotion(!openPromotion);
+                    else navigate(item.path);
                   }}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl font-medium shadow-sm transition ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                     location.pathname.startsWith(item.path)
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-blue-50"
-                  }`}
+                      ? "bg-blue-50 text-blue-600 font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
+                  } ${collapsed ? "justify-center" : ""}`}
+                  title={collapsed ? item.label : ""}
                 >
-                  {collapsed ? (
-                    <i className={`bi ${item.icon} text-xl flex justify-center`} />
-                  ) : (
-                    <span className="flex items-center gap-2 text-base">
-                      <i className={`bi ${item.icon} text-lg`} />
-                      {item.label}
-                    </span>
+                  <i className={`bi ${item.icon} text-xl`}></i>
+                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && item.hasSub && (
+                    <i className={`bi bi-chevron-down ml-auto text-sm transition-transform ${
+                      (item.label === "기획서" && openProposal) || (item.label === "홍보물" && openPromotion) ? "rotate-180" : ""
+                    }`}></i>
                   )}
                 </button>
 
-                {/* ✅ 기획서 하위 항목 (항상 표시 가능, 토글 열기형) */}
-                {item.label === "기획서" && openProposal && !collapsed && (
-                  <ul className="ml-4 mt-2 space-y-1">
+                {/* 기획서 하위 메뉴 */}
+                {!collapsed && item.label === "기획서" && openProposal && (
+                  <div className="ml-9 mt-1 space-y-1 border-l-2 border-gray-200 pl-2">
                     {proposalSubItems.map((sub) => (
-                      <li key={sub.key}>
-                        <button
-                          onClick={() => navigate(sub.path)}
-                          className={`block w-full text-left px-4 py-1.5 rounded-lg text-sm transition ${
-                            location.pathname === sub.path
-                              ? "bg-blue-100 text-blue-600 font-medium"
-                              : "bg-white text-gray-600 hover:bg-blue-50"
-                          }`}
-                        >
-                          {sub.label}
-                        </button>
-                      </li>
+                      <button
+                        key={sub.key}
+                        onClick={() => navigate(sub.path)}
+                        className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition ${
+                          location.pathname === sub.path
+                            ? "text-blue-600 bg-blue-50 font-medium"
+                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
                     ))}
-                  </ul>
+                  </div>
                 )}
 
-                  {/* ✅ 홍보물 하위 항목 */}
-                  {item.hasSub && openPromotion && !collapsed && (
-                    <ul className="ml-4 mt-2 space-y-1">
-                      {promotionList.length > 0 ? (
-                        promotionList.map((key) => {
-                          const subPath = `/analyze/${key}`;
-                          return (
-                            <li key={key}>
-                              <button
-                                onClick={() => navigate(subPath)}
-                                className={`block w-full text-left px-4 py-1.5 rounded-lg text-sm transition ${
-                                  location.pathname === subPath
-                                    ? "bg-blue-100 text-blue-600 font-medium"
-                                    : "bg-white text-gray-600 hover:bg-blue-50"
-                                }`}
-                              >
-                                {key === "video"
-                                  ? "영상"
-                                  : key === "poster"
-                                  ? "포스터"
-                                  : key === "banner"
-                                  ? "현수막"
-                                  : key === "cardnews"
-                                  ? "카드뉴스"
-                                  : key === "leaflet"
-                                  ? "리플렛"
-                                  : key === "mascort"
-                                  ? "마스코트"
-                                  : key}
-                              </button>
-                            </li>
-                          );
-                        })
-                      ) : (
-                        <li className="text-gray-400 text-sm px-3 py-1">선택된 홍보물 없음</li>
-                      )}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </nav>
-          </div>
+                {/* 홍보물 하위 메뉴 */}
+                {!collapsed && item.hasSub && openPromotion && (
+                  <div className="ml-9 mt-1 space-y-1 border-l-2 border-gray-200 pl-2">
+                    {promotionList.length > 0 ? (
+                      promotionList.map((key) => {
+                        const subPath = `/analyze/${key}`;
+                        const labelMap = {
+                          video: "영상", poster: "포스터", banner: "현수막",
+                          cardnews: "카드뉴스", leaflet: "리플렛", mascort: "마스코트"
+                        };
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => navigate(subPath)}
+                            className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition ${
+                              location.pathname === subPath
+                                ? "text-blue-600 bg-blue-50 font-medium"
+                                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                            }`}
+                          >
+                            {labelMap[key] || key}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <span className="text-xs text-gray-400 px-3 py-1 block">선택 없음</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
 
-        {/* 우측 콘텐츠 영역 */}
-        <div
-          className={`transition-all duration-300 flex-1 p-6 ${
-            collapsed ? "ml-14" : "ml-14"
+        {/* 메인 콘텐츠 영역 (사이드바 너비만큼 마진 자동 조절) */}
+        <div 
+          className={`flex-1 transition-all duration-300 p-8 overflow-y-auto ${
+            collapsed ? "ml-20" : "ml-64"
           }`}
         >
-          <div className="mb-6">
-           <StepProgress/>
+          <div className="max-w-5xl mx-auto">
+            {/* 단계 표시 (Step Progress) */}
+            <div className="mb-8">
+              <StepProgress />
+            </div>
+
+            {/* 실제 페이지 내용 */}
+            <div className="bg-white min-h-[500px]">
+              <Outlet />
+            </div>
           </div>
-          <Outlet />
         </div>
-      </div>
-      <div className="pt-4">
-      <AnalyzeButton/>    
+
       </div>
     </div>
   );

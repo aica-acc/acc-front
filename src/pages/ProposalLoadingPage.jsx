@@ -24,7 +24,7 @@ const ProposalLoadingPage = () => {
         formData.append("keywords", JSON.stringify(state.keywords));
         formData.append("title", state.festivalName);
 
-        await api.post("/api/project/analyze", formData, {
+        await api.post("/api/project/analyze/proposal", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
@@ -32,7 +32,7 @@ const ProposalLoadingPage = () => {
         setMessage("분석 결과를 불러오는 중입니다...");
 
         // 3️⃣ 최신 분석 결과 GET
-        const res = await api.get("/api/project/analyze/lastst");
+        const res = await api.get("/api/project/analyze/latest");
 
         // 4️⃣ 세션스토리지 저장
         sessionStorage.setItem("proposalData", JSON.stringify(res.data));
