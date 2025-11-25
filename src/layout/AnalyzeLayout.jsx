@@ -180,7 +180,7 @@ export default function AnalyzeLayout() {
           }`}
         >
           <div className="mb-6">
-           <StepProgress/>
+           <StepProgress current={3}/>
           </div>
           <Outlet />
         </div>
