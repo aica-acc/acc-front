@@ -27,9 +27,9 @@ import CreateCardnewsPromptPage from "../pages/create/CreateCardnewsPromptPage";
 import CreateleafletPromptPage from "../pages/create/CreateleafletPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
 import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
+import CreateLoadingPage from "../pages/create/CreateLoadingPage";
 
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
-
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -44,6 +44,7 @@ const Approuter = () => {
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
+        <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>

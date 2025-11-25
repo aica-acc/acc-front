@@ -146,6 +146,7 @@ export default function AnalyzeLayout() {
             collapsed ? "ml-20" : "ml-64"
           }`}
         >
+<<<<<<< HEAD
           <div className="max-w-5xl mx-auto">
             {/* 단계 표시 (Step Progress) */}
             <div className="mb-8">
@@ -156,6 +157,10 @@ export default function AnalyzeLayout() {
             <div className="bg-white min-h-[500px]">
               <Outlet />
             </div>
+=======
+          <div className="mb-6">
+           <StepProgress current={3}/>
+>>>>>>> dev
           </div>
         </div>
       </div>
