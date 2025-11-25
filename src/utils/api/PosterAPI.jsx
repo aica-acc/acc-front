@@ -2,22 +2,51 @@ import api from '../api/BaseAPI';
 
 export const Image = {
     /**
-     * 단일 이미지 조회 API
-     * {
-     *    file_path_no: number,    // 이미지 고유번호 (PK)
-     *    prompt_no: number        // 프롬프트번호
-     *    file_url: string,        // 실제 이미지 접근 URL
-     *    file_name: string,       // 파일명
-     *    visual_prompt: string    // 프롬프트
-     * }
-     */ 
-    getImage: () => {
-    return api.get(`/api/images`)
-        .then((res) => res.data)
-        .catch((err) => {
-            console.error("이미지 조회 에러: ", err)
-            throw err;
+     * 썸네일 리스트 조회 API
+     * FE에서는 이 리스트를 세션/스토어에 저장해서
+     * index 기반으로 상세 이미지 불러오기
+     *
+     * 반환 예:
+     * [
+     *   {
+     *     filePathNo: number,
+     *     promptNo: number,
+     *     generatedAssetNo: number
+     *   }
+     * ]
+     */
+    getThumbnailList: (type = "포스터") => {
+        return api.get(`/api/assets/list`, {
+            params: { type }
         })
+        .then(res => res.data)
+        .catch(err => {
+            console.error("썸네일 리스트 조회 오류:", err);
+            throw err;
+        });
+    },
+
+    /**
+     * 단건 상세 조회 API
+     * filePathNo + promptNo 조합으로 이미지 + 프롬프트 조회
+     * 
+     * 반환 예:
+     * {
+     *   fileUrl: string,
+     *   fileName: string,
+     *   extension: string,
+     *   promptNo: number,
+     *   visualPrompt: string,
+     *   styleName: string
+     * }
+     */
+    getDetail: ({ filePathNo, promptNo }) => {
+        return api.get(`/api/assets/detail/${filePathNo}/${promptNo}`)
+        .then(res => res.data)
+        .catch(err => {
+            console.error("상세 이미지 조회 오류:", err);
+            throw err;
+        });
     },
 }
 

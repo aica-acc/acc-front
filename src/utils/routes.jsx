@@ -21,12 +21,8 @@ import AnalyzeReportPage from "../pages/analyze/AnalyzeReportPage";
 import AnalyzeProposalListPage from "../pages/analyze/AnalyzeProposalListPage";
 import AnalyzeProposalThemePage from "../pages/analyze/AnalyzeProposalThemePage";
 import CreatePromptLayout from "../layout/CreatePromptLayout";
-import CreateBannerPromptPage from "../pages/create/CreateBannerPromptPage";
 import CreatePosterPromptPage from "../pages/create/CreatePosterPromptPage";
-import CreateCardnewsPromptPage from "../pages/create/CreateCardnewsPromptPage";
-import CreateleafletPromptPage from "../pages/create/CreateleafletPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
-import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
 import CreateLoadingPage from "../pages/create/CreateLoadingPage";
 
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
@@ -62,12 +58,8 @@ const Approuter = () => {
 
           {/* 프롬포트 생성 그룹 */}
           <Route path="/create" element={<CreatePromptLayout/>}>         
-            <Route path="poster" element={<CreatePosterPromptPage />} />    
-            <Route path="banner" element={<CreateBannerPromptPage />} />    
-            <Route path="cardnews" element={<CreateCardnewsPromptPage />} />    
-            <Route path="leaflet" element={<CreateleafletPromptPage />} />    
+            <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
             <Route path="mascort" element={<CreateMascortPromptPage />} />
-            <Route path="video" element={<CreateVideoPromptPage />} />
           </Route>                                                   
         
           {/* 마이 페이지  그룹 */}

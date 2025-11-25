@@ -7,6 +7,7 @@ import PromptSidebar from "../components/create/PromptSidebar";
 const CreatePromptLayout = () => {
   const headerRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [basePrompt, setBasePrompt] = useState("");
 
   useEffect(() => {
     const resizeHandler = () => {
@@ -32,9 +33,9 @@ const CreatePromptLayout = () => {
       >
         <LeftSidebar />
         <main className="flex-1 overflow-auto px-6 py-6 flex justify-center bg-white">
-          <Outlet />
+          <Outlet context={{setBasePrompt}} />
         </main>
-        <PromptSidebar />
+        <PromptSidebar basePrompt={basePrompt} />
       </div>
     </div>
   );
