@@ -1,22 +1,26 @@
-// src/components/BackButton.jsx
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-
-const BackButton = ({ label = "이전" }) => {
+export default function BackButton() {
   const navigate = useNavigate();
-  
+
   return (
-    
     <button
       onClick={() => navigate(-1)}
-      className="ml-3 flex items-center gap-1 hover:text-blue-600 transition"
+      className="
+        inline-flex items-center gap-2
+        text-sm text-gray-700
+        px-3 py-2
+        rounded-lg
+        bg-white
+        border border-gray-200
+        hover:bg-gray-200 hover:text-gray-900
+        transition-colors duration-150
+      "
     >
-      <ArrowLeft className="w-4 h-4 text-gray-600" />
-      <span className="font-medium">{label}</span>
+      <ArrowLeft size={16} />
+      이전 단계로
     </button>
   );
-};
-
-export default BackButton;
+}
