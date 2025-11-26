@@ -21,5 +21,9 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?  
+*.sw?
+./assets/sections/video/*
+
 *.mp4
+
+/public/data/*

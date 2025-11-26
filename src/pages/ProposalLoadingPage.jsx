@@ -27,7 +27,7 @@ const ProposalLoadingPage = () => {
         proposalData.append("title", state.festivalName);
 
         const proposalRes = await api.post(
-          "/api/project/analyze/proposal",
+          "/api/project/analyze/proposal", 
           proposalData
         );
 
@@ -52,7 +52,7 @@ const ProposalLoadingPage = () => {
           const fd = new FormData();
           fd.append("keyword", state.keywords[0]); // 메인 키워드
           fd.append("title", pd.title);
-          fd.append("festivalStartDate", pd.festival_start_date);
+          fd.append("festival_start_date", pd.festival_start_date);
           return fd;
         };
 
