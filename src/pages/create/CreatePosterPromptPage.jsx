@@ -7,53 +7,75 @@ import NaviControls from "../../components/buttons/NavControls";
 
 export default function CreatePosterPromptPage() {
   const navigate = useNavigate();
-  const { setBasePrompt } = useOutletContext();
 
-  // URL 파라미터
+  const {
+    setBasePrompt,
+    setFilePathNo,
+    setPromptNo,
+    setIndex,
+    setThumbnailList,
+  } = useOutletContext();
+
   const { filePathNo, promptNo } = useParams();
 
-  const [thumbnailList, setThumbnailList] = useState([]);
+  const [thumbnailList, localSetList] = useState([]);
   const [detail, setDetail] = useState(null);
-  const [index, setIndex] = useState(0);
+  const [index, localSetIndex] = useState(0);
 
   /** 1) thumbnailList 세션에서 로드 */
   useEffect(() => {
-    const savedList = sessionStorage.getItem("thumbnailList");
-    if (!savedList) return;
+    const saved = sessionStorage.getItem("thumbnailList");
+    if (!saved) return;
 
-    const list = JSON.parse(savedList);
-    setThumbnailList(list);
+    const list = JSON.parse(saved);
+    localSetList(list);
+    setThumbnailList(list); // ⭐ Layout 업데이트
 
-    // 현재 URL 기반 index 찾기
     const foundIndex = list.findIndex(
       (item) =>
         String(item.filePathNo) === String(filePathNo) &&
         String(item.promptNo) === String(promptNo)
     );
 
-    if (foundIndex !== -1) setIndex(foundIndex);
+    if (foundIndex !== -1) {
+      localSetIndex(foundIndex);
+      setIndex(foundIndex); // ⭐ Layout 업데이트
+    }
   }, [filePathNo, promptNo]);
 
-  /** 2) detail API */
+  /** 2) detail API - 최초 로드 + URL 변경 시 호출 */
   useEffect(() => {
     if (!filePathNo || !promptNo) return;
 
     Image.getDetail({ filePathNo, promptNo })
       .then((res) => {
         setDetail(res);
-        sessionStorage.setItem("currentDetail", JSON.stringify(res));
+
+        // ⭐ Layout 업데이트 (상위로 전달하는 값들)
+        setBasePrompt(res.visualPrompt);
+        setFilePathNo(Number(filePathNo));
+        setPromptNo(Number(promptNo));
       })
       .catch((err) => console.error(err));
   }, [filePathNo, promptNo]);
 
-  /** 3) 프롬프트 사이드바로 전달 */
+  /** 3) regenerate-complete 이벤트 발생 시 detail 다시 가져오기 */
   useEffect(() => {
-    if (detail?.visualPrompt) {
-      setBasePrompt(detail.visualPrompt);
-    }
-  }, [detail]);
+    const handler = () => {
+      setDetail(null); // ← Skeleton 다시 표시
+      Image.getDetail({ filePathNo, promptNo })
+        .then((res) => {
+          setDetail(res);
+          setBasePrompt(res.visualPrompt);
+          setFilePathNo(Number(filePathNo));
+          setPromptNo(Number(promptNo));
+        });
+    };
 
-  /** 4) 네비게이션 이동 함수 */
+    window.addEventListener("regenerate-complete", handler);
+    return () => window.removeEventListener("regenerate-complete", handler);
+  }, [filePathNo, promptNo]);
+
   const goToIndex = (newIndex) => {
     const target = thumbnailList[newIndex];
     if (!target) return;
@@ -62,11 +84,10 @@ export default function CreatePosterPromptPage() {
   };
 
   if (!detail)
-    return <p className="text-gray-500 mt-10">이미지를 불러오는 중입니다...</p>;
+    return <p className="text-gray-500 mt-10">로딩 중...</p>;
 
   return (
     <div className="relative flex flex-col items-center">
-
       <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow">
         <i className="bi bi-three-dots-vertical text-lg"></i>
       </button>

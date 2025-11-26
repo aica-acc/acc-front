@@ -1,15 +1,26 @@
-// src/components/step/StepProgress.jsx
 import React from "react";
 import { useLocation } from "react-router-dom";
+
+/**
+ * 진짜 유지보수 편한 URL → 단계 매핑 테이블
+ * 어떤 URL 구조든 정확한 단계 매칭 가능
+ */
+const STEP_MAP = [
+  { step: 1, match: /^\/select/ },
+  { step: 2, match: /^\/upload/ },
+  { step: 3, match: /^\/analyze/ },
+  { step: 4, match: /^\/create\/poster/ },
+  { step: 5, match: /^\/select\/secondary/ },
+  { step: 6, match: /^\/create\/secondary/ },
+  { step: 7, match: /^\/confirm/ },
+];
 
 export default function StepProgress({ total = 7 }) {
   const { pathname } = useLocation();
 
-  let current = 1;
-  if (pathname === "/select") current = 1;
-  else if (pathname === "/upload") current = 2;
-  else if (pathname.startsWith("/analyze")) current = 3;
-  else if (pathname.startsWith("/create")) current = 4;
+  // 현재 단계 찾기
+  const current =
+    STEP_MAP.find((item) => item.match.test(pathname))?.step ?? 1;
 
   return (
     <div>
