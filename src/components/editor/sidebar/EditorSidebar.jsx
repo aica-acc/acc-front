@@ -21,13 +21,38 @@ const PANEL_COMPONENTS = {
   layers: LayersPanel,
 };
 
-const EditorSidebar = ({ activeTab, onChangeTab, designList, onSelectDesign }) => {
+const EditorSidebar = ({ activeTab, onChangeTab, designList, onSelectDesign, fabricRef, onAfterCanvasResize }) => {
   const renderPanel = () => {
     if (activeTab === "my-designs") {
       return (
         <MyDesignsPanel designs={designList} onSelectDesign={onSelectDesign} />
       );
     }
+    
+    if (activeTab === "text") {
+      return <TextPanel fabricRef={fabricRef} />;
+    }
+    
+    if (activeTab === "size") {
+      return <SizePanel fabricRef={fabricRef} onAfterResize={onAfterCanvasResize} />;
+    }
+    
+    if (activeTab === "layers") {
+      return <LayersPanel fabricRef={fabricRef} />;
+    }
+    
+    if (activeTab === "upload") {
+      return <UploadPanel fabricRef={fabricRef} />;
+    }
+    
+    if (activeTab === "icons") {
+      return <IconsPanel fabricRef={fabricRef} />;
+    }
+    
+    if (activeTab === "shapes") {
+      return <ShapesPanel fabricRef={fabricRef} />;
+    }
+    
     // 다른 탭들은 2단계에서 채움
     return (
       <div className="flex-1 flex items-center justify-center text-[11px] text-gray-400">

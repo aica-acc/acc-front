@@ -1,0 +1,70 @@
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import api from "../utils/api/BaseAPI";
+import LoadingSpinner from "../components/loding/LoadingSpinner";
+
+const EditorLoadingPage = () => {
+  const { state } = useLocation(); // TestPage → { pNo, postersPayload }
+  const navigate = useNavigate();
+
+  const [message] = useState("포스터 레이아웃을 생성 중입니다...");
+
+  useEffect(() => {
+    if (!state) {
+      alert("빌드 정보가 없습니다. TestPage에서 다시 실행해주세요.");
+      navigate("/testpage");
+      return;
+    }
+
+    const runBuild = async () => {
+      try {
+        const { pNo, postersPayload } = state;
+
+        /* -------------------------------
+         * 1️⃣ POST - 템플릿 빌드
+         * ------------------------------- */
+        const buildRes = await api.post(
+          `/api/editor/build?pNo=${pNo}`,
+          JSON.stringify(postersPayload), // ⭐ 반드시 문자열로 보내야 함
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("📌 Build Response:", buildRes.data);
+
+        const runId = buildRes.data.runId;
+
+        // pNo를 sessionStorage에 저장 (EditorPage에서 사용)
+        sessionStorage.setItem("editorPNo", pNo.toString());
+
+        /* -------------------------------
+         * 2️⃣ EditorPage로 이동 (pNo만 전달, GET은 EditorPage에서 수행)
+         * ------------------------------- */
+        navigate("/editorpage", {
+          state: {
+            pNo,
+            runId,
+          },
+        });
+
+      } catch (err) {
+        console.error("❌ Editor 빌드 실패:", err);
+        alert("빌드 중 오류가 발생했습니다.");
+        navigate("/testpage");
+      }
+    };
+
+    runBuild();
+  }, [state, navigate]);
+
+  return (
+    <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
+      <LoadingSpinner message={message} />
+    </div>
+  );
+};
+
+export default EditorLoadingPage;

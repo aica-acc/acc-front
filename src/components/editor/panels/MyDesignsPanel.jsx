@@ -32,16 +32,11 @@ const MyDesignsPanel = ({ designs, onSelectDesign }) => {
                 )}
               </div>
 
-              {/* 제목 + 중분류 */}
+              {/* Type (category) */}
               <div className="px-2 pt-1 pb-1">
                 <div className="text-[11px] text-gray-100 truncate font-medium">
-                  {item.title || "Untitled Design"}
+                  {item.category || "Untitled Design"}
                 </div>
-                {item.category && (
-                  <div className="text-[10px] text-gray-400 truncate mt-0.5">
-                    {item.category}
-                  </div>
-                )}
               </div>
             </button>
           ))}
