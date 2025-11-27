@@ -4,6 +4,7 @@ import { Image } from "../../utils/api/PosterAPI";
 import ImageViewer from "../../components/create/ImageViewer";
 import BulletIndicator from "../../components/create/BulletIndicator";
 import NaviControls from "../../components/buttons/NavControls";
+import { convertToFullPath } from "../../config/appConfig";
 
 export default function CreatePosterPromptPage() {
   const navigate = useNavigate();
@@ -20,11 +21,7 @@ export default function CreatePosterPromptPage() {
 
   const { filePathNo, promptNo } = useParams();
   const [detail, setDetail] = useState(null);
-<<<<<<< HEAD
-  const [index, localSetIndex] = useState(0);
   const [selectedTypes, setSelectedTypes] = useState([]);
-=======
->>>>>>> dev
 
   /** 1) 세션 로딩 */
   useEffect(() => {
@@ -71,7 +68,6 @@ export default function CreatePosterPromptPage() {
     navigate(`/create/poster/detail/${target.filePathNo}/${target.promptNo}`);
   };
 
-<<<<<<< HEAD
   // 파생 만들기 버튼 핸들러
   const handleCreateDerivative = () => {
     if (selectedTypes.length === 0) {
@@ -88,10 +84,13 @@ export default function CreatePosterPromptPage() {
 
     const proposalData = JSON.parse(proposalDataStr);
     
+    // 이미지 경로를 전체 파일 시스템 경로로 변환
+    const fullImagePath = convertToFullPath(detail.fileUrl);
+    
     // postersPayload 구성
     const postersPayload = [
       {
-        posterImageUrl: detail.fileUrl, // 현재 이미지 URL
+        posterImageUrl: fullImagePath, // 전체 경로로 변환된 이미지 URL
         title: proposalData.title || "",
         festivalStartDate: proposalData.festivalStartDate 
           ? new Date(proposalData.festivalStartDate).toISOString().split('T')[0]
@@ -116,26 +115,14 @@ export default function CreatePosterPromptPage() {
     });
   };
 
-  if (!detail)
-    return <p className="text-gray-500 mt-10">로딩 중...</p>;
-
   return (
     <div className="relative flex flex-col items-center min-h-screen pb-24">
-      <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow">
-        <i className="bi bi-three-dots-vertical text-lg"></i>
-      </button>
-
       <ImageViewer 
         url={detail.fileUrl} 
         onClick={() => {}}
         selectedTypes={selectedTypes}
         onTypesChange={setSelectedTypes}
       />
-=======
-  return (
-    <div className="relative flex flex-col items-center">
-      <ImageViewer url={detail.fileUrl} />
->>>>>>> dev
 
       <NaviControls
         index={index}

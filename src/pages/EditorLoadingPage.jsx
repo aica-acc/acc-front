@@ -11,8 +11,19 @@ const EditorLoadingPage = () => {
 
   useEffect(() => {
     if (!state) {
-      alert("빌드 정보가 없습니다. TestPage에서 다시 실행해주세요.");
-      navigate("/testpage");
+      alert("빌드 정보가 없습니다. 포스터 선택 페이지로 이동합니다.");
+      // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
+      const saved = sessionStorage.getItem("thumbnailList");
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (list && list.length > 0) {
+          const firstItem = list[0];
+          navigate(`/create/poster/detail/${firstItem.filePathNo}/${firstItem.promptNo}`);
+          return;
+        }
+      }
+      // thumbnailList가 없으면 select 페이지로
+      navigate("/select");
       return;
     }
 
@@ -52,8 +63,19 @@ const EditorLoadingPage = () => {
 
       } catch (err) {
         console.error("❌ Editor 빌드 실패:", err);
-        alert("빌드 중 오류가 발생했습니다.");
-        navigate("/testpage");
+        alert("빌드 중 오류가 발생했습니다. 포스터 선택 페이지로 이동합니다.");
+        // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
+        const saved = sessionStorage.getItem("thumbnailList");
+        if (saved) {
+          const list = JSON.parse(saved);
+          if (list && list.length > 0) {
+            const firstItem = list[0];
+            navigate(`/create/poster/detail/${firstItem.filePathNo}/${firstItem.promptNo}`);
+            return;
+          }
+        }
+        // thumbnailList가 없으면 select 페이지로
+        navigate("/select");
       }
     };
 

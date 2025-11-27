@@ -156,8 +156,18 @@ const EditorPage = () => {
 
         if (!pNo) {
           console.error("❌ EditorPage: pNo가 없습니다.");
-          alert("프로젝트 번호가 없습니다. EditorLoadingPage에서 다시 시도해주세요.");
-          navigate("/testpage");
+          alert("프로젝트 번호가 없습니다. 포스터 선택 페이지로 이동합니다.");
+          // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
+          const saved = sessionStorage.getItem("thumbnailList");
+          if (saved) {
+            const list = JSON.parse(saved);
+            if (list && list.length > 0) {
+              const firstItem = list[0];
+              navigate(`/create/poster/detail/${firstItem.filePathNo}/${firstItem.promptNo}`);
+              return;
+            }
+          }
+          navigate("/select");
           return;
         }
 
@@ -172,8 +182,18 @@ const EditorPage = () => {
 
         if (!items || items.length === 0) {
           console.warn("⚠️ 템플릿 데이터가 비어있습니다.");
-          alert("템플릿 데이터가 없습니다. EditorLoadingPage에서 다시 빌드해주세요.");
-          navigate("/testpage");
+          alert("템플릿 데이터가 없습니다. 포스터 선택 페이지로 이동합니다.");
+          // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
+          const saved = sessionStorage.getItem("thumbnailList");
+          if (saved) {
+            const list = JSON.parse(saved);
+            if (list && list.length > 0) {
+              const firstItem = list[0];
+              navigate(`/create/poster/detail/${firstItem.filePathNo}/${firstItem.promptNo}`);
+              return;
+            }
+          }
+          navigate("/select");
           return;
         }
 
@@ -213,8 +233,18 @@ const EditorPage = () => {
           console.error("sessionStorage 파싱 오류:", e);
         }
         
-        alert("템플릿 데이터를 가져오는 중 오류가 발생했습니다.");
-        navigate("/testpage");
+        alert("템플릿 데이터를 가져오는 중 오류가 발생했습니다. 포스터 선택 페이지로 이동합니다.");
+        // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
+        const saved = sessionStorage.getItem("thumbnailList");
+        if (saved) {
+          const list = JSON.parse(saved);
+          if (list && list.length > 0) {
+            const firstItem = list[0];
+            navigate(`/create/poster/detail/${firstItem.filePathNo}/${firstItem.promptNo}`);
+            return;
+          }
+        }
+        navigate("/select");
       } finally {
         setIsLoading(false);
       }
