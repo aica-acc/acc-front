@@ -1,39 +1,87 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
+import { Image } from "../../utils/api/PosterAPI";
 import ImageViewer from "../../components/create/ImageViewer";
+import BulletIndicator from "../../components/create/BulletIndicator";
+import NaviControls from "../../components/buttons/NavControls";
 
 export default function CreatePosterPromptPage() {
-  const { state } = useLocation();
-  const [images, setImages] = useState([]);
-  const [index, setIndex] = useState(0);
+  const navigate = useNavigate();
 
+  const {
+    setBasePrompt,
+    setFilePathNo,
+    setPromptNo,
+    setIndex,
+    setThumbnailList,
+    thumbnailList,
+    index,
+  } = useOutletContext();
+
+  const { filePathNo, promptNo } = useParams();
+  const [detail, setDetail] = useState(null);
+
+  /** 1) 세션 로딩 */
   useEffect(() => {
-    // 1) state에서 이미지 받기
-    if (state?.images) {
-      const urls = state.images.map((img) => img.imageUrl);
-      setImages(urls);
-    } else {
-      // 2) 새로고침 대비 sessionStorage fallback
-      const saved = sessionStorage.getItem("generatedImages");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const urls = parsed.map((img) => img.imageUrl);
-        setImages(urls);
-      }
-    }
-  }, [state]);
+    const saved = sessionStorage.getItem("thumbnailList");
+    if (!saved) return;
 
-  if (!images || images.length === 0)
-    return <p className="text-gray-500 mt-10">이미지를 불러오는 중입니다...</p>;
+    const list = JSON.parse(saved);
+    setThumbnailList(list);
+
+    const foundIndex = list.findIndex(
+      (item) =>
+        String(item.filePathNo) === String(filePathNo) &&
+        String(item.promptNo) === String(promptNo)
+    );
+
+    if (foundIndex !== -1) {
+      setIndex(foundIndex);
+    }
+  }, [filePathNo, promptNo]);
+
+  /** 2) detail API */
+  useEffect(() => {
+    if (!filePathNo || !promptNo) return;
+
+    Image.getDetail({ filePathNo, promptNo }).then((res) => {
+      setDetail(res);
+      setBasePrompt(res.visualPrompt);
+      setFilePathNo(Number(filePathNo));
+      setPromptNo(Number(promptNo));
+    });
+  }, [filePathNo, promptNo]);
+
+  /** 3) 안전 렌더링 */
+  if (!thumbnailList || thumbnailList.length === 0)
+    return <p className="mt-10">로딩 중... (리스트 준비)</p>;
+
+  if (!detail) return <p className="mt-10">로딩 중... (디테일)</p>;
+  if (index == null) return <p className="mt-10">로딩 중... (인덱스)</p>;
+
+  /** 4) 이동 */
+  const goToIndex = (newIndex) => {
+    const target = thumbnailList[newIndex];
+    if (!target) return;
+    navigate(`/create/poster/detail/${target.filePathNo}/${target.promptNo}`);
+  };
 
   return (
     <div className="relative flex flex-col items-center">
+      <ImageViewer url={detail.fileUrl} />
 
-      <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow">
-        <i className="bi bi-three-dots-vertical text-lg"></i>
-      </button>
+      <NaviControls
+        index={index}
+        total={thumbnailList.length}
+        onPrev={() => goToIndex(index - 1)}
+        onNext={() => goToIndex(index + 1)}
+      />
 
-      <ImageViewer images={images} index={index} onChangeIndex={setIndex} />
+      <BulletIndicator
+        index={index}
+        total={thumbnailList.length}
+        onSelect={(i) => goToIndex(i)}
+      />
     </div>
   );
 }
