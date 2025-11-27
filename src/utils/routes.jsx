@@ -47,6 +47,8 @@ const Approuter = () => {
         <Route path="/testpage" element={<TestPage />} />  
         <Route path="/testlodingpage" element={<EditorLoadingPage />} />  
         <Route path="/editorpage" element={<EditorPage />} />  
+        {/* <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
+        <Route path="/create/poster/detail" element={<CreatePosterPromptPage />} /> */}
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
             <Route index element={<AnalyzeProposalListPage />} />          
