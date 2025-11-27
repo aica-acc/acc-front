@@ -24,7 +24,7 @@ import CreatePromptLayout from "../layout/CreatePromptLayout";
 import CreatePosterPromptPage from "../pages/create/CreatePosterPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
 import CreateLoadingPage from "../pages/create/CreateLoadingPage";
-
+import AnalyzeRegionTrendPage from '../pages/analyze/AnalyzeRegionTrendPage';
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
 import EditorPage from "../pages/EditorPage";
 import EditorLoadingPage from "../pages/EditorLoadingPage";
@@ -50,6 +50,7 @@ const Approuter = () => {
             <Route index element={<AnalyzeProposalListPage />} />          
             <Route path="list" element={<AnalyzeProposalListPage />} />
             <Route path="theme" element={<AnalyzeProposalThemePage />} />
+            <Route path="region_trend" element={<AnalyzeRegionTrendPage />} />
             <Route path="poster" element={<AnalyzePosterTrendPage />} />    
             <Route path="banner" element={<AnalyzeBannerTrendPage />} />    
             <Route path="cardnews" element={<AnalyzeCardnewsTrendPage />} />    

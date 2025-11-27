@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 const AnalyzePosterTrendPage = () => {
   return (
@@ -6,4 +6,4 @@ const AnalyzePosterTrendPage = () => {
   )
 }
 
-export default AnalyzePosterTrendPage
+export default AnalyzePosterTrendPage;
