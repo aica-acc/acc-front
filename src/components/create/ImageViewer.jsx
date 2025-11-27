@@ -13,14 +13,34 @@ const convertToPublicUrl = (path) => {
   return normalized;
 };
 
-export default function ImageViewer({ url, onClick }) {
+const TYPES_OPTIONS = [
+  { value: "road_banner", label: "도로용 현수막" },
+  { value: "bus_shelter", label: "버스정류장" },
+  { value: "subway_light", label: "지하철 조명" },
+  { value: "bus_road", label: "버스 도로" },
+  { value: "streetlamp_banner", label: "가로등 현수막" },
+  { value: "subway_inner", label: "지하철 내부" },
+];
+
+export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesChange }) {
   const publicUrl = convertToPublicUrl(url);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleClick = () => {
     if (onClick) onClick();
     setShowModal(true);
+  };
+
+  const handleTypeToggle = (type) => {
+    if (!onTypesChange) return;
+    
+    const newTypes = selectedTypes.includes(type)
+      ? selectedTypes.filter((t) => t !== type)
+      : [...selectedTypes, type];
+    
+    onTypesChange(newTypes);
   };
 
   return (
@@ -59,13 +79,57 @@ export default function ImageViewer({ url, onClick }) {
       {showModal && (
         <div
           className="fixed inset-0 bg-black/70 flex justify-center items-center z-[2000]"
-          onClick={() => setShowModal(false)}
+          onClick={(e) => {
+            // 드롭다운이나 모달 내부 클릭은 닫지 않음
+            if (e.target === e.currentTarget) {
+              setShowModal(false);
+            }
+          }}
         >
-          <img
-            src={publicUrl}
-            className="max-h-[90vh] max-w-[90vw] rounded-xl shadow-xl object-contain"
-            alt="poster-full"
-          />
+          <div className="relative max-h-[90vh] max-w-[90vw] flex flex-col items-center">
+            <img
+              src={publicUrl}
+              className="max-h-[85vh] max-w-[85vw] rounded-xl shadow-xl object-contain"
+              alt="poster-full"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {/* Types 선택 드롭다운 */}
+            <div className="mt-4 relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 flex items-center gap-2 text-sm font-medium text-gray-700"
+              >
+                <span>홍보물 타입 선택</span>
+                <span className="text-xs text-gray-500">
+                  ({selectedTypes.length}개 선택됨)
+                </span>
+                <span className={`transform transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px] z-10">
+                  {TYPES_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTypes.includes(option.value)}
+                        onChange={() => handleTypeToggle(option.value)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>
