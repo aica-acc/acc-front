@@ -23,6 +23,7 @@ export default function AnalyzeLayout() {
   const proposalSubItems = [
     { key: "overview", label: "개요", path: "/analyze/list" },
     { key: "theme", label: "테마", path: "/analyze/theme" },
+    { key: "region", label: "지역 트렌드 분석", path: "/analyze/region_trend" },
   ];
 
   const mainItems = [
@@ -146,22 +147,10 @@ export default function AnalyzeLayout() {
             collapsed ? "ml-20" : "ml-64"
           }`}
         >
-<<<<<<< HEAD
-          <div className="max-w-5xl mx-auto">
-            {/* 단계 표시 (Step Progress) */}
-            <div className="mb-8">
-              <StepProgress />
-            </div>
-
-            {/* 실제 페이지 내용 */}
-            <div className="bg-white min-h-[500px]">
-              <Outlet />
-            </div>
-=======
           <div className="mb-6">
            <StepProgress current={3}/>
->>>>>>> dev
           </div>
+          <Outlet/>
         </div>
       </div>
       

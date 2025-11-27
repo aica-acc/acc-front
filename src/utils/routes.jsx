@@ -28,7 +28,7 @@ import CreateleafletPromptPage from "../pages/create/CreateleafletPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
 import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
 import CreateLoadingPage from "../pages/create/CreateLoadingPage";
-
+import AnalyzeRegionTrendPage from '../pages/analyze/AnalyzeRegionTrendPage';
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
 
 // ✅ 라우터 관리 컴포넌트
@@ -51,6 +51,7 @@ const Approuter = () => {
             <Route index element={<AnalyzeProposalListPage />} />          
             <Route path="list" element={<AnalyzeProposalListPage />} />
             <Route path="theme" element={<AnalyzeProposalThemePage />} />
+            <Route path="region_trend" element={<AnalyzeRegionTrendPage />} />
             <Route path="poster" element={<AnalyzePosterTrendPage />} />    
             <Route path="banner" element={<AnalyzeBannerTrendPage />} />    
             <Route path="cardnews" element={<AnalyzeCardnewsTrendPage />} />    
