@@ -1,0 +1,115 @@
+import React, { useState } from "react";
+import api from "../utils/api/BaseAPI";
+
+const EditorLoadingPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleTestBuild = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      // 1) 테스트용 posters payload (배열)
+      const postersPayload = [
+        {
+          posterImageUrl:
+            "C:\\final_project\\ACC\\acc-ai\\app\\data\\test.png",
+          title: "제 17회 담양 산타 축제",
+          festivalStartDate: "2025-12-24",
+          festivalEndDate: "2025-12-25",
+          location: "담양 메타랜드 일원",
+          types: ["road_banner", "bus_shelter", "subway_light"],
+        },
+      ];
+
+      // 2) JSON 문자열로 직접 변환해서 보냄
+      //    → 인터셉터에서 typeof data === "string" 이라
+      //      m_no 안 붙고, 구조도 안 깨짐
+      const body = JSON.stringify(postersPayload);
+
+      const res = await api.post(
+        "/api/editor/build?pNo=1", // pNo는 쿼리 파라미터로
+        body
+      );
+
+      console.log("[Editor build test] response:", res.data);
+      setResult(res.data);
+    } catch (err) {
+      console.error("[Editor build test] error:", err);
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        err?.message ||
+        "Unknown error";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-slate-100">
+      <div className="w-full max-w-xl rounded-2xl bg-slate-800/80 p-6 shadow-lg border border-slate-700">
+        <h1 className="text-2xl font-bold mb-4">
+          Editor Build 테스트 페이지
+        </h1>
+
+        <p className="text-sm text-slate-300 mb-4">
+          버튼을 누르면&nbsp;
+          <code className="px-1 py-0.5 rounded bg-slate-700 text-xs">
+            POST /api/editor/build?pNo=1
+          </code>
+          &nbsp; 호출하고,<br />
+          Python → 이미지/레이아웃 생성 → DB 저장까지 정상 동작하는지 체크합니다.
+        </p>
+
+        <button
+          type="button"
+          onClick={handleTestBuild}
+          disabled={loading}
+          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed font-semibold transition"
+        >
+          {loading ? "빌드 실행 중..." : "빌드 테스트 실행"}
+        </button>
+
+        {/* 결과 출력 구역 */}
+        <div className="mt-6 space-y-3 text-sm">
+          {error && (
+            <div className="rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2">
+              <div className="font-semibold text-red-300 mb-1">Error</div>
+              <pre className="whitespace-pre-wrap break-all text-red-200 text-xs">
+                {JSON.stringify(error, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          {result && (
+            <div className="rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2">
+              <div className="font-semibold text-emerald-300 mb-1">
+                Build Result
+              </div>
+              <p className="mb-1">
+                <span className="font-medium">pNo:</span> {result.pNo}
+              </p>
+              <p className="mb-1">
+                <span className="font-medium">runId:</span> {result.runId}
+              </p>
+              <p className="mb-2">
+                <span className="font-medium">templates count:</span>{" "}
+                {result.templates ? result.templates.length : 0}
+              </p>
+              <pre className="whitespace-pre-wrap break-all text-emerald-100 text-xs max-h-64 overflow-auto">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EditorLoadingPage;
