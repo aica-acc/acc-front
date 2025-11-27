@@ -23,9 +23,6 @@ export default function ImageViewer({ url, onClick }) {
     setShowModal(true);
   };
 
-
-
-
   return (
     <>
       {/* ★ 카드 영역  */}
