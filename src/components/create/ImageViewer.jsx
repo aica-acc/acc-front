@@ -33,17 +33,6 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
     setShowModal(true);
   };
 
-  const handleTypeToggle = (type) => {
-    if (!onTypesChange) return;
-    const newTypes = selectedTypes.includes(type)
-      ? selectedTypes.filter(t => t !== type)
-      : [...selectedTypes, type];
-    onTypesChange(newTypes);
-  };
-
-
-
-
   return (
     <>
       {/* ★ 카드 영역  */}

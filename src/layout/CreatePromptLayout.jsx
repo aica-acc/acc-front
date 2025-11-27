@@ -49,6 +49,8 @@ const CreatePromptLayout = () => {
               setPromptNo,
               setIndex,
               setThumbnailList,
+              thumbnailList,   // ⭐ 추가
+              index,           // ⭐ 추가
             }}
           />
         </main>
