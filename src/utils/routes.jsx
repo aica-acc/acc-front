@@ -21,15 +21,13 @@ import AnalyzeReportPage from "../pages/analyze/AnalyzeReportPage";
 import AnalyzeProposalListPage from "../pages/analyze/AnalyzeProposalListPage";
 import AnalyzeProposalThemePage from "../pages/analyze/AnalyzeProposalThemePage";
 import CreatePromptLayout from "../layout/CreatePromptLayout";
-import CreateBannerPromptPage from "../pages/create/CreateBannerPromptPage";
 import CreatePosterPromptPage from "../pages/create/CreatePosterPromptPage";
-import CreateCardnewsPromptPage from "../pages/create/CreateCardnewsPromptPage";
-import CreateleafletPromptPage from "../pages/create/CreateleafletPromptPage";
 import CreateMascortPromptPage from "../pages/create/CreateMascortPromptPage";
-import CreateVideoPromptPage from "../pages/create/CreateVideoPromptPage";
-
+import CreateLoadingPage from "../pages/create/CreateLoadingPage";
+import AnalyzeRegionTrendPage from '../pages/analyze/AnalyzeRegionTrendPage';
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
-
+import EditorPage from "../pages/EditorPage";
+import EditorLoadingPage from "../pages/EditorLoadingPage";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -44,12 +42,15 @@ const Approuter = () => {
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
-          
+        <Route path="/testlodingpage" element={<EditorLoadingPage />} />  
+        <Route path="/editorpage" element={<EditorPage />} />  
+        <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
             <Route index element={<AnalyzeProposalListPage />} />          
             <Route path="list" element={<AnalyzeProposalListPage />} />
             <Route path="theme" element={<AnalyzeProposalThemePage />} />
+            <Route path="region_trend" element={<AnalyzeRegionTrendPage />} />
             <Route path="poster" element={<AnalyzePosterTrendPage />} />    
             <Route path="banner" element={<AnalyzeBannerTrendPage />} />    
             <Route path="cardnews" element={<AnalyzeCardnewsTrendPage />} />    
@@ -61,12 +62,8 @@ const Approuter = () => {
 
           {/* 프롬포트 생성 그룹 */}
           <Route path="/create" element={<CreatePromptLayout/>}>         
-            <Route path="poster" element={<CreatePosterPromptPage />} />    
-            <Route path="banner" element={<CreateBannerPromptPage />} />    
-            <Route path="cardnews" element={<CreateCardnewsPromptPage />} />    
-            <Route path="leaflet" element={<CreateleafletPromptPage />} />    
+            <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
             <Route path="mascort" element={<CreateMascortPromptPage />} />
-            <Route path="video" element={<CreateVideoPromptPage />} />
           </Route>                                                   
         
           {/* 마이 페이지  그룹 */}

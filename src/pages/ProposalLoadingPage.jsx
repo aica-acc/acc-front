@@ -16,83 +16,116 @@ const ProposalLoadingPage = () => {
     }
 
     const runAnalysis = async () => {
-    try {
-      // 1️⃣ 기획서 분석 요청 준비
-      const proposalData = new FormData();
-      proposalData.append("file", state.file);
-      proposalData.append("theme", state.theme);
-      proposalData.append("keywords", JSON.stringify(state.keywords));
-      proposalData.append("title", state.festivalName);
+      try {
+        /* -------------------------------
+         * 1️⃣ 기획서 분석
+         * ------------------------------- */
+        const proposalData = new FormData();
+        proposalData.append("file", state.file);
+        proposalData.append("theme", state.theme);
+        proposalData.append("keywords", JSON.stringify(state.keywords));
+        proposalData.append("title", state.festivalName);
 
-      // 2️⃣ 총 트렌드 분석 요청 준비
-      const primaryKeyword = state.keywords[0];
-      const totalTrendData = new FormData();
-      totalTrendData.append("keyword", primaryKeyword);
-      totalTrendData.append("title", state.festivalName);
+        const proposalRes = await api.post(
+          "/api/project/analyze/proposal", 
+          proposalData
+        );
 
-      const bannerData = new FormData();
-      bannerData.append("theme", state.theme);
-      bannerData.append("keywords", JSON.stringify(state.keywords));
-      bannerData.append("title", state.festivalName);
+        // 백엔드에서 저장된 최신 값 가져오기
+        const finalProposal = await api.get("/api/project/analyze/lastst");
 
-      // 3️⃣ 병렬 실행 (속도 2배!)
-      const proposalReq = api.post(
-        "/api/project/analyze/proposal",
-        proposalData
-        // axios는 FormData에서 content-type 자동 설정함 → headers 제거
-      );
+        sessionStorage.setItem(
+          "proposalData",
+          JSON.stringify(finalProposal.data)
+        );
 
-      // const analyzeBannerReq = api.post(
-      //   "/api/analyze/banner",
-      //   bannerData
-      //   // axios는 FormData에서 content-type 자동 설정함 → headers 제거
-      // );
+        setMessage("트렌드 및 홍보물 분석을 진행 중입니다...");
 
-      // const trendReq = api.post(
-      //   "/api/project/analyze/total_trend",
-      //   totalTrendData
-      // );
+        /* -------------------------------
+         * 2️⃣ 병렬 실행 - 모든 분석
+         * ------------------------------- */
 
-      await Promise.all([proposalReq]);
+        const pd = finalProposal.data;
 
-      // 4️⃣ 메시지 업데이트
-      setMessage("분석 결과를 불러오는 중입니다...");
+        // 공통 FormData (trend, video, mascot, etc…)
+        const baseFD = () => {
+          const fd = new FormData();
+          fd.append("keyword", state.keywords[0]); // 메인 키워드
+          fd.append("title", pd.title);
+          fd.append("festival_start_date", pd.festival_start_date);
+          return fd;
+        };
 
-      // 5️⃣ 최신 결과 GET
-      const res = await api.get("/api/project/analyze/lastst");
+        // ⭐ 2-1) 트렌드 분석 (최우선)
+        const trendReq = api.post(
+          "/api/project/analyze/total_trend",
+          baseFD()
+        );
 
-      // 6️⃣ 세션스토리지 저장
-      sessionStorage.setItem("proposalData", JSON.stringify(res.data));
+        // // ⭐ 2-2) 나머지 분석 – 일단 구조만 주석 처리한 상태로 둠
+        // const videoReq = api.post(
+        //   "/api/project/analyze/video",
+        //   baseFD()
+        // );
 
-      // 7️⃣ 결과 페이지 이동
-      navigate("/analyze", { state: res.data });
+        // const mascotReq = api.post(
+        //   "/api/project/analyze/mascot",
+        //   baseFD()
+        // );
 
-      // 🔹 (추가 1) 배너 트렌드 분석 요청을 "미리" 만들어두기
-      //     - 여기서 await 안 함 → 백그라운드에서 동시에 요청 날아감
-      const bannerTrendPromise = api.post("/api/analyze/banner", {
-        festivalName: state.festivalName, // 축제명
-        festivalTheme: state.theme,       // 축제 테마
-        keywords: state.keywords,         // 키워드 배열 그대로
-      });
+        // const posterReq = api.post(
+        //   "/api/project/analyze/poster",
+        //   baseFD()
+        // );
 
-      // 🔹 (추가 2) 배너 트렌드 분석 결과 받기
-      //     - 아까 만들어둔 Promise의 결과를 여기서 한 번만 기다림
-      const bannerTrendRes = await bannerTrendPromise;
+        // const bannerReq = api.post(
+        //   "/api/project/analyze/banner",
+        //   baseFD()
+        // );
 
-      // 🔹 추가 3
-      sessionStorage.setItem(
-        "bannerTrendData",
-        JSON.stringify(bannerTrendRes.data)
-      );
-        
+        // const cardnewsReq = api.post(
+        //   "/api/project/analyze/cardnews",
+        //   baseFD()
+        // );
 
-    } catch (err) {
-      console.error("❌ 병렬 분석 실패:", err);
-      alert("오류가 발생했습니다. 다시 시도해주세요.");
-      navigate("/upload");
-    }
-  };
+        // const leafletReq = api.post(
+        //   "/api/project/analyze/leaflet",
+        //   baseFD()
+        // );
 
+        // 실제로 아직 API 없는 경우 주석처리 ↓↓↓
+        const results = await Promise.all([
+          trendReq,
+          // videoReq,
+          // mascotReq,
+          // posterReq,
+          // bannerReq,
+          // cardnewsReq,
+          // leafletReq
+        ]);
+
+        const trendRes = results[0];
+
+        sessionStorage.setItem(
+          "trendData",
+          JSON.stringify(trendRes.data)
+        );
+
+        /* -------------------------------
+         * 3️⃣ 최종 결과 페이지 이동
+         * ------------------------------- */
+        navigate("/analyze", {
+          state: {
+            proposal: finalProposal.data,
+            trend: trendRes.data,
+          },
+        });
+      } catch (err) {
+        console.error("❌ 분석 실패:", err);
+        alert("오류가 발생했습니다. 다시 시도해주세요.");
+        navigate("/upload");
+      }
+    };
 
     runAnalysis();
   }, []);
