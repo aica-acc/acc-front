@@ -29,6 +29,9 @@ import ProposalLoadingPage from "../pages/ProposalLoadingPage";
 import EditorPage from "../pages/EditorPage";
 import EditorLoadingPage from "../pages/EditorLoadingPage";
 
+import MyReportPage from '../pages/report/MyReportPage';
+import TempEditorEntry from '../pages/report/TempEditorEntry';
+
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
   return (
@@ -71,8 +74,13 @@ const Approuter = () => {
               <Route path="project" element={<ProjectPage />} />
               <Route path="drive" element={<DrivePage />} />
               <Route path="profile" element={<ProfilePage />} />  
-          </Route> 
-      
+          </Route>
+
+          {/* 리포트 결과 페이지 그룹 */} 
+          <Route path="/report">
+            <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
+            <Route path="result" element={<MyReportPage />} />
+          </Route>
     </Routes>
   );
 };
