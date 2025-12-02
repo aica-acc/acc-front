@@ -10,7 +10,7 @@ import PackageView from '../../components/report/PackageView';
 
 const MyReportPage = () => {
     const [activeTab, setActiveTab] = useState('article');
-    const [data, setData] = useState(null); 
+    const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // 1. 페이지 진입 시 한 번에 모두 요청 (All-in-One)
@@ -18,7 +18,7 @@ const MyReportPage = () => {
         const fetchAllReports = async () => {
             setLoading(true);
             const pNo = sessionStorage.getItem("editorPNo") || 1;
-            
+
             // 백엔드의 4개 엔드포인트에 맞춰 매핑
             const reportTypes = {
                 'article': 'article', // /api/report/article
@@ -39,7 +39,7 @@ const MyReportPage = () => {
                             // m_no는 BaseAPI가 자동으로 넣어주거나, 필요 시 여기서 추가 가능
                             // m_no: "M000001" 
                         });
-                        
+
                         if (response.data.status === 'success') {
                             // JSON 문자열 파싱
                             return { key, content: JSON.parse(response.data.content) };
@@ -87,7 +87,7 @@ const MyReportPage = () => {
                     <div className="w-16 h-16 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
                     <h2 className="text-xl font-bold text-slate-800 mb-2">홍보 패키지를 통합 생성 중입니다...</h2>
                     <p className="text-slate-500 text-sm">
-                        AI가 기사, 공고문, SNS, 미디어킷을 모두 작성하고 있습니다.<br/>
+                        AI가 기사, 공고문, SNS, 미디어킷을 모두 작성하고 있습니다.<br />
                         잠시만 기다려 주세요. (약 15~30초 소요)
                     </p>
                 </div>
@@ -117,8 +117,8 @@ const MyReportPage = () => {
                             key={menu.id}
                             onClick={() => handleTabChange(menu.id)}
                             className={`flex items-center px-4 py-3 rounded text-sm font-medium text-left transition-all duration-200
-                                ${activeTab === menu.id 
-                                    ? 'bg-white text-blue-900 shadow-sm ring-1 ring-slate-200' 
+                                ${activeTab === menu.id
+                                    ? 'bg-white text-blue-900 shadow-sm ring-1 ring-slate-200'
                                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                 }`}
                         >
@@ -140,7 +140,7 @@ const MyReportPage = () => {
                     {activeTab === 'article' && data?.article && <ArticleView data={data.article} />}
                     {activeTab === 'notice' && data?.notice && <NoticeView data={data.notice} />}
                     {activeTab === 'sns' && data?.sns && <SnsView data={data.sns} />}
-                    {activeTab === 'package' && data?.package && <PackageView data={data.package} />}
+                    {activeTab === 'package' && data?.package && <PackageView data={data.package} articleData={data.article} />}
                 </div>
             </main>
         </div>

@@ -30,13 +30,17 @@ const ArticleView = ({ data }) => {
 
                 <figure className="mb-8">
                     <div className="w-full h-[400px] bg-slate-200 flex items-center justify-center text-slate-500 text-sm rounded-sm overflow-hidden">
-                        {data.mainImage.url ? (
-                             <img src={data.mainImage.url} alt="Main" className="w-full h-full object-cover" />
+                        {data.mainImage.url && !data.mainImage.url.includes('/dummy/') ? (
+                            <img src={data.mainImage.url} alt="Main" className="w-full h-full object-cover" />
+                        ) : data.mainImage.url && data.mainImage.url.includes('/dummy/') ? (
+                            <div className="flex flex-col items-center justify-center h-full w-full bg-slate-200 text-slate-500">
+                                <span>Image: {data.mainImage.url}</span>
+                            </div>
                         ) : (
-                             <div className="flex flex-col items-center">
+                            <div className="flex flex-col items-center">
                                 <span className="text-4xl mb-2">📷</span>
                                 <span>이미지 영역</span>
-                             </div>
+                            </div>
                         )}
                     </div>
                     <figcaption className="text-xs text-slate-500 mt-2 text-center italic">
@@ -44,9 +48,9 @@ const ArticleView = ({ data }) => {
                     </figcaption>
                 </figure>
 
-                <div 
+                <div
                     className="font-sans text-base leading-loose text-slate-700 mb-8 space-y-5"
-                    dangerouslySetInnerHTML={{ __html: data.body }} 
+                    dangerouslySetInnerHTML={{ __html: data.body }}
                 />
 
                 <div className="my-8 p-8 bg-white border-y-2 border-sky-500 text-center">
@@ -55,9 +59,9 @@ const ArticleView = ({ data }) => {
                     </p>
                 </div>
 
-                <div 
+                <div
                     className="font-sans text-base leading-loose text-slate-700 mb-8 space-y-5"
-                    dangerouslySetInnerHTML={{ __html: data.body2 }} 
+                    dangerouslySetInnerHTML={{ __html: data.body2 }}
                 />
 
                 <div className="bg-slate-100 p-6 rounded text-sm">
@@ -98,7 +102,13 @@ const ArticleView = ({ data }) => {
                     {data.sidebar.posters.map((poster, idx) => (
                         <div key={idx} className="mb-6 last:mb-0">
                             <div className="w-full aspect-[2/3] bg-slate-200 flex items-center justify-center text-slate-400 text-xs rounded-sm mb-2 overflow-hidden">
-                                {poster.image ? <img src={poster.image} alt={poster.title} className="w-full h-full object-cover"/> : "Poster Image"}
+                                {poster.image && !poster.image.includes('/dummy/') ? (
+                                    <img src={poster.image} alt={poster.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="flex items-center justify-center w-full h-full bg-slate-200 text-slate-500">
+                                        {poster.image ? `Poster: ${poster.image}` : "Poster Image"}
+                                    </div>
+                                )}
                             </div>
                             <p className="text-xs text-slate-500 text-center font-medium">{poster.title}</p>
                         </div>
