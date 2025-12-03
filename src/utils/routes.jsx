@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import ProjectPage from "../pages/mypage/projectpage";
+import ProjectPage from "../pages/mypage/ProjectPage";
+import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 
 import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
@@ -75,6 +76,8 @@ const Approuter = () => {
               <Route path="project" element={<ProjectPage />} />
               <Route path="drive" element={<DrivePage />} />
               <Route path="profile" element={<ProfilePage />} />  
+              {/* ✅ 새로 추가: 프로젝트 상세 */}
+              <Route path="project/:projectId" element={<ProjectDetailPage />} />
           </Route> 
       
     </Routes>
