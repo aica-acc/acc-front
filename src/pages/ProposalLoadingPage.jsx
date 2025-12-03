@@ -26,7 +26,7 @@ const ProposalLoadingPage = () => {
         proposalData.append("keywords", JSON.stringify(state.keywords));
         proposalData.append("title", state.festivalName);
 
-        const proposalRes = await api.post(
+        await api.post(
           "/api/project/analyze/proposal", 
           proposalData
         );
@@ -62,7 +62,16 @@ const ProposalLoadingPage = () => {
           baseFD()
         );
 
-        // // ⭐ 2-2) 나머지 분석 – 일단 구조만 주석 처리한 상태로 둠
+        // ⭐ 2-2) 지역 트렌드 분석
+        const regionTrendReq = api.post(
+          "/api/project/analyze/region_trend",
+          null,
+          {
+            params: { festival_start_date: pd.festival_start_date }
+          }
+        );
+
+        // // ⭐ 2-3) 나머지 분석 – 일단 구조만 주석 처리한 상태로 둠
         // const videoReq = api.post(
         //   "/api/project/analyze/video",
         //   baseFD()
@@ -96,6 +105,7 @@ const ProposalLoadingPage = () => {
         // 실제로 아직 API 없는 경우 주석처리 ↓↓↓
         const results = await Promise.all([
           trendReq,
+          regionTrendReq,
           // videoReq,
           // mascotReq,
           // posterReq,
@@ -105,10 +115,16 @@ const ProposalLoadingPage = () => {
         ]);
 
         const trendRes = results[0];
+        const regionTrendRes = results[1];
 
         sessionStorage.setItem(
           "trendData",
           JSON.stringify(trendRes.data)
+        );
+
+        sessionStorage.setItem(
+          "regionTrendData",
+          JSON.stringify(regionTrendRes.data)
         );
 
         /* -------------------------------
@@ -118,6 +134,8 @@ const ProposalLoadingPage = () => {
           state: {
             proposal: finalProposal.data,
             trend: trendRes.data,
+            regionTrend: regionTrendRes.data,
+            festivalStartDate: pd.festival_start_date,
           },
         });
       } catch (err) {
@@ -128,7 +146,7 @@ const ProposalLoadingPage = () => {
     };
 
     runAnalysis();
-  }, []);
+  }, [navigate, state]);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center bg-white">

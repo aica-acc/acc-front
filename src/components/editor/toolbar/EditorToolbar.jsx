@@ -3,6 +3,14 @@ import React from "react";
 import ColorPickerPopover from "./ColorPickerPopover";
 import ActionButtons from "./ActionButtons";
 
+// 시간 포맷팅 함수 (초 → MM:SS)
+const formatTime = (seconds) => {
+  if (!seconds || isNaN(seconds)) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
 // 간단한 폰트 드롭다운 (스크롤 가능)
 const FontDropdown = ({ value, options, onChange }) => {
   const [open, setOpen] = React.useState(false);
@@ -66,6 +74,16 @@ const EditorToolbar = ({
   onSendBackward,
   onDuplicate,
   onDelete,
+  // AI 색상 추천
+  onAIColorRecommendation,
+  // Video 컨트롤 props
+  videoState,
+  onVideoPlayPause,
+  onVideoSeek,
+  onVideoMuteToggle,
+  onVideoVolumeChange,
+  onVideoPlaybackRateChange,
+  onVideoFullscreen,
 }) => {
 
   const {
@@ -81,7 +99,7 @@ const EditorToolbar = ({
 
   return (
     <div className="h-11 bg-[#111111] text-gray-100 flex items-center justify-between px-4 border-b border-black">
-      {/* 왼쪽: Undo/Redo */}
+      {/* 왼쪽: Undo/Redo + AI 색상 추천 */}
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -99,6 +117,19 @@ const EditorToolbar = ({
         >
           ↻
         </button>
+        {onAIColorRecommendation && (
+          <>
+            <div className="w-px h-6 bg-gray-600 mx-2" />
+            <button 
+              type="button"
+              onClick={onAIColorRecommendation}
+              className="px-3 mr-4 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white"
+              title="AI 색상 추천"
+            >
+              🎨 AI 색상 추천
+            </button>
+          </>
+        )}
       </div>
 
       {/* 중앙: 선택된 객체에 따른 툴바 */}
@@ -206,6 +237,88 @@ const EditorToolbar = ({
               <ColorPickerPopover color={textStyle?.strokeColor || "#000000"} onChange={onChangeStrokeColor} />
               <span className="text-[11px] text-gray-400">테두리</span>
             </div>
+          </div>
+        )}
+
+        {objectType === "video" && videoState && (
+          <div className="flex items-center gap-3">
+            {/* 재생/정지 버튼 */}
+            <button
+              type="button"
+              onClick={onVideoPlayPause}
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-sm"
+              title={videoState.isPlaying ? "정지" : "재생"}
+            >
+              {videoState.isPlaying ? "⏸" : "▶"}
+            </button>
+
+            {/* 타임바 (시킹) */}
+            <div className="flex items-center gap-2 min-w-[200px]">
+              <span className="text-[10px] text-gray-400">
+                {formatTime(videoState.currentTime)}
+              </span>
+              <input
+                type="range"
+                min="0"
+                max={videoState.duration || 0}
+                value={videoState.currentTime || 0}
+                onChange={(e) => onVideoSeek(Number(e.target.value))}
+                className="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="text-[10px] text-gray-400">
+                {formatTime(videoState.duration)}
+              </span>
+            </div>
+
+            {/* 음소거/볼륨 */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={onVideoMuteToggle}
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-sm"
+                title={videoState.muted ? "음소거 해제" : "음소거"}
+              >
+                {videoState.muted ? "🔇" : "🔊"}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={videoState.muted ? 0 : videoState.volume}
+                onChange={(e) => onVideoVolumeChange(Number(e.target.value))}
+                className="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                disabled={videoState.muted}
+              />
+            </div>
+
+            {/* 재생 속도 */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-gray-400">속도:</span>
+              <select
+                value={videoState.playbackRate || 1}
+                onChange={(e) => onVideoPlaybackRateChange(Number(e.target.value))}
+                className="bg-[#111827] border border-gray-600 rounded px-2 py-1 text-[11px] text-gray-100"
+              >
+                <option value="0.25">0.25x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1">1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+              </select>
+            </div>
+
+            {/* 전체화면 */}
+            <button
+              type="button"
+              onClick={onVideoFullscreen}
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-sm"
+              title="전체화면"
+            >
+              ⛶
+            </button>
           </div>
         )}
       </div>

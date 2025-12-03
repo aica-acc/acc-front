@@ -1,16 +1,13 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from './Header';
-import StepProgress from '../components/step/StepProgress';
-import BackButton from '../components/buttons/BackButton';
+import StepHeader from './StepHeader';
 
 const MainLayout = () => {
     return (
-        <div className=" flex flex-col min-h-screen mt-20">
-            <Header/>
-            <BackButton/>
-            <StepProgress/>
-            <main className="container mx-auto px-4">
+        <div className="flex min-h-screen bg-neutral-900">
+            <StepHeader/>
+            {/* 메인 컨텐츠 - 헤더 아래 */}
+            <main className="flex-1 container mx-auto px-4 overflow-auto pt-20">
                 <Outlet />
             </main>
         </div>

@@ -166,6 +166,12 @@ export default function useDesignManager(
   useEffect(() => {
     const canvas = fabricRef.current;
     
+    // 🔥 로딩 중이면 캔버스 재로딩 방지 (AI 색상 추천 등에서 사용)
+    if (isLoadingRef.current) {
+      console.log("⏸️ 로딩 중이므로 캔버스 로딩 스킵");
+      return;
+    }
+    
     // 🔥 항상 최신 designListRef에서 가져오기
     const latestDesign = designListRef.current.find(
       (item) => item.id === selectedDesignId

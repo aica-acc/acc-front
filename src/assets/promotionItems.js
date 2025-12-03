@@ -1,62 +1,59 @@
+// KOREAN_TYPE_NAME_MAP과 일치하는 매핑
 export const promotionItems = [
   {
-    id: "video",
-    title: "영상",
-    icon: "🎥",
-    colors: {
-      base: "bg-violet-100",
-      active: "bg-[#6b2df7]", // 보라색 진한톤
-    },
-    subOptions: ["인스타용 (20초)", "유튜브용 (40초)", "버스용 광고 (30초)"],
-  },
-  {
     id: "poster",
-    title: "포스터",
+    title: "Poster",
+    titleKo: "포스터",
     icon: "🖼️",
     colors: {
-      base: "bg-blue-100",
-      active: "bg-[#2563eb]", // 파란색 진한톤
+      base: "bg-gray-800",
+      active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",
     },
-    subOptions: ["Instagram(1:1)", "A3(3:4)", "Mobile", "16:9"],
+    subOptions: [
+      { value: "logo_illustration", label: "로고 일러스트" },
+      { value: "logo_typography", label: "로고 타이포그래피" },
+      { value: "poster_cardnews", label: "안내 카드뉴스" },
+      { value: "poster_video", label: "포스터 홍보영상" },
+      { value: "live_poster", label: "라이브 포스터" },
+      { value: "road_banner", label: "도로용 현수막" },
+      { value: "bus_shelter", label: "버스정류장 광고" },
+      { value: "subway_light", label: "지하철 조명광고" },
+      { value: "bus_road", label: "버스 도로 광고" },
+      { value: "streetlamp_banner", label: "가로등 현수막" },
+      { value: "subway_inner", label: "지하철 내부 광고" },
+    ],
   },
   {
-    id: "banner",
-    title: "현수막",
-    icon: "🚩",
-    colors: {
-      base: "bg-green-100",
-      active: "bg-[#16a34a]", // 초록 진한톤
-    },
-    subOptions: ["가로형", "세로형"],
-  },
-  {
-    id: "cardnews",
-    title: "카드뉴스",
-    icon: "📸",
-    colors: {
-      base: "bg-pink-100",
-      active: "bg-[#ec4899]", // 핑크 진한톤
-    },
-    subOptions: ["지도", "부스 소개", "행사 일정", "축제 개요"],
-  },
-  {
-    id: "mascort",
-    title: "마스코트",
+    id: "mascot",
+    title: "Mascot",
+    titleKo: "마스코트",
     icon: "😊",
     colors: {
-      base: "bg-yellow-100",
-      active: "bg-[#eab308]", // 노랑 진한톤
+      base: "bg-gray-800",
+      active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",
     },
-    subOptions: ["리뉴얼", "새로 생성", "다양한 버전"],
+    subOptions: [
+      { value: "sign_parking", label: "주차 표지판" },
+      { value: "sign_welcome", label: "입구 표지판" },
+      { value: "sign_toilet", label: "화장실 표지판" },
+      { value: "mascot_video", label: "마스코트 홍보영상" },
+      { value: "goods_sticker", label: "스티커" },
+      { value: "goods_key_ring", label: "키링" },
+      { value: "goods_emoticon", label: "이모티콘" },
+    ],
   },
   {
-    id: "leaflet",
-    title: "리플렛",
+    id: "etc",
+    title: "Etc",
+    titleKo: "기타",
     icon: "📄",
     colors: {
-      base: "bg-orange-100",
-      active: "bg-[#f97316]", // 주황 진한톤
+      base: "bg-gray-800",
+      active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",
     },
-    subOptions: ["리플렛"],
+    subOptions: [
+      { value: "news", label: "뉴스" },
+      { value: "etc_video", label: "축제 홍보영상" },
+    ],
   },
 ];

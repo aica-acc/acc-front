@@ -13,6 +13,8 @@ import useTextStyleControls from "../components/editor/hooks/useTextStyleControl
 import useCanvasHistory from "../components/editor/hooks/useCanvasHistory";
 import useDesignManager from "../components/editor/hooks/useDesignManager";
 import { Textbox } from "fabric";
+import { loadDesignToCanvas } from "../utils/editor/canvasLoader";
+import { requestAIColorRecommendation } from "../utils/api/EditorAPI";
 
 // 폰트 옵션 import
 import { FONT_OPTIONS } from "../constants/fontOptions";
@@ -28,9 +30,9 @@ const EditorPage = () => {
       return [];
     }
 
-    return itemsData.map((item) => ({
-      id: item.id,
-      title: item.category || `디자인 ${item.id}`,
+    return itemsData.map((item, index) => ({
+      id: index,
+      title: item.category || `디자인 ${index}`,
       category: item.category || "미분류",
       thumbnailUrl: item.backgroundImageUrl,
       backgroundImageUrl: item.backgroundImageUrl,
@@ -64,6 +66,16 @@ const EditorPage = () => {
 
   const [selectedObjectType, setSelectedObjectType] = useState(null);
   const [rotationAngle, setRotationAngle] = useState(null);
+  
+  // Video 컨트롤 상태
+  const [videoState, setVideoState] = useState({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    muted: false,
+    playbackRate: 1,
+  });
 
   // Fabric refs
   const canvasRef = useRef(null);
@@ -137,8 +149,8 @@ const EditorPage = () => {
         setIsLoading(true);
         
         // 🔥 테스트용: sessionStorage에 editorPNo 설정 (임시)
-        sessionStorage.setItem("editorPNo", "3");
-        console.log("🧪 [테스트] editorPNo를 3으로 설정");
+        // sessionStorage.setItem("editorPNo", "17");
+        // console.log("🧪 [테스트] editorPNo를 3으로 설정");
         
         // pNo 가져오기 (state 또는 sessionStorage)
         let pNo = null;
@@ -328,10 +340,10 @@ const EditorPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [selectedDesign, recalcCanvasViewport]);
 
-  // 🔥 Save 버튼 핸들러
-  const handleSave = useCallback(() => {
+  // 🔥 모두 저장 핸들러 (모든 디자인을 이미지로 다운로드)
+  const handleSaveAll = useCallback(async () => {
     const canvas = fabricRef.current;
-    if (!canvas || !selectedDesign) {
+    if (!canvas || !designList || designList.length === 0) {
       alert("저장할 디자인이 없습니다.");
       return;
     }
@@ -341,12 +353,85 @@ const EditorPage = () => {
       return;
     }
 
-    console.log("💾 [Save 버튼] 저장 시작");
-    snapshotCurrentDesign();
-    alert("저장되었습니다.");
-  }, [selectedDesign, snapshotCurrentDesign, isLoadingRef]);
+    console.log("💾 [모두 저장] 시작:", designList.length, "개");
+    
+    // 현재 선택된 디자인과 뷰포트 상태 저장
+    const currentSelectedId = selectedDesign?.id;
+    const originalVpt = canvas.viewportTransform;
+    
+    try {
+      // 각 디자인을 순회하며 저장
+      for (let i = 0; i < designList.length; i++) {
+        const design = designList[i];
+        console.log(`📥 [${i + 1}/${designList.length}] ${design.title} 저장 중...`);
+        
+        // 현재 디자인을 캔버스에 로드 (캔버스는 재초기화하지 않고 객체만 교체)
+        await loadDesignToCanvas(canvas, design, saveHistory, isLoadingRef);
+        
+        // 디자인 크기 가져오기
+        const currentWidth = design.canvasJson?.width || design.exportWidth || 800;
+        const currentHeight = design.canvasJson?.height || design.exportHeight || 450;
+        const targetWidth = design.exportWidth || currentWidth;
+        const targetHeight = design.exportHeight || currentHeight;
 
-  // 다운로드
+        const scaleX = targetWidth / currentWidth;
+        const scaleY = targetHeight / currentHeight;
+        const multiplier = Math.min(scaleX, scaleY);
+
+        // 뷰포트 초기화 후 캡처
+        canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+        
+        const dataUrl = canvas.toDataURL({
+          format: "png",
+          multiplier: multiplier > 0 ? multiplier : 1,
+          width: currentWidth,
+          height: currentHeight,
+          left: 0,
+          top: 0
+        });
+
+        // 다운로드
+        const link = document.createElement("a");
+        const baseName = `${design.category || "design"}_${design.id}`;
+        link.download = `${baseName}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 다음 디자인 로드를 위한 짧은 딜레이
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // 원래 선택된 디자인으로 복원
+      if (currentSelectedId) {
+        const originalDesign = designList.find(d => d.id === currentSelectedId);
+        if (originalDesign) {
+          await loadDesignToCanvas(canvas, originalDesign, saveHistory, isLoadingRef);
+        }
+      }
+      
+      // 뷰포트 복구
+      canvas.setViewportTransform(originalVpt);
+      
+      alert(`모든 디자인(${designList.length}개)이 저장되었습니다.`);
+      console.log("✅ [모두 저장] 완료");
+    } catch (error) {
+      console.error("❌ [모두 저장] 실패:", error);
+      alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+      
+      // 에러 발생 시 원래 상태로 복원 시도
+      if (currentSelectedId) {
+        const originalDesign = designList.find(d => d.id === currentSelectedId);
+        if (originalDesign) {
+          await loadDesignToCanvas(canvas, originalDesign, saveHistory, isLoadingRef);
+        }
+      }
+      canvas.setViewportTransform(originalVpt);
+    }
+  }, [designList, selectedDesign, fabricRef, saveHistory, isLoadingRef]);
+
+  // 단일 저장 (다운로드) - 현재 선택된 디자인만 다운로드
   const handleDownloadCurrent = useCallback(() => {
     const canvas = fabricRef.current;
     if (!canvas || !selectedDesign) return;
@@ -531,11 +616,18 @@ const EditorPage = () => {
           shadow: shadowData,
         }));
       } else if (obj?.type === 'image') {
-        setSelectedObjectType("image");
-        setTextStyle((prev) => ({
-          ...prev,
-          color: obj.fill || "#000000",
-        }));
+        // video 객체인지 확인
+        const element = obj.getElement ? obj.getElement() : null;
+        const objData = obj.toObject ? obj.toObject() : {};
+        if (element && element.tagName === 'VIDEO' || objData.videoUrl || objData.mediaType === 'video') {
+          setSelectedObjectType("video");
+        } else {
+          setSelectedObjectType("image");
+          setTextStyle((prev) => ({
+            ...prev,
+            color: obj.fill || "#000000",
+          }));
+        }
       } else if (obj?.type === 'rect' || obj?.type === 'circle' || obj?.type === 'triangle' || 
                  obj?.type === 'polygon' || obj?.type === 'line') {
         // 도형 (shapes)
@@ -570,20 +662,6 @@ const EditorPage = () => {
     // 🔥 자동 저장 제거: 변경 감지만 하고 저장하지 않음
     // 저장은 사용자가 Save 버튼을 클릭할 때만 발생
     const handleCanvasChange = (eventType, event) => {
-      // 🔥 변경 감지 로그만 출력 (저장하지 않음)
-      const objectInfo = event?.target ? {
-        type: event.target.type,
-        left: event.target.left,
-        top: event.target.top,
-        text: event.target.text || event.target.textContent || 'N/A'
-      } : null;
-      
-      console.log("🔄 변경 감지됨 (저장 안함):", {
-        eventType,
-        objectInfo,
-        timestamp: new Date().toLocaleTimeString()
-      });
-      
       // 🔥 히스토리만 저장 (Undo/Redo용, 스냅샷은 저장하지 않음)
       if (!isLoadingRef.current) {
         saveHistory();
@@ -600,24 +678,14 @@ const EditorPage = () => {
       handleRotationEnd(e);
     });
     
-    // 객체 이동 중 (드래그 중) - 로그만 출력
+    // 객체 이동 중 (드래그 중) - 이벤트만 처리
     c.on("object:moving", (e) => {
-      console.log("🔄 변경 감지됨: object:moving", {
-        left: e.target.left,
-        top: e.target.top,
-        type: e.target.type,
-        timestamp: new Date().toLocaleTimeString()
-      });
+      // 이벤트 처리만
     });
     
-    // 객체 리사이즈 중 - 로그만 출력
+    // 객체 리사이즈 중 - 이벤트만 처리
     c.on("object:scaling", (e) => {
-      console.log("🔄 변경 감지됨: object:scaling", {
-        scaleX: e.target.scaleX,
-        scaleY: e.target.scaleY,
-        type: e.target.type,
-        timestamp: new Date().toLocaleTimeString()
-      });
+      // 이벤트 처리만
     });
     
     // 객체 추가/삭제 - 히스토리만 저장
@@ -633,18 +701,54 @@ const EditorPage = () => {
       handleCanvasChange("text:changed", e);
     });
     
-    // 텍스트 편집 시작 - 로그만 출력
+    // 텍스트 편집 시작 - 이벤트만 처리
     c.on("text:editing:entered", (e) => {
-      console.log("🔄 변경 감지됨: text:editing:entered", {
-        text: e.target.text,
-        timestamp: new Date().toLocaleTimeString()
-      });
+      // 이벤트 처리만
     });
     
     // 회전 중에는 저장하지 않음 (완료 시에만 저장)
     c.on("object:rotating", handleRotating);
 
+    // 🔥 video 객체가 있을 때 계속 렌더링 (Fabric.js 공식 방식)
+    let animationFrameId = null;
+    const hasVideoObjects = () => {
+      const objects = c.getObjects();
+      return objects.some(obj => {
+        const element = obj.getElement ? obj.getElement() : null;
+        if (element && element.tagName === 'VIDEO') {
+          return true;
+        }
+        const objData = obj.toObject ? obj.toObject() : {};
+        return objData.videoUrl || objData.mediaType === 'video';
+      });
+    };
+
+    const renderLoop = () => {
+      if (hasVideoObjects()) {
+        c.renderAll();
+      }
+      animationFrameId = window.requestAnimationFrame(renderLoop);
+    };
+
+    // video가 있으면 렌더링 루프 시작
+    if (hasVideoObjects()) {
+      renderLoop();
+    }
+
+    // 객체 추가 시 video 체크
+    const checkAndStartRenderLoop = () => {
+      if (hasVideoObjects() && !animationFrameId) {
+        renderLoop();
+      }
+    };
+    c.on("object:added", checkAndStartRenderLoop);
+
     return () => {
+      // 렌더링 루프 중지
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
       c.off("selection:created", syncToolbarFromSelection);
       c.off("selection:updated", syncToolbarFromSelection);
       c.off("selection:cleared");
@@ -658,11 +762,174 @@ const EditorPage = () => {
       c.off("object:removed", handleCanvasChange);
       c.off("text:changed", handleCanvasChange);
       c.off("object:rotating", handleRotating);
+      c.off("object:added", checkAndStartRenderLoop);
       c.dispose();
       fabricRef.current = null;
       delete window.checkCanvasObjects;
     };
   }, [saveHistory, isLoadingRef, isLoading]); // 🔥 자동 저장 제거: snapshotCurrentDesignDebounced 사용 안함
+
+  // 🔥 Video element 가져오기
+  const getVideoElement = useCallback(() => {
+    const canvas = fabricRef.current;
+    if (!canvas) return null;
+    const obj = canvas.getActiveObject();
+    if (!obj) return null;
+    
+    const element = obj.getElement ? obj.getElement() : null;
+    if (element && element.tagName === 'VIDEO') {
+      return element;
+    }
+    return null;
+  }, []);
+
+  // 🔥 Video 컨트롤 핸들러들
+  const handleVideoPlayPause = useCallback(() => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+    
+    if (videoEl.paused) {
+      videoEl.play().then(() => {
+        setVideoState(prev => ({ ...prev, isPlaying: true }));
+      }).catch(err => {
+        console.warn("비디오 재생 실패:", err);
+      });
+    } else {
+      videoEl.pause();
+      setVideoState(prev => ({ ...prev, isPlaying: false }));
+    }
+  }, [getVideoElement]);
+
+  const handleVideoSeek = useCallback((time) => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+    videoEl.currentTime = time;
+    setVideoState(prev => ({ ...prev, currentTime: time }));
+  }, [getVideoElement]);
+
+  const handleVideoMuteToggle = useCallback(() => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+    videoEl.muted = !videoEl.muted;
+    setVideoState(prev => ({ ...prev, muted: videoEl.muted }));
+  }, [getVideoElement]);
+
+  const handleVideoVolumeChange = useCallback((volume) => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+    videoEl.volume = Math.max(0, Math.min(1, volume));
+    setVideoState(prev => ({ ...prev, volume: videoEl.volume }));
+  }, [getVideoElement]);
+
+  const handleVideoPlaybackRateChange = useCallback((rate) => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+    videoEl.playbackRate = rate;
+    setVideoState(prev => ({ ...prev, playbackRate: rate }));
+  }, [getVideoElement]);
+
+  const handleVideoFullscreen = useCallback(() => {
+    // video element가 DOM에 연결되어 있는지 확인
+    const videoEl = getVideoElement();
+    const isVideoConnected = videoEl && videoEl.isConnected;
+    
+    // video element가 DOM에 연결되어 있으면 video element로 전체화면 시도
+    if (videoEl && isVideoConnected) {
+      const requestFullscreen = 
+        videoEl.requestFullscreen ||
+        videoEl.webkitRequestFullscreen ||
+        videoEl.mozRequestFullScreen ||
+        videoEl.msRequestFullscreen;
+      
+      if (requestFullscreen) {
+        try {
+          const promise = requestFullscreen.call(videoEl);
+          if (promise && typeof promise.catch === 'function') {
+            promise.catch(err => {
+              console.warn("Video element 전체화면 실패, container로 시도:", err);
+              requestContainerFullscreen();
+            });
+          }
+          return;
+        } catch (err) {
+          console.warn("Video element 전체화면 오류, container로 시도:", err);
+          requestContainerFullscreen();
+          return;
+        }
+      }
+    }
+    
+    // video element가 없거나 연결되지 않았으면 container를 전체화면으로
+    requestContainerFullscreen();
+    
+    function requestContainerFullscreen() {
+      const container = containerRef.current;
+      if (container) {
+        const requestFullscreen = 
+          container.requestFullscreen ||
+          container.webkitRequestFullscreen ||
+          container.mozRequestFullScreen ||
+          container.msRequestFullscreen;
+        
+        if (requestFullscreen) {
+          try {
+            const promise = requestFullscreen.call(container);
+            if (promise && typeof promise.catch === 'function') {
+              promise.catch(err => {
+                console.error("Container 전체화면 실패:", err);
+              });
+            }
+          } catch (err) {
+            console.error("Container 전체화면 오류:", err);
+          }
+        }
+      }
+    }
+  }, [getVideoElement]);
+
+  // 🔥 Video 상태 업데이트 (timeupdate 이벤트)
+  useEffect(() => {
+    const videoEl = getVideoElement();
+    if (!videoEl) return;
+
+    const updateTime = () => {
+      setVideoState(prev => ({
+        ...prev,
+        currentTime: videoEl.currentTime,
+        duration: videoEl.duration || 0,
+        isPlaying: !videoEl.paused,
+      }));
+    };
+
+    const updateDuration = () => {
+      setVideoState(prev => ({
+        ...prev,
+        duration: videoEl.duration || 0,
+      }));
+    };
+
+    videoEl.addEventListener('timeupdate', updateTime);
+    videoEl.addEventListener('loadedmetadata', updateDuration);
+    videoEl.addEventListener('play', () => setVideoState(prev => ({ ...prev, isPlaying: true })));
+    videoEl.addEventListener('pause', () => setVideoState(prev => ({ ...prev, isPlaying: false })));
+
+    // 초기 상태 설정
+    updateTime();
+    updateDuration();
+    setVideoState(prev => ({
+      ...prev,
+      volume: videoEl.volume,
+      muted: videoEl.muted,
+      playbackRate: videoEl.playbackRate,
+    }));
+
+    return () => {
+      videoEl.removeEventListener('timeupdate', updateTime);
+      videoEl.removeEventListener('loadedmetadata', updateDuration);
+      videoEl.removeEventListener('play', () => {});
+      videoEl.removeEventListener('pause', () => {});
+    };
+  }, [selectedObjectType, getVideoElement]);
 
   // 객체 조작 함수들 (복제, 삭제 등)
   const handleDuplicateObject = useCallback(async () => {
@@ -791,6 +1058,245 @@ const EditorPage = () => {
     }
   }, [fabricRef]);
 
+  // 🎨 AI 색상 추천 핸들러
+  const handleAIColorRecommendation = useCallback(async () => {
+    if (!selectedDesign) {
+      alert("선택된 디자인이 없습니다.");
+      return;
+    }
+
+    if (!selectedDesign.canvasJson) {
+      alert("캔버스 데이터가 없습니다.");
+      return;
+    }
+
+    if (!selectedDesign.backgroundImageUrl) {
+      alert("배경 이미지가 없습니다.");
+      return;
+    }
+
+    try {
+      // 로딩 상태 표시 (선택 사항 - 나중에 UI 추가 가능)
+      console.log("🎨 [AI 색상 추천] 시작");
+
+      // 현재 canvas에서 사용자가 수정한 최신 데이터 가져오기
+      const canvas = fabricRef.current;
+      if (!canvas) {
+        throw new Error("캔버스가 초기화되지 않았습니다.");
+      }
+      
+      const currentCanvasData = canvas.toJSON(['selectable', 'evented']); // 현재 상태 추출
+      
+      // AI 서버로 보낼 때는 변경 가능한 필드만 포함하도록 필터링
+      // 변경 가능한 필드: fontFamily, fontSize, fontWeight, fontStyle, fill, stroke, strokeWidth, 
+      //                  opacity, charSpacing, lineHeight, textBackgroundColor, textAlign, underline, linethrough, shadow
+      // 변경 불가능한 필드는 제외 (left, top, width, height, angle, scaleX, scaleY 등)
+      // 하지만 AI 서버가 객체 구조를 이해하기 위해 type, role 같은 식별 필드는 포함
+      const filterModifiableFields = (canvasJson) => {
+        if (!canvasJson || !canvasJson.objects) {
+          return canvasJson;
+        }
+
+        // 변경 가능한 필드 목록
+        const modifiableFields = [
+          'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
+          'fill', 'stroke', 'strokeWidth',
+          'opacity',
+          'charSpacing', 'lineHeight',
+          'textBackgroundColor', 'textAlign', 'underline', 'linethrough',
+          'shadow'
+        ];
+
+        // 객체 식별을 위한 필수 필드 (AI 서버가 객체를 구분하기 위해 필요)
+        const requiredFields = ['type', 'role'];
+
+        const filteredObjects = canvasJson.objects.map(obj => {
+          const filteredObj = {};
+          
+          // 필수 필드 포함
+          requiredFields.forEach(field => {
+            if (obj.hasOwnProperty(field)) {
+              filteredObj[field] = obj[field];
+            }
+          });
+
+          // 변경 가능한 필드만 포함
+          modifiableFields.forEach(field => {
+            if (obj.hasOwnProperty(field)) {
+              filteredObj[field] = obj[field];
+            }
+          });
+
+          // 텍스트 객체의 경우 text 필드도 포함 (AI가 읽어야 함)
+          if (obj.type === 'textbox' || obj.type === 'i-text') {
+            if (obj.hasOwnProperty('text')) {
+              filteredObj.text = obj.text;
+            }
+          }
+
+          return filteredObj;
+        });
+
+        return {
+          ...canvasJson,
+          objects: filteredObjects
+        };
+      };
+
+      const filteredCanvasData = filterModifiableFields(currentCanvasData);
+      console.log("📤 [AI 색상 추천] 필터링된 canvas 데이터 전송 (변경 가능한 필드만):", filteredCanvasData);
+
+      // AI 서버에 요청
+      const updatedCanvasData = await requestAIColorRecommendation({
+        backgroundImageUrl: selectedDesign.backgroundImageUrl,
+        canvasData: filteredCanvasData,
+        layoutType: selectedDesign.category || "default",
+      });
+
+      console.log("✅ [AI 색상 추천] 응답 받음:", updatedCanvasData);
+      
+      // 응답 검증
+      if (!updatedCanvasData || typeof updatedCanvasData !== "object") {
+        throw new Error("AI 서버 응답이 올바르지 않습니다. updatedCanvas가 없습니다.");
+      }
+      
+      // objects 배열 검증
+      if (!updatedCanvasData.objects || !Array.isArray(updatedCanvasData.objects)) {
+        throw new Error("AI 서버 응답에 objects 배열이 없습니다.");
+      }
+
+      // AI가 변경한 객체들과 기존 객체들을 merge
+      // 변경 불가능한 필드(left, top, width, height, angle, scale 등)는 기존 값 유지
+      const mergeCanvasData = (original, updated) => {
+        if (!updated || !updated.objects || !Array.isArray(updated.objects)) {
+          console.warn("⚠️ [AI 색상 추천] updatedCanvas에 objects가 없습니다.");
+          return original;
+        }
+
+        if (!original || !original.objects || !Array.isArray(original.objects)) {
+          console.warn("⚠️ [AI 색상 추천] original canvasData에 objects가 없습니다.");
+          return updated;
+        }
+
+        // 인덱스 기반으로 객체 매칭 (순서 유지)
+        // original 객체를 기준으로, updated의 변경 가능한 필드만 업데이트
+        const mergedObjects = original.objects.map((originalObj, index) => {
+          const updatedObj = updated.objects[index];
+          
+          // AI 응답에 해당 인덱스 객체가 없으면 기존 객체 그대로 유지
+          if (!updatedObj) {
+            return originalObj;
+          }
+
+          // 변경 가능한 필드 목록 (AI 서버가 수정 가능한 필드만)
+          const modifiableFields = [
+            'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
+            'fill', 'stroke', 'strokeWidth',
+            'opacity',
+            'charSpacing', 'lineHeight',
+            'textBackgroundColor', 'textAlign', 'underline', 'linethrough',
+            'shadow'
+          ];
+
+          // 기존 객체를 베이스로 하되, AI 응답에서 변경 가능한 필드만 업데이트
+          // 나머지 필드(left, top, width, height, angle, scaleX, scaleY, text 등)는 기존 값 유지
+          const mergedObj = { ...originalObj };
+          
+          modifiableFields.forEach(field => {
+            // AI 응답에 해당 필드가 명시적으로 있으면 업데이트 (undefined가 아닌 경우)
+            if (updatedObj.hasOwnProperty(field) && updatedObj[field] !== undefined) {
+              mergedObj[field] = updatedObj[field];
+            }
+          });
+
+          return mergedObj;
+        });
+
+        // AI 응답에 새로 추가된 객체가 있는 경우 (원본보다 많은 경우)
+        // 사용자가 추가한 텍스트 등이 AI 응답에 포함된 경우
+        if (updated.objects.length > original.objects.length) {
+          const newObjects = updated.objects.slice(original.objects.length);
+          mergedObjects.push(...newObjects);
+        }
+
+        return {
+          ...original,
+          objects: mergedObjects,
+          width: original.width || updated.width, // 항상 기존 값 유지, 없으면 updated
+          height: original.height || updated.height, // 항상 기존 값 유지, 없으면 updated
+        };
+      };
+
+      // merge할 때는 현재 canvas 상태(original)를 기준으로 하고, AI 응답(updated)에서 변경 가능한 필드만 업데이트
+      const mergedCanvasData = mergeCanvasData(currentCanvasData, updatedCanvasData);
+      console.log("🔄 [AI 색상 추천] 데이터 병합 완료");
+
+      // 캔버스를 재로딩하지 않고 객체만 직접 업데이트 (캔버스 설정 유지)
+      const canvasObjects = canvas.getObjects();
+      const modifiableFields = [
+        'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
+        'fill', 'stroke', 'strokeWidth',
+        'opacity',
+        'charSpacing', 'lineHeight',
+        'textBackgroundColor', 'textAlign', 'underline', 'linethrough',
+        'shadow'
+      ];
+
+      // 인덱스 순서대로 객체 업데이트
+      mergedCanvasData.objects.forEach((updatedObj, index) => {
+        const canvasObj = canvasObjects[index];
+        if (!canvasObj) {
+          console.warn(`⚠️ [AI 색상 추천] 인덱스 ${index}에 객체가 없습니다.`);
+          return;
+        }
+
+        // 변경 가능한 필드만 업데이트
+        modifiableFields.forEach(field => {
+          if (updatedObj.hasOwnProperty(field) && updatedObj[field] !== undefined) {
+            canvasObj.set(field, updatedObj[field]);
+          }
+        });
+      });
+
+      // 변경사항 반영
+      canvas.requestRenderAll();
+      
+      // 히스토리 저장
+      if (!isLoadingRef.current) {
+        saveHistory();
+      }
+
+      // isLoadingRef를 true로 설정하여 캔버스 재로딩 방지
+      // useDesignManager의 useEffect에서 isLoadingRef.current를 체크하여 캔버스 로딩을 건너뜀
+      isLoadingRef.current = true;
+
+      // initialDesigns 상태 업데이트 (동기화)
+      setInitialDesigns((prevDesigns) => {
+        return prevDesigns.map((design) => {
+          if (design.id === selectedDesign.id) {
+            return {
+              ...design,
+              canvasJson: mergedCanvasData,
+            };
+          }
+          return design;
+        });
+      });
+
+      // 약간의 딜레이 후 isLoadingRef 해제
+      setTimeout(() => {
+        isLoadingRef.current = false;
+      }, 300);
+
+      console.log("✅ [AI 색상 추천] 캔버스 객체 업데이트 완료 (캔버스 재로딩 없음)");
+
+      alert("AI 색상 추천이 적용되었습니다!");
+    } catch (error) {
+      console.error("❌ [AI 색상 추천] 실패:", error);
+      alert(`AI 색상 추천 중 오류가 발생했습니다: ${error.message}`);
+    }
+  }, [selectedDesign, saveHistory, isLoadingRef]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Delete" && !e.target.matches("input, textarea")) {
@@ -841,18 +1347,19 @@ const EditorPage = () => {
             <div className="flex items-center gap-2 text-xs">
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={handleSaveAll}
                 className="px-3 py-1 rounded bg-green-600 hover:bg-green-500 font-semibold"
-                title="현재 디자인 저장"
+                title="모든 디자인 저장"
               >
-                저장
+                모두 저장
               </button>
               <button
                 type="button"
                 onClick={handleDownloadCurrent}
                 className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 font-semibold"
+                title="현재 선택된 디자인만 저장"
               >
-                Download
+                단일 저장
               </button>
             </div>
           </div>
@@ -878,6 +1385,15 @@ const EditorPage = () => {
             onSendBackward={handleSendBackward}
             onDuplicate={handleDuplicateObject}
             onDelete={handleDeleteObject}
+            onAIColorRecommendation={handleAIColorRecommendation}
+            // Video 컨트롤 props
+            videoState={videoState}
+            onVideoPlayPause={handleVideoPlayPause}
+            onVideoSeek={handleVideoSeek}
+            onVideoMuteToggle={handleVideoMuteToggle}
+            onVideoVolumeChange={handleVideoVolumeChange}
+            onVideoPlaybackRateChange={handleVideoPlaybackRateChange}
+            onVideoFullscreen={handleVideoFullscreen}
           />
 
           {rotationAngle !== null && (

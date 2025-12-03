@@ -79,57 +79,57 @@ const ProposalUploadPage = () => {
     file !== null;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
-      <h2 className="text-xl font-semibold mb-2 text-center">기획서 업로드</h2>
-      <p className="text-gray-500 text-sm text-center mb-6">
+    <div className="max-w-4xl mx-auto mt-32 bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-lg" style={{ marginTop: '128px' }}>
+      <h2 className="text-3xl font-semibold mb-3 text-center text-white">기획서 업로드</h2>
+      <p className="text-gray-400 text-base text-center mb-8">
         축제 정보와 기획서를 업로드해주세요
       </p>
 
       {/* 축제명 */}
-      <label className="block mb-1 font-medium text-gray-700">축제명 *</label>
+      <label className="block mb-2 text-base font-medium text-gray-300">축제명 *</label>
       <input
         type="text"
         placeholder="예: 제28회 보령머드축제"
         value={festivalName}
         onChange={(e) => setFestivalName(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+        className="w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 mb-5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
 
       {/* 키워드 */}
-      <label className="block mb-1 font-medium text-gray-700">
+      <label className="block mb-2 text-base font-medium text-gray-300">
         키워드 (최대 5개) *
       </label>
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-4">
         <input
           type="text"
           placeholder="보령, 머드, 축제"
           value={keywordInput}
           onChange={(e) => setKeywordInput(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+          className="flex-1 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <button
           onClick={handleAddKeyword}
           disabled={keywords.length >= 5}
-          className={`px-4 py-2 rounded-md border ${
+          className={`px-5 py-3 text-base rounded-md border transition ${
             keywords.length >= 5
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-blue-500 text-white hover:bg-blue-600"
+              ? "bg-gray-700 text-gray-500 border-gray-600 cursor-not-allowed"
+              : "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700"
           }`}
         >
           추가
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-5">
         {keywords.map((word, idx) => (
           <span
             key={idx}
-            className="bg-gradient-to-r from-purple-400 to-blue-400 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-4 py-1.5 rounded-full text-base flex items-center gap-2"
           >
             {word}
             <button
               onClick={() => handleRemoveKeyword(word)}
-              className="ml-1 font-bold text-white"
+              className="ml-1 font-bold text-white hover:text-gray-200"
             >
               ×
             </button>
@@ -138,43 +138,43 @@ const ProposalUploadPage = () => {
       </div>
 
       {/* 테마 */}
-      <label className="block mb-1 font-medium text-gray-700">축제 테마 *</label>
+      <label className="block mb-2 text-base font-medium text-gray-300">축제 테마 *</label>
       <textarea
         placeholder="지구촌 최대의 여름축제로..."
         value={theme}
         onChange={(e) => setTheme(e.target.value)}
-        rows="3"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+        rows="4"
+        className="w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 mb-5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
       ></textarea>
 
       {/* 파일 업로드 */}
-      <label className="block mb-1 font-medium text-gray-700">
+      <label className="block mb-2 text-base font-medium text-gray-300">
         기획서 업로드 *
       </label>
       <div
-        className={`border-2 rounded-lg p-6 text-center mb-6 ${
-          file ? "border-green-300 bg-green-50" : "border-dashed border-gray-300"
+        className={`border-2 rounded-lg p-8 text-center mb-6 ${
+          file ? "border-indigo-500 bg-indigo-500/10" : "border-dashed border-gray-600 bg-gray-700/50"
         }`}
       >
         {file ? (
           <div>
-            <div className="text-green-700 font-medium">{file.name}</div>
-            <div className="text-sm text-gray-600 mb-3">
+            <div className="text-indigo-400 font-medium text-lg">{file.name}</div>
+            <div className="text-base text-gray-400 mb-4">
               {`${(file.size / (1024 * 1024)).toFixed(2)} MB`}
             </div>
             <button
               onClick={() => setFile(null)}
-              className="px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-100"
+              className="px-4 py-2 text-base border border-gray-600 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 transition"
             >
               다시 선택
             </button>
           </div>
         ) : (
           <>
-            <p className="text-gray-500 mb-5">
+            <p className="text-gray-400 mb-6 text-base">
               파일을 드래그하거나 업로드하세요
             </p>
-            <label className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-100 cursor-pointer">
+            <label className="px-5 py-2.5 text-base border border-gray-600 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 cursor-pointer transition">
               파일 선택
               <input
                 type="file"
@@ -183,7 +183,7 @@ const ProposalUploadPage = () => {
                 className="hidden"
               />
             </label>
-            <p className="text-xs mt-5 text-gray-400 mt-2">
+            <p className="text-sm mt-5 text-gray-500 mt-3">
               PDF, Word, HWP 파일 지원 (최대 10MB)
             </p>
           </>
@@ -192,10 +192,10 @@ const ProposalUploadPage = () => {
 
       {/* 분석 시작하기 */}
       <button
-        className={`w-full py-3 rounded-lg font-semibold transition ${
+        className={`w-full py-4 rounded-lg font-semibold text-lg transition ${
           isFormValid
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            ? "bg-yellow-300 hover:bg-yellow-400 text-black"
+            : "bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600"
         }`}
         disabled={!isFormValid}
         onClick={handleAnalyze}

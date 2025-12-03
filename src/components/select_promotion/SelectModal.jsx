@@ -2,60 +2,76 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 
 const SelectModal = ({ data, onClose, onSave, defaultSelected = [] }) => {
+  // defaultSelected는 영어 value 배열
   const [selected, setSelected] = useState(defaultSelected);
 
-  const toggleSelect = (option) => {
+  const toggleSelect = (value) => {
     setSelected((prev) =>
-      prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
   };
 
   const handleSave = () => {
+    // 영어 value 배열로 저장
     onSave(selected);
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500/70 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-[400px] p-6 shadow-lg">
-        <div className="flex justify-between items-center mb-4 border-b pb-2">
-          <h2 className="text-lg font-bold">{data.title} 선택</h2>
-          <X className="cursor-pointer text-gray-500" onClick={onClose} />
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50" style={{ paddingTop: '128px' }}>
+      <div className="bg-gray-800 border border-gray-700 rounded-lg w-[500px] max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+        <div className="flex justify-between items-center p-6 border-b border-gray-700">
+          <h2 className="text-xl font-bold text-white">{data.titleKo || data.title} 선택</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="flex justify-end gap-3 mb-4">
+        <div className="flex justify-end gap-3 p-4 border-b border-gray-700">
           <button 
-          className="text-sm px-1 py-0.5 border border-gray-400 text-gray-600 hover:bg-gray-100 transition rounded-md"
-          variant="outline" onClick={() => setSelected([])}>전체해제
+            className="text-base font-bold px-4 py-2 border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-gray-300 transition rounded-md"
+            onClick={() => setSelected([])}
+          >
+            전체해제
           </button>  
           <button 
-          className="text-sm px-1 py-0.5 border border-blue-500 text-blue-500 hover:bg-blue-50 transition rounded-md "
-          variant="outline" onClick={() => setSelected(data.subOptions)}>전체선택
+            className="text-base font-bold px-4 py-2 border border-indigo-500 text-indigo-400 hover:bg-indigo-500/20 transition rounded-md"
+            onClick={() => setSelected(data.subOptions.map(opt => opt.value))}
+          >
+            전체선택
           </button>
-         
         </div>
 
-        <div className="flex flex-col gap-2 mb-6">
+        <div className="flex flex-col gap-2 p-6 overflow-y-auto flex-1">
           {data.subOptions.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <label 
+              key={opt.value} 
+              className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-700/50 transition"
+            >
               <input
                 type="checkbox"
-                checked={selected.includes(opt)}
-                onChange={() => toggleSelect(opt)}
+                checked={selected.includes(opt.value)}
+                onChange={() => toggleSelect(opt.value)}
+                className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-indigo-500 focus:ring-indigo-500 focus:ring-2"
               />
-              <span>{opt}</span>
+              <span className="text-gray-300 text-base">{opt.label}</span>
             </label>
           ))}
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-700">
           <button 
-          className="text-sm px-1 py-0.5 border border-black-500 text-black-500 hover:bg-blue-50 transition rounded-md "
-          variant="outline" onClick={onClose}>취소
+            className="text-base font-bold px-5 py-2.5 border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-gray-300 transition rounded-md"
+            onClick={onClose}
+          >
+            취소
           </button>
           
           <button 
-          className="text-sm px-1 py-0.5 border border-blue-500 text-blue-500 hover:bg-blue-50 transition rounded-md"
-          onClick={handleSave}
+            className="text-base font-bold px-5 py-2.5 bg-yellow-300 hover:bg-yellow-400 text-black transition rounded-md"
+            onClick={handleSave}
           >
             선택 완료
           </button>
