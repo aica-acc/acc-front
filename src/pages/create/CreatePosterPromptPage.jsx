@@ -115,7 +115,7 @@ export default function CreatePosterPromptPage() {
         posterImageUrl: fullImagePath, // 현재 보고 있는 이미지의 전체 경로
         mascotImageUrl: mascotImageUrl, // 더미 고정값
         title: proposalData.title || "",
-        festivalStartDate: proposalData.festivalStartDate 
+        festivalStartDate: proposalData.festivalStartDate
           ? new Date(proposalData.festivalStartDate).toISOString().split('T')[0]
           : "",
         festivalEndDate: proposalData.festivalEndDate
