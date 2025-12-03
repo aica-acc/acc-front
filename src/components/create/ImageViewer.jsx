@@ -35,11 +35,11 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
 
   const handleTypeToggle = (type) => {
     if (!onTypesChange) return;
-    
+
     const newTypes = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
-    
+
     onTypesChange(newTypes);
   };
 
@@ -93,7 +93,7 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
               alt="poster-full"
               onClick={(e) => e.stopPropagation()}
             />
-            
+
             {/* Types 선택 드롭다운 */}
             <div className="mt-4 relative" onClick={(e) => e.stopPropagation()}>
               <button

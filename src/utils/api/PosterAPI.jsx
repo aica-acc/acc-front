@@ -19,11 +19,11 @@ export const Image = {
         return api.get(`/api/assets/list`, {
             params: { type }
         })
-        .then(res => res.data)
-        .catch(err => {
-            console.error("썸네일 리스트 조회 오류:", err);
-            throw err;
-        });
+            .then(res => res.data)
+            .catch(err => {
+                console.error("썸네일 리스트 조회 오류:", err);
+                throw err;
+            });
     },
 
     /**
@@ -42,11 +42,11 @@ export const Image = {
      */
     getDetail: ({ filePathNo, promptNo }) => {
         return api.get(`/api/assets/detail/${filePathNo}/${promptNo}`)
-        .then(res => res.data)
-        .catch(err => {
-            console.error("상세 이미지 조회 오류:", err);
-            throw err;
-        });
+            .then(res => res.data)
+            .catch(err => {
+                console.error("상세 이미지 조회 오류:", err);
+                throw err;
+            });
     },
 }
 
@@ -93,18 +93,20 @@ export const Poster = {
      */
     updatePosterInfo: (filePathNo, visualPrompt) => {
         return api.post(`/api/posters/${filePathNo}/regenerate`, { visual_prompt: visualPrompt })
-            .then(({data}) => data)
+            .then(({ data }) => data)
             .catch(err => {
                 console.error("이미지 재생성 중 에러:", err);
                 throw err;
-        });
+            });
     },
 
     // 1) 프롬프트 생성
-    generatePrompt: (trendData) => {
+    generatePrompt: (trendData, promotionType = 'poster') => {
 
         return api
-            .post(`/api/generate-prompt`, trendData)
+            .post(`/api/generate-prompt`, trendData, {
+                params: {promotionType}
+            })
             .then((res) => res.data)
             .catch((err) => {
                 console.error("❌ 프롬프트 생성 중 에러", err);
@@ -113,16 +115,18 @@ export const Poster = {
     },
 
     // 2) 이미지 생성
-    createImage: (trendData) => {
-    return api
-        .post("/api/create-image", trendData)
-        .then((res) => {
-        console.log("🎯 [createImage] 응답:", res.data);
-        return res.data.images || [];
-        })
-        .catch((err) => {
-        console.error("❌ 이미지 생성 중 에러", err);
-        throw err;
-        });
+    createImage: (trendData, promotionType = 'poster') => {
+        return api
+            .post("/api/create-image", trendData, {
+                params: {promotionType}
+            })
+            .then((res) => {
+                console.log("🎯 [createImage] 응답:", res.data);
+                return res.data.images || [];
+            })
+            .catch((err) => {
+                console.error("❌ 이미지 생성 중 에러", err);
+                throw err;
+            });
     },
 }
