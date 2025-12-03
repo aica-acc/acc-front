@@ -1,17 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
+import PressReleaseModal from './PressReleaseModal'; // 모달 컴포넌트 불러오기
 
-const ArticleView = ({ data }) => {
+const ArticleView = ({ data, images }) => {
+    // 모달 상태 관리
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // 1. 데이터 로딩 방어 코드
+    if (!data) return <div className="p-10 text-center text-slate-500">데이터를 불러오는 중입니다...</div>;
+
+    // 2. 이미지 분류 로직 (DB 연동)
+    const posterList = images?.filter(img => img.assetType === 'poster') || [];
+    const mainPoster = posterList.find(img => img.isMain === 1) || posterList[0];
+    const posterUrl = mainPoster ? mainPoster.fileUrl : null;
+
+    const mascotList = images?.filter(img => img.assetType === 'mascot') || [];
+    const mainMascot = mascotList.find(img => img.isMain === 1) || mascotList[0];
+    const mascotUrl = mainMascot ? mainMascot.fileUrl : null;
+
+    const bannerList = images?.filter(img => img.assetType === 'banner') || [];
+
+    // 이미지 경로 처리 함수
+    const getFullUrl = (url) => {
+        if (!url) return "";
+        if (url.startsWith('http')) return url;
+        return url.startsWith('/') ? url : `/${url}`;
+    };
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-12 font-sans text-slate-700">
             {/* 메인 기사 영역 */}
             <div className="article-main">
-                <header className="mb-8 pb-6 border-b-2 border-slate-900">
-                    <h1 className="font-serif text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-3">
-                        {data.title}
-                    </h1>
-                    <p className="font-sans text-lg text-slate-500 font-normal">
-                        {data.subtitle}
-                    </p>
+                <header className="mb-8 pb-6 border-b-2 border-slate-900 flex justify-between items-end">
+                    <div className="flex-1">
+                        <h1 className="font-serif text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-3">
+                            {data.title}
+                        </h1>
+                        <p className="font-sans text-lg text-slate-500 font-normal">
+                            {data.subtitle}
+                        </p>
+                    </div>
+                    {/* ✅ [추가됨] 보도자료 보기 버튼 */}
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-slate-800 text-white text-sm px-4 py-2 rounded hover:bg-slate-700 transition flex items-center gap-2 shrink-0 h-fit ml-4"
+                    >
+                        <span>📄</span> 보도자료 보기
+                    </button>
                 </header>
 
                 <div className="bg-slate-50 border border-slate-200 border-l-4 border-l-blue-900 p-6 mb-8 rounded-sm">
@@ -19,7 +53,7 @@ const ArticleView = ({ data }) => {
                         📌 뉴스 요약
                     </h3>
                     <ul className="space-y-2">
-                        {data.summary.map((item, idx) => (
+                        {data.summary?.map((item, idx) => (
                             <li key={idx} className="relative pl-5 text-sm text-slate-700 leading-relaxed">
                                 <span className="absolute left-0 text-blue-900 font-bold">•</span>
                                 {item}
@@ -30,21 +64,15 @@ const ArticleView = ({ data }) => {
 
                 <figure className="mb-8">
                     <div className="w-full h-[400px] bg-slate-200 flex items-center justify-center text-slate-500 text-sm rounded-sm overflow-hidden">
-                        {data.mainImage.url && !data.mainImage.url.includes('/dummy/') ? (
-                            <img src={data.mainImage.url} alt="Main" className="w-full h-full object-cover" />
-                        ) : data.mainImage.url && data.mainImage.url.includes('/dummy/') ? (
-                            <div className="flex flex-col items-center justify-center h-full w-full bg-slate-200 text-slate-500">
-                                <span>Image: {data.mainImage.url}</span>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center">
-                                <span className="text-4xl mb-2">📷</span>
-                                <span>이미지 영역</span>
-                            </div>
-                        )}
+                        <img 
+                            src={getFullUrl(posterUrl) || data.mainImage?.url} 
+                            alt="Main" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => e.target.style.display = 'none'}
+                        />
                     </div>
                     <figcaption className="text-xs text-slate-500 mt-2 text-center italic">
-                        ▲ {data.mainImage.caption}
+                        ▲ {data.mainImage?.caption || '대표 이미지'}
                     </figcaption>
                 </figure>
 
@@ -64,30 +92,50 @@ const ArticleView = ({ data }) => {
                     dangerouslySetInnerHTML={{ __html: data.body2 }}
                 />
 
-                <div className="bg-slate-100 p-6 rounded text-sm">
+                {/* 하단: 버스/현수막 파일 다운로드 영역 */}
+                {bannerList.length > 0 && (
+                    <div className="mt-10 p-6 bg-slate-100 rounded border border-slate-300">
+                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            📂 홍보물 다운로드 (현수막/배너)
+                        </h3>
+                        <div className="grid grid-cols-1 gap-3">
+                            {bannerList.map((banner, idx) => (
+                                <a key={idx} href={getFullUrl(banner.fileUrl)} download target="_blank" rel="noreferrer"
+                                   className="flex items-center justify-between bg-white p-3 rounded shadow-sm hover:bg-slate-50 transition">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl">🚌</span>
+                                        <div className="text-sm">
+                                            <p className="font-bold text-slate-700">거리 현수막 시안 {idx + 1}</p>
+                                            <p className="text-xs text-slate-400">JPG/PNG 고화질 이미지</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-blue-600 text-xs font-bold border border-blue-600 px-2 py-1 rounded">다운로드</span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="bg-slate-100 p-6 rounded text-sm mt-8">
                     <h3 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-200">
                         📄 행사 안내
                     </h3>
                     <div className="grid gap-3">
                         <div className="flex items-baseline">
                             <span className="w-24 font-semibold text-slate-500 shrink-0">행사명</span>
-                            <span className="text-slate-900 font-medium">{data.info.name}</span>
+                            <span className="text-slate-900 font-medium">{data.info?.name}</span>
                         </div>
                         <div className="flex items-baseline">
                             <span className="w-24 font-semibold text-slate-500 shrink-0">일시</span>
-                            <span className="text-slate-900">{data.info.date}</span>
+                            <span className="text-slate-900">{data.info?.date}</span>
                         </div>
                         <div className="flex items-baseline">
                             <span className="w-24 font-semibold text-slate-500 shrink-0">장소</span>
-                            <span className="text-slate-900">{data.info.location}</span>
-                        </div>
-                        <div className="flex items-baseline">
-                            <span className="w-24 font-semibold text-slate-500 shrink-0">프로그램</span>
-                            <span className="text-slate-900">{data.info.program}</span>
+                            <span className="text-slate-900">{data.info?.location}</span>
                         </div>
                         <div className="flex items-baseline">
                             <span className="w-24 font-semibold text-slate-500 shrink-0">문의처</span>
-                            <span className="text-slate-900">{data.info.contact}</span>
+                            <span className="text-slate-900">{data.info?.contact}</span>
                         </div>
                     </div>
                 </div>
@@ -97,24 +145,51 @@ const ArticleView = ({ data }) => {
             <aside className="article-sidebar flex flex-col gap-10">
                 <div>
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-blue-900 pb-2 mb-4">
-                        🎨 포스터·비주얼
+                        🎨 공식 포스터
                     </h3>
-                    {data.sidebar.posters.map((poster, idx) => (
-                        <div key={idx} className="mb-6 last:mb-0">
-                            <div className="w-full aspect-[2/3] bg-slate-200 flex items-center justify-center text-slate-400 text-xs rounded-sm mb-2 overflow-hidden">
-                                {poster.image && !poster.image.includes('/dummy/') ? (
-                                    <img src={poster.image} alt={poster.title} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="flex items-center justify-center w-full h-full bg-slate-200 text-slate-500">
-                                        {poster.image ? `Poster: ${poster.image}` : "Poster Image"}
-                                    </div>
-                                )}
-                            </div>
-                            <p className="text-xs text-slate-500 text-center font-medium">{poster.title}</p>
-                        </div>
-                    ))}
+                    <div className="w-full bg-slate-200 flex items-center justify-center rounded-sm overflow-hidden shadow-md">
+                        {posterUrl ? (
+                            <img 
+                                src={getFullUrl(posterUrl)} 
+                                alt="Main Poster" 
+                                className="w-full h-auto object-cover"
+                            />
+                        ) : (
+                            <div className="p-10 text-slate-400 text-xs">등록된 포스터 없음</div>
+                        )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                        ▲ {data.info?.name} 공식 포스터
+                    </p>
                 </div>
+
+                {mascotUrl && (
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b-2 border-green-700 pb-2 mb-4">
+                            🧸 공식 마스코트
+                        </h3>
+                        <div className="w-full aspect-square bg-white border border-slate-200 flex items-center justify-center rounded-full overflow-hidden shadow-sm p-4">
+                            <img 
+                                src={getFullUrl(mascotUrl)} 
+                                alt="Mascot" 
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2 text-center">
+                            ▲ 축제 공식 캐릭터
+                        </p>
+                    </div>
+                )}
             </aside>
+
+            {/* ✅ [추가됨] 보도자료 모달 연결 */}
+            {isModalOpen && (
+                <PressReleaseModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    data={data}
+                />
+            )}
         </div>
     );
 };

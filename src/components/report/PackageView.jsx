@@ -4,11 +4,14 @@ import PressReleaseModal from './PressReleaseModal';
 const PackageView = ({ data, articleData }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // 🛠️ 1. 데이터가 없을 때 방어 (흰 화면 방지)
+    if (!data) return <div className="p-10 text-center text-slate-500">패키지 정보를 불러오는 중입니다...</div>;
+
     const handleFileClick = (file) => {
         if (file.name === '보도자료.pdf') {
             setIsModalOpen(true);
         } else {
-            // 기본 동작 (다운로드 등) - 여기서는 데모용 alert
+            // 기본 동작 (다운로드 등)
             alert(`${file.name} 다운로드를 시작합니다.`);
         }
     };
@@ -28,7 +31,8 @@ const PackageView = ({ data, articleData }) => {
                     📂 파일 리스트
                 </h2>
                 <ul className="bg-slate-50 border border-slate-200 rounded-lg p-6 space-y-3">
-                    {data.files.map((file, idx) => (
+                    {/* 🛠️ 2. files 데이터가 있을 때만 map 실행 (?. 사용) */}
+                    {data.files?.map((file, idx) => (
                         <li key={idx} className="flex items-start gap-3 text-sm">
                             <span className="text-lg">{file.icon}</span>
                             <div className="flex-1">
@@ -57,7 +61,8 @@ const PackageView = ({ data, articleData }) => {
                     🔍 주요 파일 프리뷰
                 </h2>
                 <div className="space-y-6">
-                    {data.preview.map((item, idx) => (
+                    {/* 🛠️ 3. preview 데이터 안전하게 접근 */}
+                    {data.preview?.map((item, idx) => (
                         <div key={idx} className="bg-white border-l-4 border-blue-900 p-4 shadow-sm">
                             <h3 className="font-bold text-lg mb-2">{item.title}</h3>
                             <p className="text-slate-600 bg-slate-50 p-3 rounded italic">
@@ -74,12 +79,14 @@ const PackageView = ({ data, articleData }) => {
                 </button>
             </div>
 
-            {/* 보도자료 모달 */}
-            <PressReleaseModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                data={articleData}
-            />
+            {/* 보도자료 모달 - articleData가 없을 경우도 대비 */}
+            {isModalOpen && (
+                <PressReleaseModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    data={articleData || { title: "데이터 없음", body: "보도자료 데이터를 불러오지 못했습니다." }}
+                />
+            )}
         </div>
     );
 };
