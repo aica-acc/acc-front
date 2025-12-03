@@ -27,9 +27,9 @@ const AnalyzeButton = ({ label = "각 홍보물 프롬프트 생성하기" }) =>
       <button
         onClick={handleClick}
         className="
-          bg-green-500 hover:bg-green-600 
-          text-white font-semibold text-sm
-          px-6 py-3 
+          bg-yellow-300 hover:bg-yellow-400 
+          text-black font-bold text-base
+          px-8 py-3 
           rounded-lg shadow-md
           transition-all duration-200
           hover:shadow-lg active:scale-95

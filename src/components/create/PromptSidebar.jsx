@@ -42,11 +42,11 @@ export default function PromptSidebar({
   };
 
   return (
-    <aside className="w-[22vw] min-w-[320px] max-w-[420px] bg-gray-50 border-l border-gray-200 flex flex-col">
+    <aside className="w-[22vw] min-w-[320px] max-w-[420px] bg-gray-800 border-l border-gray-700 flex flex-col">
 
       {/* 로딩 전면 블러 처리 */}
       {loading && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-20">
+        <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-20">
           <div className="animate-spin h-10 w-10 border-4 border-gray-400 border-t-transparent rounded-full"></div>
         </div>
       )}
@@ -55,27 +55,27 @@ export default function PromptSidebar({
       {/* 기존 UI 그대로 유지 */}
       {/* ---------------------------- */}
 
-      <div className="px-5 pt-5 pb-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-1">프롬프트</h2>
-        <p className="text-sm text-gray-500 mb-4">이미지를 생성하거나 수정하세요</p>
+      <div className="px-5 pt-5 pb-4 border-b border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-100 mb-1">프롬프트</h2>
+        <p className="text-sm text-gray-400 mb-4">이미지를 생성하거나 수정하세요</p>
 
-        <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-700">
+        <div className="bg-gray-700 rounded-lg border border-gray-600 px-4 py-3 text-sm text-gray-200">
           {basePrompt || "초안 프롬프트가 여기에 들어갑니다."}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-2">프롬프트 작성 팁</h3>
-        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+        <h3 className="text-sm font-semibold text-gray-200 mb-2">프롬프트 작성 팁</h3>
+        <ul className="text-sm text-gray-400 list-disc list-inside space-y-1">
           <li>구체적인 설명을 적을수록 좋습니다.</li>
           <li>색감, 분위기, 스타일을 명시하세요.</li>
           <li>고해상도 언급을 추가할 수 있습니다.</li>
         </ul>
       </div>
 
-      <div className="px-5 py-4 border-t border-gray-200 bg-gray-50">
+      <div className="px-5 py-4 border-t border-gray-700 bg-gray-800">
         <textarea
-          className="w-full h-28 border border-gray-300 rounded-lg p-3 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-800"
+          className="w-full h-28 border border-gray-600 rounded-lg p-3 bg-gray-700 text-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="새로운 프롬프트를 입력하세요"
@@ -85,7 +85,7 @@ export default function PromptSidebar({
           onClick={handleSubmit}
           disabled={loading}
           className={`w-full mt-3 py-3 rounded-lg text-white text-sm font-medium transition
-            ${loading ? "bg-gray-400" : "bg-gray-900 hover:bg-gray-800"}`}
+            ${loading ? "bg-gray-600" : "bg-gray-700 hover:bg-gray-600"}`}
         >
           {loading ? "이미지 생성 중..." : "이미지 생성하기"}
         </button>

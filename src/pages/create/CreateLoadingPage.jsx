@@ -6,7 +6,7 @@ import LoadingSpinner from "../../components/loding/LoadingSpinner";
 const CreateLoadingPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const [message, setMessage] = useState("프롬프트를 생성하고 있습니다...");
+  const [message, setMessage] = useState("포스터 프롬프트를 생성하고 있습니다...");
 
   useEffect(() => {
     if (!state) {
@@ -17,24 +17,47 @@ const CreateLoadingPage = () => {
 
     const trendData = state;
 
-    Poster.generatePrompt(trendData)
-      .then((promptList) => {
-        sessionStorage.setItem("promptList", JSON.stringify(promptList));
-        setMessage("이미지를 생성하고 있습니다...");
-        return Poster.createImage(promptList);
+    // 1. 포스터 프롬프트 생성
+    Poster.generatePrompt(trendData, "poster")
+      .then((posterPromptList) => {
+        sessionStorage.setItem("posterPromptList", JSON.stringify(posterPromptList));
+        setMessage("포스터 이미지를 생성하고 있습니다...");
+        // 2. 포스터 이미지 생성
+        return Poster.createImage(posterPromptList, "poster");
       })
       .then((generatedImages) => {
-        sessionStorage.setItem(
-          "generatedImages",
-          JSON.stringify(generatedImages)
-        );
-        setMessage("생성된 이미지를 불러오고 있습니다...");
-        return Image.getThumbnailList("포스터");
+        sessionStorage.setItem("generatedImages", JSON.stringify(generatedImages));
+        setMessage("마스코트 프롬프트를 생성하고 있습니다...");
+        // 3. 마스코트 프롬프트 생성
+        return Poster.generatePrompt(trendData, "mascot");
       })
-      .then((thumbnailList) => {
-        sessionStorage.setItem("thumbnailList", JSON.stringify(thumbnailList));
+      .then((mascotPromptList) => {
+        sessionStorage.setItem("mascotPromptList", JSON.stringify(mascotPromptList));
+        setMessage("마스코트 이미지를 생성하고 있습니다...");
+        // 4. 마스코트 이미지 생성 (추가됨)
+        return Poster.createImage(mascotPromptList, "mascot");
+      })
+      .then((generatedMascotImages) => {
+        sessionStorage.setItem("generatedMascotImages", JSON.stringify(generatedMascotImages));
+        setMessage("생성된 이미지를 불러오고 있습니다...");
 
-        const first = thumbnailList[0];
+        // 5. 이미지 목록 조회 (포스터 + 마스코트 모두 조회)
+        // DB에는 "poster", "mascot"으로 저장되므로 영문으로 호출해야 합니다.
+        return Promise.all([
+          Image.getThumbnailList("poster"),
+          Image.getThumbnailList("mascot")
+        ]);
+      })
+      .then(([posterList, mascotList]) => {
+        // 두 리스트 병합
+        const combinedList = [...posterList, ...mascotList];
+        sessionStorage.setItem("thumbnailList", JSON.stringify(combinedList));
+
+        if (combinedList.length === 0) {
+          throw new Error("생성된 이미지가 없습니다.");
+        }
+
+        const first = combinedList[0];
 
         return Image.getDetail({
           filePathNo: first.filePathNo,
@@ -46,15 +69,14 @@ const CreateLoadingPage = () => {
 
         const first = JSON.parse(sessionStorage.getItem("thumbnailList"))[0];
 
-        // ★ navigate는 절대경로 사용
         navigate(`/create/poster/detail/${first.filePathNo}/${first.promptNo}`);
       })
       .catch((e) => {
         console.error(e);
-        alert("오류 발생");
+        alert("오류 발생: " + e.message);
         navigate("/analyze");
       });
-  }, []);
+  }, [])
 
   return (
     <div className="w-full h-screen flex justify-center items-center bg-white">

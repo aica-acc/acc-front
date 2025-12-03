@@ -21,12 +21,12 @@ const IntroSection = () => {
       <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center text-white">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           AI 동영상 생성기:
-          <br /> AI로 놀라운 동영상 만들기
+          <br /> 축제 홍보물 자동 생성 서비스 
         </h1>
         <p className="text-lg md:text-xl mb-8 text-gray-200">
-          텍스트, 이미지 또는 동영상 프롬프트를 간단한 프롬프트로
-          고품질 동영상으로 변환하세요.<br />
-          기술적 지식이 필요하지 않습니다.
+          기회석 하나로 포스터부터 현수막, 영상 까지 한번에 해결하세요<br />
+          프롬포트 부터 생성까지 AI가 도와줍니다.<br />
+          
         </p>
        
           {/* 버튼 */}
@@ -36,7 +36,7 @@ const IntroSection = () => {
                        bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
                        hover:brightness-110 hover:scale-105"
           >
-            DeeVid AI 시작하기
+            ACC AI 시작하기
           </button>
       </div>
     </section>

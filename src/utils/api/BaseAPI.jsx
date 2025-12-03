@@ -21,7 +21,11 @@ api.interceptors.request.use(
       }
     } else {
       // JSON 요청이면 m_no 필드 추가
-      if (typeof config.data === "object" && config.data !== null) {
+      // 단, editor 관련 엔드포인트는 m_no 추가 안 함
+      const url = config.url || "";
+      const isEditorEndpoint = url.includes("/api/editor/");
+      
+      if (typeof config.data === "object" && config.data !== null && !isEditorEndpoint) {
         config.data = { m_no: "M000001", ...config.data };
       }
       config.headers["Content-Type"] = "application/json";

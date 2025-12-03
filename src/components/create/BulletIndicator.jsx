@@ -1,13 +1,13 @@
 export default function BulletIndicator({ index, total, onSelect }) {
   return (
-    <div className="flex gap-2 mt-3">
+    <div className="flex gap-2 flex-wrap justify-center max-w-full">
       {Array.from({ length: total }).map((_, i) => (
         <button
           key={i}
           onClick={() => onSelect(i)}
           className={`
-            w-3 h-3 rounded-full 
-            ${i === index ? "bg-gray-900" : "bg-gray-300"}
+            w-3 h-3 rounded-full transition-all
+            ${i === index ? "bg-yellow-500" : "bg-gray-600 hover:bg-gray-500"}
           `}
         />
       ))}

@@ -35,11 +35,11 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
 
   const handleTypeToggle = (type) => {
     if (!onTypesChange) return;
-    
+
     const newTypes = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
-    
+
     onTypesChange(newTypes);
   };
 
@@ -48,12 +48,12 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
       {/* ★ 카드 영역  */}
       <div
         className="
-          w-[60vw] md:w-[38vw]
-          aspect-[3/4]
+          w-full max-w-full h-full max-h-full
           rounded-xl shadow-lg overflow-hidden cursor-pointer
           flex items-center justify-center
-          bg-white relative
+          bg-gray-800 relative
         "
+        style={{ maxHeight: 'calc(100vh - 300px)' }}
         onClick={handleClick}
       >
         {/* 🔥 스켈레톤 로딩 */}
@@ -93,7 +93,7 @@ export default function ImageViewer({ url, onClick, selectedTypes = [], onTypesC
               alt="poster-full"
               onClick={(e) => e.stopPropagation()}
             />
-            
+
             {/* Types 선택 드롭다운 */}
             <div className="mt-4 relative" onClick={(e) => e.stopPropagation()}>
               <button
