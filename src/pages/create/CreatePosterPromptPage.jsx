@@ -70,11 +70,6 @@ export default function CreatePosterPromptPage() {
 
   // 파생 만들기 버튼 핸들러
   const handleCreateDerivative = () => {
-    if (selectedTypes.length === 0) {
-      alert("최소 하나 이상의 홍보물 타입을 선택해주세요.");
-      return;
-    }
-
     // sessionStorage에서 proposalData 가져오기
     const proposalDataStr = sessionStorage.getItem("proposalData");
     if (!proposalDataStr) {
@@ -83,14 +78,42 @@ export default function CreatePosterPromptPage() {
     }
 
     const proposalData = JSON.parse(proposalDataStr);
-
-    // 이미지 경로를 전체 파일 시스템 경로로 변환
+    
+    // 원래 코드 (주석 처리 - 필요시 사용)
+    const typesStr = sessionStorage.getItem("types");
+    const types = typesStr ? JSON.parse(typesStr) : [];
+    
+    // programName 처리 (배열 또는 문자열일 수 있음)
+    let programName = [];
+    if (proposalData.programName) {
+      if (Array.isArray(proposalData.programName)) {
+        programName = proposalData.programName;
+      } else if (typeof proposalData.programName === 'string') {
+        // 문자열인 경우 파싱 시도
+        try {
+          const parsed = JSON.parse(proposalData.programName);
+          programName = Array.isArray(parsed) ? parsed : [proposalData.programName];
+        } catch {
+          // 파싱 실패 시 줄바꿈이나 쉼표로 분리
+          programName = proposalData.programName.split(/[,\n]/).map(s => s.trim()).filter(s => s);
+        }
+      }
+    }
+    
+    // conceptDescription 가져오기
+    const conceptDescription = proposalData.conceptDescription || "";
+    
+    // 현재 보고 있는 이미지의 주소 사용 (detail.fileUrl)
     const fullImagePath = convertToFullPath(detail.fileUrl);
-
+    
+    // 마스코트 이미지 URL 더미 값
+    const mascotImageUrl = "C:/final_project/ACC/acc-frontend/public/data/test/mascot1.png"; // 더미 고정값
+    
     // postersPayload 구성
     const postersPayload = [
       {
-        posterImageUrl: fullImagePath, // 전체 경로로 변환된 이미지 URL
+        posterImageUrl: fullImagePath, // 현재 보고 있는 이미지의 전체 경로
+        mascotImageUrl: mascotImageUrl, // 더미 고정값
         title: proposalData.title || "",
         festivalStartDate: proposalData.festivalStartDate
           ? new Date(proposalData.festivalStartDate).toISOString().split('T')[0]
@@ -99,7 +122,9 @@ export default function CreatePosterPromptPage() {
           ? new Date(proposalData.festivalEndDate).toISOString().split('T')[0]
           : "",
         location: proposalData.location || "",
-        types: selectedTypes, // 선택한 types
+        types: types, // SelectPromotionPage에서 선택한 types
+        programName: programName, // metadata에서 가져온 programName
+        conceptDescription: conceptDescription, // metadata에서 가져온 conceptDescription
       },
     ];
 
@@ -116,43 +141,41 @@ export default function CreatePosterPromptPage() {
   };
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen pb-24">
-      <ImageViewer
-        url={detail.fileUrl}
-        onClick={() => { }}
-        selectedTypes={selectedTypes}
-        onTypesChange={setSelectedTypes}
-      />
+    <div className="relative flex flex-col items-center justify-center h-full w-full bg-neutral-900 overflow-hidden">
+      <div className="flex flex-col items-center justify-center h-full w-full gap-4">
+        {/* 이미지 뷰어 - 남은 공간을 차지하도록 flex-1 사용 */}
+        <div className="flex-1 flex items-center justify-center min-h-0 w-full px-4">
+          <ImageViewer 
+            url={detail.fileUrl} 
+            onClick={() => {}}
+            selectedTypes={selectedTypes}
+            onTypesChange={setSelectedTypes}
+          />
+        </div>
 
-      <NaviControls
-        index={index}
-        total={thumbnailList.length}
-        onPrev={() => goToIndex(index - 1)}
-        onNext={() => goToIndex(index + 1)}
-      />
+        {/* 하단 컨트롤 영역 - 고정 높이 */}
+        <div className="flex flex-col items-center gap-3 pb-4 shrink-0">
+          <NaviControls
+            index={index}
+            total={thumbnailList.length}
+            onPrev={() => goToIndex(index - 1)}
+            onNext={() => goToIndex(index + 1)}
+          />
 
-      <BulletIndicator
-        index={index}
-        total={thumbnailList.length}
-        onSelect={(i) => goToIndex(i)}
-      />
+          <BulletIndicator
+            index={index}
+            total={thumbnailList.length}
+            onSelect={(i) => goToIndex(i)}
+          />
 
-      {/* 파생 만들기 버튼 - 화면 하단 고정 */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <button
-          onClick={handleCreateDerivative}
-          disabled={selectedTypes.length === 0}
-          className={`px-8 py-3 rounded-lg text-white font-semibold shadow-lg transition-all
-            ${selectedTypes.length === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
-        >
-          파생 만들기
-          {selectedTypes.length > 0 && (
-            <span className="ml-2 text-sm">({selectedTypes.length}개 선택됨)</span>
-          )}
-        </button>
+          {/* 파생 만들기 버튼 */}
+          <button
+            onClick={handleCreateDerivative}
+            className="px-8 py-3 rounded-lg text-white font-semibold shadow-lg transition-all bg-yellow-500 hover:bg-yellow-600"
+          >
+            파생 만들기
+          </button>
+        </div>
       </div>
     </div>
   );

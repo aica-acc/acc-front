@@ -99,39 +99,39 @@ const AnalyzeProposalListPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-xl p-8">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">기획서 정보</h2>
+    <div className="max-w-4xl mx-auto mt-10 bg-gray-800 border border-gray-700 shadow-md rounded-xl p-8">
+      <h2 className="text-3xl font-bold mb-6 text-white">기획서 정보</h2>
 
       <div className="space-y-5">
         {/* 축제 제목 */}
         <div>
-          <label className="block text-sm font-semibold mb-1">축제 제목</label>
+          <label className="block text-base font-medium mb-2 text-gray-300">축제 제목</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg"
+            className="w-full px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
         {/* 🔥 날짜 1줄 표시 */}
         <div>
-          <label className="block text-sm font-semibold mb-1">축제 기간</label>
+          <label className="block text-base font-medium mb-2 text-gray-300">축제 기간</label>
           <div className="flex gap-4">
             <input
               type="date"
               name="festivalStartDate"
               value={formData.festivalStartDate || ""}
               onChange={handleChange}
-              className="w-1/2 px-4 py-2 border rounded-lg"
+              className="w-1/2 px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
               type="date"
               name="festivalEndDate" 
               value={formData.festivalEndDate || ""}
               onChange={handleChange}
-              className="w-1/2 px-4 py-2 border rounded-lg"
+              className="w-1/2 px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -151,7 +151,7 @@ const AnalyzeProposalListPage = () => {
           ["eventName", "이벤트"],
         ].map(([key, label]) => (
           <div key={key}>
-            <label className="block text-sm font-semibold mb-1">{label}</label>
+            <label className="block text-base font-medium mb-2 text-gray-300">{label}</label>
 
             {["visualKeywords", "programName", "eventName"].includes(key) ? (
               <textarea
@@ -159,7 +159,7 @@ const AnalyzeProposalListPage = () => {
                 value={formData[key]}
                 onChange={handleChange}
                 rows="4"
-                className="w-full px-4 py-2 border rounded-lg whitespace-pre-line"
+                className="w-full px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg whitespace-pre-line focus:outline-none focus:ring-2 focus:ring-indigo-500"
               ></textarea>
             ) : (
               <input
@@ -167,7 +167,7 @@ const AnalyzeProposalListPage = () => {
                 name={key}
                 value={formData[key]}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             )}
           </div>
@@ -177,7 +177,7 @@ const AnalyzeProposalListPage = () => {
       <div className="flex justify-end mt-8">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+          className="px-6 py-3 bg-yellow-300 hover:bg-yellow-400 text-black font-semibold rounded-lg transition"
         >
           저장하기
         </button>
