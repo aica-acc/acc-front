@@ -28,6 +28,8 @@ import AnalyzeRegionTrendPage from '../pages/analyze/AnalyzeRegionTrendPage';
 import ProposalLoadingPage from "../pages/ProposalLoadingPage";
 import EditorPage from "../pages/EditorPage";
 import EditorLoadingPage from "../pages/EditorLoadingPage";
+import TestPage from "../pages/TestPage";
+import CreateUploadPage from "../pages/create/CreateUploadPage";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -43,7 +45,8 @@ const Approuter = () => {
         </Route>  
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
         <Route path="/testlodingpage" element={<EditorLoadingPage />} />  
-        <Route path="/editorpage" element={<EditorPage />} />  
+        <Route path="/editorpage" element={<EditorPage />} />
+        <Route path="/testpage" element={<TestPage />} />  
         <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
@@ -64,6 +67,7 @@ const Approuter = () => {
           <Route path="/create" element={<CreatePromptLayout/>}>         
             <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
             <Route path="mascort" element={<CreateMascortPromptPage />} />
+            <Route path="upload" element={<CreateUploadPage />} />
           </Route>                                                   
         
           {/* 마이 페이지  그룹 */}

@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import LoadingSpinner from '../../components/loding/LoadingSpinner';
-import api from "../../utils/api/BaseAPI"; 
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import AnalyzeButton from '../../components/buttons/AnalyzeButton';
 
 const AnalyzeRegionTrendPage = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   
-  const { festivalStartDate } = location.state || {};
+  const { regionTrend } = location.state || {};
 
   const [regionData, setRegionData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('family');
   
@@ -19,35 +18,20 @@ const AnalyzeRegionTrendPage = () => {
   const [selectedKeyword, setSelectedKeyword] = useState(null);
 
   useEffect(() => {
-    const savedData = sessionStorage.getItem('regionTrendData');
-    if (savedData) {
-      setRegionData(JSON.parse(savedData));
-    } else {
-      fetchRegionData();
-    }
-  }, []);
+    // state → sessionStorage fallback
+    let data = regionTrend;
 
-  const fetchRegionData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.post('/api/project/analyze/region_trend', null, {
-          params: { festival_start_date: festivalStartDate }
-        });
-        
-        if (res.data) {
-          setRegionData(res.data);
-          sessionStorage.setItem('regionTrendData', JSON.stringify(res.data));
-        } else {
-          setError("데이터를 불러올 수 없습니다.");
-        }
-      } catch (err) {
-        console.error("지역 트렌드 에러:", err);
-        setError("분석 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!data) {
+      const saved = sessionStorage.getItem('regionTrendData');
+      if (saved) data = JSON.parse(saved);
+    }
+
+    if (data) {
+      setRegionData(data);
+    } else {
+      setError("지역 트렌드 분석 데이터가 없습니다.");
+    }
+  }, [regionTrend]);
 
   // ----------------------------------------------------------------------
   // [워드클라우드] "밀집 대형 (Compact Layout)" 좌표 시스템
@@ -85,16 +69,16 @@ const AnalyzeRegionTrendPage = () => {
     return sortedData.slice(0, 20).map((item, idx) => {
       const pos = COMPACT_LAYOUT[idx] || COMPACT_LAYOUT[COMPACT_LAYOUT.length - 1]; 
       
-      // 폰트 사이즈 및 스타일 결정 (중앙일수록 크고 진하게)
+      // 폰트 사이즈 및 스타일 결정 (중앙일수록 크고 진하게) - 흰색 배경에 맞게 조정
       let fontSize = '14px';
       let fontWeight = '500';
       let zIndex = 1;
-      let color = '#777';
+      let color = '#6b7280';
 
       if (idx === 0) { // 1위
         fontSize = '38px'; fontWeight = '900'; zIndex = 100; color = '#2db400'; 
       } else if (idx < 7) { // 2~7위 (핵심 그룹)
-        fontSize = '22px'; fontWeight = '800'; zIndex = 50; color = '#191919';
+        fontSize = '22px'; fontWeight = '800'; zIndex = 50; color = '#1f2937';
       } else if (idx < 13) { // 중위권
         fontSize = '16px'; fontWeight = '600'; zIndex = 10; color = '#4b5563';
       } else { // 하위권
@@ -155,14 +139,14 @@ const AnalyzeRegionTrendPage = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '15px', border: '1px solid #eee', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', minWidth: '180px' }}>
-          <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#888', fontWeight: '600' }}>{label}</p>
+        <div style={{ background: 'rgba(31, 41, 55, 0.95)', padding: '15px', border: '1px solid #374151', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', minWidth: '180px' }}>
+          <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#9CA3AF', fontWeight: '600' }}>{label}</p>
           {payload.map((entry, index) => (
             <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '14px' }}>
               <span style={{ color: entry.color, display:'flex', alignItems:'center', gap:'6px' }}>
-                <span style={{width:'10px', height:'10px', borderRadius:'50%', background: entry.color}}></span> {entry.name}
+                <span style={{width:'10px', height:'10px', borderRadius:'50%', background: entry.color}}></span> <span style={{color: '#E5E7EB'}}>{entry.name}</span>
               </span>
-              <span style={{ fontWeight: 'bold', color: '#333', fontSize:'15px' }}>{entry.value}</span>
+              <span style={{ fontWeight: 'bold', color: '#F3F4F6', fontSize:'15px' }}>{entry.value}</span>
             </div>
           ))}
         </div>
@@ -180,7 +164,7 @@ const AnalyzeRegionTrendPage = () => {
   };
 
   return (
-    <div className="analyze-container" style={{ maxWidth: '100%', margin: '0 auto', fontFamily: "'Pretendard', sans-serif", background: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="w-full max-w-6xl mx-auto space-y-12">
       
       <style>
         {`
@@ -199,46 +183,46 @@ const AnalyzeRegionTrendPage = () => {
       {/* 1. 감성 헤더 */}
       <div style={{ 
         position: 'relative', height: '300px', 
-        background: 'linear-gradient(135deg, #e6ebfaff 0%, #ffffffff 100%)',
+        background: 'linear-gradient(135deg, rgb(55, 55, 65) 0%, rgb(30, 30, 48) 100%)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-        color: 'black', textAlign: 'center', padding: '0 20px',
-        marginBottom: '40px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        color: 'white', textAlign: 'center', padding: '0 20px',
+        marginBottom: '40px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
       }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'url("https://www.transparenttextures.com/patterns/cubes.png")', opacity: 0.1 }}></div>
+        <div style={{ position: 'absolute', inset: 0, background: 'url("https://www.transparenttextures.com/patterns/cubes.png")', opacity: 0.1, borderRadius: '16px' }}></div>
         
         <div style={{ zIndex: 1, maxWidth: '800px' }} className="animate-fade-in">
-          <span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: '30px', fontSize: '14px', fontWeight: '600', backdropFilter: 'blur(4px)' }}>
+          <span style={{ background: 'rgba(255,255,255,0.1)', padding: '6px 16px', borderRadius: '30px', fontSize: '14px', fontWeight: '600', backdropFilter: 'blur(4px)' }}>
             Project Analysis
           </span>
-          <h1 style={{ fontSize: '42px', fontWeight: '900', margin: '20px 0 10px', letterSpacing: '-1px', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
+          <h1 style={{ fontSize: '42px', fontWeight: '900', margin: '20px 0 10px', letterSpacing: '-1px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
             {regionData ? `${regionData.host} 트렌드 리포트` : "지역 트렌드 분석"}
           </h1>
-          <p style={{ fontSize: '18px', opacity: 0.9, fontWeight: '300' }}>
+          <p style={{ fontSize: '18px', opacity: 0.9, fontWeight: '300', color: '#D1D5DB' }}>
             데이터 인사이트로 발견한 <strong style={{fontWeight:'700'}}>{regionData?.host}</strong>의 숨겨진 매력과 핫플레이스
           </p>
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px 60px' }}>
+      <div className="px-5 pb-12">
         {loading ? (
           <div style={{ height: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
             <LoadingSpinner />
-            <p style={{ marginTop: '20px', color: '#666' }}>지역 데이터를 깊이 있게 분석 중입니다...</p>
+            <p style={{ marginTop: '20px', color: '#9CA3AF' }}>지역 데이터를 깊이 있게 분석 중입니다...</p>
           </div>
         ) : error ? (
-          <div style={styles.errorBox}><h3>분석 실패</h3><p>{error}</p><button onClick={fetchRegionData} style={styles.retryButton}>다시 시도</button></div>
+          <div style={{...styles.errorBox, background: '#1F2937', color: '#EF4444'}}><h3>분석 실패</h3><p>{error}</p></div>
         ) : (
           regionData && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '60px' }} className="animate-fade-in">
               
               {/* 2. 네이버 스타일 워드클라우드 & 순위표 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
+              <div className="grid grid-cols-[2fr_1fr] gap-8">
                 
                 {/* (좌) 워드클라우드 - 밀집 대형 적용 */}
-                <div style={styles.cardBox}>
+                <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6">
                   <div style={{ marginBottom: '15px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <h3 style={styles.sectionTitle}>☁️ 연관 키워드 맵</h3>
-                    <span style={{ fontSize:'12px', color:'#888' }}>* 클릭하여 상세 분석 보기</span>
+                    <h3 className="text-xl font-extrabold text-gray-100 mb-5">☁️ 연관 키워드 맵</h3>
+                    <span className="text-xs text-gray-400">* 클릭하여 상세 분석 보기</span>
                   </div>
                   
                   {/* Container */}
@@ -249,6 +233,7 @@ const AnalyzeRegionTrendPage = () => {
                     background: "white",
                     borderRadius: "16px",
                     overflow: "hidden",
+                    border: "1px solid #e5e7eb"
                   }}>
                     {wordCloudItems.length > 0 ? (
                       wordCloudItems.map((item, idx) => (
@@ -271,7 +256,7 @@ const AnalyzeRegionTrendPage = () => {
                         </span>
                       ))
                     ) : (
-                      <div style={{ display:'flex', height:'100%', justifyContent:'center', alignItems:'center', color:'#aaa' }}>
+                      <div style={{ display:'flex', height:'100%', justifyContent:'center', alignItems:'center', color:'#9CA3AF' }}>
                         키워드 데이터를 불러오는 중...
                       </div>
                     )}
@@ -279,26 +264,26 @@ const AnalyzeRegionTrendPage = () => {
                 </div>
 
                 {/* (우) 인기 순위 TOP 10 */}
-                <div style={styles.cardBox}>
-                  <h3 style={styles.sectionTitle}>🔥 실시간 인기 TOP 10</h3>
+                <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-extrabold text-gray-100 mb-5">🔥 실시간 인기 TOP 10</h3>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                     {getRankedKeywords().map((item, idx) => (
                       <li key={idx} style={{ 
                         display: 'flex', alignItems: 'center', padding: '12px 0',
-                        borderBottom: idx === 9 ? 'none' : '1px solid #f1f5f9', cursor:'pointer'
+                        borderBottom: idx === 9 ? 'none' : '1px solid #374151', cursor:'pointer'
                       }}
                       onClick={() => setSelectedKeyword(item)}
                       >
                         <span style={{ 
                           width: '24px', height: '24px', borderRadius: '6px', 
-                          background: idx < 3 ? '#3b82f6' : '#f1f5f9', 
-                          color: idx < 3 ? 'white' : '#94a3b8', 
+                          background: idx < 3 ? '#3b82f6' : '#374151', 
+                          color: idx < 3 ? 'white' : '#9CA3AF', 
                           display: 'flex', justifyContent: 'center', alignItems: 'center', 
                           fontSize: '12px', fontWeight: '800', marginRight: '12px'
                         }}>
                           {idx + 1}
                         </span>
-                        <span style={{ fontSize: '15px', fontWeight: idx < 3 ? '700' : '500', color: '#334155' }}>
+                        <span style={{ fontSize: '15px', fontWeight: idx < 3 ? '700' : '500', color: '#E5E7EB' }}>
                           {item.keyword}
                         </span>
                         {idx < 3 && <span style={{marginLeft:'auto', fontSize:'10px', color:'#ef4444'}}>▲</span>}
@@ -311,10 +296,10 @@ const AnalyzeRegionTrendPage = () => {
               {/* 3. 테마별 추천 */}
               <div>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                  <h3 style={{ fontSize: '28px', fontWeight: '800', color: '#111', marginBottom: '10px' }}>
+                  <h3 style={{ fontSize: '28px', fontWeight: '800', color: '#F3F4F6', marginBottom: '10px' }}>
                     테마별 지역 선호도 트렌드
                   </h3>
-                  <div style={{ display: 'inline-flex', background: '#e5e7eb', padding: '4px', borderRadius: '50px' }}>
+                  <div style={{ display: 'inline-flex', background: '#374151', padding: '4px', borderRadius: '50px' }}>
                     {['family', 'couple', 'healing'].map((tab) => {
                       const isActive = activeTab === tab;
                       return (
@@ -323,9 +308,9 @@ const AnalyzeRegionTrendPage = () => {
                           onClick={() => setActiveTab(tab)}
                           style={{
                             padding: '10px 30px', borderRadius: '50px', fontSize: '16px', fontWeight: '700',
-                            background: isActive ? 'white' : 'transparent',
-                            color: isActive ? '#3b82f6' : '#6b7280',
-                            boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                            background: isActive ? '#1F2937' : 'transparent',
+                            color: isActive ? '#60A5FA' : '#9CA3AF',
+                            boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.3)' : 'none',
                             border: 'none', cursor: 'pointer', transition: 'all 0.3s ease'
                           }}
                         >
@@ -338,7 +323,7 @@ const AnalyzeRegionTrendPage = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
                   {getCurrentTabData().map((item, idx) => (
-                    <div key={idx} style={styles.wideCard}>
+                    <div key={idx} style={{...styles.wideCard, background: '#1F2937', border: '1px solid #374151'}}>
                       <div style={{ width: '40%', minWidth: '150px', overflow: 'hidden' }}>
                         <img 
                           src={getImageUrl(idx)} 
@@ -351,17 +336,17 @@ const AnalyzeRegionTrendPage = () => {
                         <div>
                           <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
                             <span style={{fontSize:'11px', fontWeight:'800', color:'white', background:'#3b82f6', padding:'3px 8px', borderRadius:'4px'}}>추천 {idx+1}</span>
-                            <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#1f2937', margin: 0 }}>{item.keyword}</h4>
+                            <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#F3F4F6', margin: 0 }}>{item.keyword}</h4>
                           </div>
-                          <p style={{ fontSize: '14px', color: '#64748b', lineHeight: '1.6', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          <p style={{ fontSize: '14px', color: '#D1D5DB', lineHeight: '1.6', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                             {item.description}
                           </p>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
-                          <button onClick={() => openSearch(item.keyword, 'naver')} style={styles.btnAction}>
+                          <button onClick={() => openSearch(item.keyword, 'naver')} style={{...styles.btnAction, background: '#374151', border: '1px solid #4B5563', color: '#D1D5DB'}}>
                             <span style={{ color: '#03C75A' }}>N</span> 검색
                           </button>
-                          <button onClick={() => openSearch(item.keyword, 'youtube')} style={styles.btnAction}>
+                          <button onClick={() => openSearch(item.keyword, 'youtube')} style={{...styles.btnAction, background: '#374151', border: '1px solid #4B5563', color: '#D1D5DB'}}>
                             <span style={{ color: '#FF0000' }}>▶</span> 영상
                           </button>
                         </div>
@@ -371,50 +356,50 @@ const AnalyzeRegionTrendPage = () => {
                 </div>
               </div>
 
-              {/* 4. [맨 아래] 비교 분석 그래프 */}
-              <div style={{ ...styles.sectionBox, marginTop: '40px' }}>
-                
-                {/* ★ [신규] 검색량 폭발력 인사이트 카드 */}
-                {regionData.growth_stats && (
+              {/* 4. [맨 아래] 검색량 폭발력 인사이트 카드 */}
+              {regionData.growth_stats && (
+                <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6 animate-fade-in">
                   <div style={{ 
-                    display: 'flex', gap: '20px', marginBottom: '30px', 
-                    background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', 
-                    padding: '24px', borderRadius: '16px', border: '1px solid #bae6fd' 
+                    display: 'flex', gap: '20px', 
                   }}>
                     {/* 1. 축제 성장률 */}
-                    <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid #cbd5e1' }}>
-                      <p style={{ fontSize: '14px', color: '#64748b', fontWeight: '600', marginBottom: '8px' }}>
+                    <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid #374151' }}>
+                      <p style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '600', marginBottom: '8px' }}>
                         작년 시즌 검색 폭발력 🚀
                       </p>
-                      <h2 style={{ fontSize: '36px', fontWeight: '900', color: '#0ea5e9', margin: 0 }}>
+                      <h2 style={{ fontSize: '36px', fontWeight: '900', color: '#60A5FA', margin: 0 }}>
                         +{regionData.growth_stats.festival_growth}%
                       </h2>
-                      <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+                      <p style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
                         평소 대비 관심도 급증
                       </p>
                     </div>
 
                     {/* 2. 지역 동반 성장률 */}
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                      <p style={{ fontSize: '14px', color: '#64748b', fontWeight: '600', marginBottom: '8px' }}>
+                      <p style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '600', marginBottom: '8px' }}>
                         지역 유입 효과 🏡
                       </p>
-                      <h2 style={{ fontSize: '36px', fontWeight: '900', color: '#3b82f6', margin: 0 }}>
+                      <h2 style={{ fontSize: '36px', fontWeight: '900', color: '#818CF8', margin: 0 }}>
                         +{regionData.growth_stats.region_growth}%
                       </h2>
-                      <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+                      <p style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
                         축제 기간 지역 검색 증가
                       </p>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                <div style={{ marginBottom: '20px', paddingLeft: '15px', borderLeft: '5px solid #3b82f6' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#333' }}>
+              {/* 5. [맨 아래] 비교 분석 그래프 */}
+              <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6 animate-fade-in">
+                
+                <div className="mb-5 pl-4 border-l-4 border-blue-400">
+                  <h3 className="text-2xl font-extrabold text-gray-100">
                     📉 축제 vs 지역 관심도 비교
                   </h3>
-                  <p style={{ fontSize: '15px', color: '#666', marginTop: '6px' }}>
-                    <strong style={{color:'#3b82f6'}}>{regionData.host} 여행 수요(좌측)</strong> 대비 <strong style={{color:'#ec4899'}}>우리 축제(우측)</strong>의 관심도 흐름을 비교합니다.
+                  <p className="text-base text-gray-300 mt-2">
+                    <strong className="text-blue-400">{regionData.host} 여행 수요(좌측)</strong> 대비 <strong className="text-pink-400">우리 축제(우측)</strong>의 관심도 흐름을 비교합니다.
                   </p>
                 </div>
 
@@ -433,21 +418,38 @@ const AnalyzeRegionTrendPage = () => {
                             <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                        <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 12 }} tickMargin={10} tickFormatter={(str) => str ? str.substring(5, 10).replace('-', '.') : ""} axisLine={false} tickLine={false} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
+                        <XAxis 
+                          dataKey="period" 
+                          tick={{ fill: '#9CA3AF', fontSize: 12 }} 
+                          tickMargin={10} 
+                          tickFormatter={(str) => str ? str.substring(5, 10).replace('-', '.') : ""} 
+                          axisLine={false} 
+                          tickLine={false}
+                        />
                         
-                        <YAxis yAxisId="left" orientation="left" stroke="#3b82f6" />
-                        <YAxis yAxisId="right" orientation="right" stroke="#ec4899" />
+                        <YAxis 
+                          yAxisId="left" 
+                          orientation="left" 
+                          stroke="#60A5FA"
+                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                        />
+                        <YAxis 
+                          yAxisId="right" 
+                          orientation="right" 
+                          stroke="#F472B6"
+                          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                        />
                         
                         <Tooltip content={<CustomTooltip />} />
                         
-                        <Area yAxisId="left" type="monotone" dataKey="region" name="지역 여행" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRegion)" animationDuration={1500} />
-                        <Area yAxisId="right" type="monotone" dataKey="festival" name="우리 축제" stroke="#ec4899" strokeWidth={3} fillOpacity={1} fill="url(#colorFestival)" animationDuration={1500} />
-                        <Legend />
+                        <Area yAxisId="left" type="monotone" dataKey="region" name="지역 여행" stroke="#60A5FA" strokeWidth={2} fillOpacity={1} fill="url(#colorRegion)" animationDuration={1500} />
+                        <Area yAxisId="right" type="monotone" dataKey="festival" name="우리 축제" stroke="#F472B6" strokeWidth={3} fillOpacity={1} fill="url(#colorFestival)" animationDuration={1500} />
+                        <Legend wrapperStyle={{ color: '#D1D5DB' }} />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div style={{display:'flex', height:'100%', justifyContent:'center', alignItems:'center', color:'#aaa'}}>
+                    <div style={{display:'flex', height:'100%', justifyContent:'center', alignItems:'center', color:'#9CA3AF'}}>
                        데이터 분석 중입니다...
                     </div>
                   )}
@@ -463,11 +465,11 @@ const AnalyzeRegionTrendPage = () => {
         <div style={styles.modalOverlay} onClick={() => setSelectedKeyword(null)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div style={{textAlign:'center', marginBottom:'20px'}}>
-              <h3 style={{fontSize:'24px', fontWeight:'bold', color:'#1e3a8a'}}>{selectedKeyword.keyword}</h3>
-              <p style={{color:'#666', marginTop:'5px'}}>{selectedKeyword.description}</p>
+              <h3 style={{fontSize:'24px', fontWeight:'bold', color:'#60A5FA'}}>{selectedKeyword.keyword}</h3>
+              <p style={{color:'#D1D5DB', marginTop:'5px'}}>{selectedKeyword.description}</p>
             </div>
             
-            <div style={{height:'200px', width: '100%', background:'#f9f9f9', borderRadius:'12px', marginBottom:'20px'}}>
+            <div style={{height:'200px', width: '100%', background:'#111827', borderRadius:'12px', marginBottom:'20px', border: '1px solid #374151'}}>
                 {/* 상세 트렌드 데이터가 있으면 사용, 없으면 fallback */}
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={selectedKeyword.trend_data || generateMiniTrend(selectedKeyword.score)}>
@@ -477,37 +479,54 @@ const AnalyzeRegionTrendPage = () => {
                           <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <XAxis dataKey="day" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip />
+                      <XAxis 
+                        dataKey="day" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tick={{ fill: '#9CA3AF' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#F3F4F6'
+                        }}
+                      />
                       <Area type="monotone" dataKey="value" stroke="#3b82f6" fillOpacity={1} fill="url(#colorMini)" />
                   </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', background: 'white', padding: '15px', borderRadius: '12px', marginBottom: '10px' }}>
               <button onClick={() => openSearch(selectedKeyword.keyword, 'naver')} style={{...styles.btnAction, background:'#03C75A', color:'white', border:'none'}}>네이버 검색</button>
               <button onClick={() => openSearch(selectedKeyword.keyword, 'youtube')} style={{...styles.btnAction, background:'#FF0000', color:'white', border:'none'}}>유튜브 영상</button>
             </div>
-            <button onClick={() => setSelectedKeyword(null)} style={{position:'absolute', top:'15px', right:'15px', background:'none', border:'none', fontSize:'20px', cursor:'pointer'}}>✕</button>
+            <button onClick={() => setSelectedKeyword(null)} style={{position:'absolute', top:'15px', right:'15px', background:'none', border:'none', fontSize:'20px', cursor:'pointer', color: '#9CA3AF'}}>✕</button>
           </div>
         </div>
       )}
+
+      <div className="pt-4">
+        <AnalyzeButton />    
+      </div>
     </div>
   );
 };
 
 // 스타일
 const styles = {
-  errorBox: { padding: '60px', textAlign: 'center', background: '#fff5f5', borderRadius: '16px', color: '#d32f2f' },
-  retryButton: { marginTop: '20px', padding: '10px 24px', background: '#d32f2f', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' },
-  cardBox: { background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.05)', border: '1px solid #f1f5f9' },
-  sectionTitle: { fontSize: '20px', fontWeight: '800', color: '#1e293b', marginBottom: '20px' },
-  hoverTooltip: { position: 'absolute', bottom: '120%', left: '50%', transform: 'translateX(-50%)', width: '160px', background: 'white', padding: '12px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #e2e8f0', zIndex: 100, textAlign: 'center' },
-  wideCard: { display: 'flex', background: 'white', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', transition: 'transform 0.3s ease, box-shadow 0.3s ease', cursor: 'default', ':hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,0,0,0.1)' } },
+  errorBox: { padding: '60px', textAlign: 'center', background: '#1F2937', borderRadius: '16px', color: '#EF4444' },
+  retryButton: { marginTop: '20px', padding: '10px 24px', background: '#EF4444', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' },
+  cardBox: { background: '#1F2937', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.3)', border: '1px solid #374151' },
+  sectionTitle: { fontSize: '20px', fontWeight: '800', color: '#F3F4F6', marginBottom: '20px' },
+  hoverTooltip: { position: 'absolute', bottom: '120%', left: '50%', transform: 'translateX(-50%)', width: '160px', background: '#1F2937', padding: '12px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '1px solid #374151', zIndex: 100, textAlign: 'center', color: '#E5E7EB' },
+  wideCard: { display: 'flex', background: '#1F2937', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', border: '1px solid #374151', transition: 'transform 0.3s ease, box-shadow 0.3s ease', cursor: 'default', ':hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,0,0,0.5)' } },
   btnAction: { flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '14px', fontWeight: '700', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: 'all 0.2s' },
-  sectionBox: { background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' },
+  sectionBox: { background: '#1F2937', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', border: '1px solid #374151' },
   modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, animation: 'fadeIn 0.3s' },
-  modalContent: { background: 'white', width: '500px', padding: '30px', borderRadius: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.2)', position: 'relative', animation: 'slideUp 0.3s' }
+  modalContent: { background: '#1F2937', width: '500px', padding: '30px', borderRadius: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', border: '1px solid #374151', position: 'relative', animation: 'slideUp 0.3s' }
 };
 
 export default AnalyzeRegionTrendPage;

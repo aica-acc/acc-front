@@ -4,12 +4,249 @@
 import { Textbox, FabricImage, Shadow } from "fabric";
 
 /**
- * 이미지 URL을 프록시 경로로 변환 (CORS 해결)
+ * 절대 경로를 public 기준 상대 경로로 변환
+ * 예: C:/final_project/ACC/acc-frontend/public/data/promotion/M000/thumbnail.png
+ *  → /data/promotion/M000/thumbnail.png
+ * @param {string} path - 절대 경로 또는 상대 경로
+ * @returns {string} public 기준 상대 경로
+ */
+function convertToPublicPath(path) {
+  if (!path) return path;
+  
+  // Windows 경로를 정규화 (백슬래시를 슬래시로)
+  let normalized = path.replace(/\\/g, "/");
+  
+  // /public/data/ 패턴 찾기
+  const publicDataIdx = normalized.indexOf("/public/data/");
+  if (publicDataIdx !== -1) {
+    // /public/data/ 이후 부분만 추출하고 /data/로 시작하도록 변환
+    return normalized.substring(publicDataIdx + 7); // "/public" 제거
+  }
+  
+  // 이미 /data/로 시작하는 경우 그대로 반환
+  if (normalized.startsWith("/data/")) {
+    return normalized;
+  }
+  
+  // /data/ 패턴이 있으면 그 이후부터 반환
+  const dataIdx = normalized.indexOf("/data/");
+  if (dataIdx !== -1) {
+    return normalized.substring(dataIdx);
+  }
+  
+  // 변환할 수 없으면 원본 반환
+  return normalized;
+}
+
+/**
+ * video 요소를 생성하는 함수 (Fabric.js 공식 방식)
+ * @param {string} videoUrl - 비디오 URL
+ * @param {number} width - 원하는 너비
+ * @param {number} height - 원하는 높이
+ * @returns {Promise<HTMLVideoElement>} video 요소
+ */
+async function createVideoElement(videoUrl, width, height) {
+  return new Promise((resolve, reject) => {
+    // 절대 경로를 public 기준 상대 경로로 변환
+    const convertedUrl = convertToPublicPath(videoUrl);
+    
+    const videoElement = document.createElement("video");
+    const source = document.createElement("source");
+    
+    videoElement.width = width || 400;
+    videoElement.height = height || 300;
+    videoElement.muted = true; // 자동 재생을 위해 음소거
+    videoElement.loop = true; // 반복 재생
+    videoElement.crossOrigin = "anonymous";
+    videoElement.preload = "auto";
+    
+    source.src = convertedUrl;
+    videoElement.appendChild(source);
+    
+    videoElement.onloadedmetadata = () => {
+      // 실제 비디오 크기로 업데이트
+      if (videoElement.videoWidth && videoElement.videoHeight) {
+        videoElement.width = videoElement.videoWidth;
+        videoElement.height = videoElement.videoHeight;
+      }
+      resolve(videoElement);
+    };
+    
+    videoElement.onerror = () => {
+      reject(new Error(`비디오 로드 실패: ${videoUrl}`));
+    };
+  });
+}
+
+/**
+ * image 객체를 실제 FabricImage로 생성하는 함수
+ * @param {Object} canvas - Fabric Canvas 인스턴스
+ * @param {Object} objData - 이미지 객체 데이터
+ * @returns {Promise<FabricImage>} 생성된 FabricImage 객체
+ */
+async function createImageObject(canvas, objData) {
+  let mediaEl;
+  
+  // url 필드를 우선 사용, 없으면 videoUrl 또는 src 사용 (하위 호환성)
+  let url = objData.url || objData.videoUrl || objData.src;
+  
+  // 절대 경로를 public 기준 상대 경로로 변환
+  if (url) {
+    url = convertToPublicPath(url);
+  }
+  
+  const isVideo = objData.type === 'video' || objData.videoUrl;
+  
+  // video 타입이면 video 요소 생성 (Fabric.js 공식 방식)
+  if (isVideo) {
+    mediaEl = await createVideoElement(
+      url,
+      objData.width,
+      objData.height
+    );
+  } else {
+    // 일반 이미지
+    mediaEl = await new Promise((resolve, reject) => {
+      const image = new window.Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`이미지 로드 실패: ${url}`));
+      image.src = url;
+    });
+  }
+  
+  const fabricImg = new FabricImage(mediaEl);
+  
+  // 저장된 데이터에 위치와 크기 정보가 있으면 그대로 사용
+  // 없으면 기본 크기 조정 로직 적용
+  let left, top, scaleX, scaleY, originX, originY;
+  
+  if (objData.left !== undefined && objData.top !== undefined) {
+    // 저장된 위치 정보 사용
+    left = objData.left;
+    top = objData.top;
+    originX = objData.originX ?? "left";
+    originY = objData.originY ?? "top";
+    
+    // 저장된 scale 정보가 있으면 그대로 사용, 없으면 기본 크기 조정
+    if (objData.scaleX !== undefined && objData.scaleY !== undefined) {
+      scaleX = objData.scaleX;
+      scaleY = objData.scaleY;
+    } else {
+      // 저장된 scale이 없으면 기본 크기 조정
+      let scale = 1;
+      if (isVideo) {
+        // 비디오: canvas 전체 크기에 맞춤 (비율 유지)
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const videoWidth = fabricImg.width;
+        const videoHeight = fabricImg.height;
+        
+        const scaleXCalc = canvasWidth / videoWidth;
+        const scaleYCalc = canvasHeight / videoHeight;
+        scale = Math.min(scaleXCalc, scaleYCalc);
+      } else {
+        // 이미지: canvas의 80% 크기로 조정
+        const maxWidth = canvas.width * 0.8;
+        const maxHeight = canvas.height * 0.8;
+        let scaleXCalc = 1;
+        let scaleYCalc = 1;
+        
+        if (fabricImg.width > maxWidth) {
+          scaleXCalc = maxWidth / fabricImg.width;
+        }
+        if (fabricImg.height > maxHeight) {
+          scaleYCalc = maxHeight / fabricImg.height;
+        }
+        scale = Math.min(scaleXCalc, scaleYCalc, 1);
+      }
+      scaleX = scale;
+      scaleY = scale;
+    }
+  } else {
+    // 저장된 위치 정보가 없으면 canvas 정중앙에 배치
+    const center = canvas.getCenter();
+    left = center.left;
+    top = center.top;
+    originX = "center";
+    originY = "center";
+    
+    // 기본 크기 조정
+    let scale = 1;
+    if (isVideo) {
+      // 비디오: canvas 전체 크기에 맞춤 (비율 유지)
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const videoWidth = fabricImg.width;
+      const videoHeight = fabricImg.height;
+      
+      const scaleXCalc = canvasWidth / videoWidth;
+      const scaleYCalc = canvasHeight / videoHeight;
+      scale = Math.min(scaleXCalc, scaleYCalc);
+    } else {
+      // 이미지: canvas의 80% 크기로 조정
+      const maxWidth = canvas.width * 0.8;
+      const maxHeight = canvas.height * 0.8;
+      let scaleXCalc = 1;
+      let scaleYCalc = 1;
+      
+      if (fabricImg.width > maxWidth) {
+        scaleXCalc = maxWidth / fabricImg.width;
+      }
+      if (fabricImg.height > maxHeight) {
+        scaleYCalc = maxHeight / fabricImg.height;
+      }
+      scale = Math.min(scaleXCalc, scaleYCalc, 1);
+    }
+    scaleX = scale;
+    scaleY = scale;
+  }
+  
+  // 객체 속성 적용
+  const fabricOptions = {
+    left: left,
+    top: top,
+    scaleX: scaleX,
+    scaleY: scaleY,
+    angle: objData.angle ?? 0,
+    flipX: objData.flipX ?? false,
+    flipY: objData.flipY ?? false,
+    opacity: objData.opacity ?? 1,
+    originX: originX,
+    originY: originY,
+  };
+  
+  // video 타입이면 objectCaching: false 설정 (동영상은 계속 업데이트되므로)
+  if (isVideo) {
+    fabricOptions.objectCaching = false;
+    fabricOptions.videoUrl = url;
+    fabricOptions.mediaType = 'video';
+  }
+  
+  fabricImg.set(fabricOptions);
+  
+  // video 요소인 경우 재생 시작
+  if (isVideo && mediaEl.tagName === 'VIDEO') {
+    mediaEl.play().catch(err => {
+      console.warn("비디오 자동 재생 실패:", err);
+    });
+  }
+  
+  return fabricImg;
+}
+
+/**
+ * 이미지 URL을 프록시 경로로 변환 (CORS 해결 및 절대 경로 변환)
  * @param {string} url - 원본 이미지 URL
  * @returns {string} 프록시 경로로 변환된 URL
  */
 function convertToProxyUrl(url) {
   if (!url) return url;
+  
+  // 절대 경로인 경우 public 기준 상대 경로로 변환
+  if (url.includes("C:\\") || url.includes("C:/") || url.includes("/public/")) {
+    return convertToPublicPath(url);
+  }
   
   // http://127.0.0.1:5000/static/... 형태를 /static/... 로 변환
   if (url.includes('http://127.0.0.1:5000/static')) {
@@ -242,10 +479,11 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
   // 🔥 캔버스 크기: JSON에 width/height가 있으면 그 값을 우선 사용
   //   - 초기 템플릿(mock-api-data)의 canvasData.width/height
   //   - 또는 snapshotCurrentDesign에서 저장한 sourceJson.width/sourceJson.height
+  //   - canvasData가 없을 때는 기본값(800x450) 사용 (이전 디자인 크기 영향 방지)
   const baseWidth =
-    (sourceJson && sourceJson.width) || design.canvasWidth || canvas.width || 800;
+    (sourceJson && sourceJson.width) || design.canvasWidth || 800;
   const baseHeight =
-    (sourceJson && sourceJson.height) || design.canvasHeight || canvas.height || 450;
+    (sourceJson && sourceJson.height) || design.canvasHeight || 450;
 
   canvas.setDimensions({ width: baseWidth, height: baseHeight });
 
@@ -282,11 +520,13 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
           delete jsonToLoad.backgroundImage;
         }
         
-        // 2) objects 배열에서 유효하지 않은 객체 제거
+        // 2) objects 배열에서 유효하지 않은 객체 제거 및 image/video 객체 분리
+        const imageVideoObjects = []; // image/video 객체는 별도로 저장
         if (jsonToLoad.objects && Array.isArray(jsonToLoad.objects)) {
           const originalCount = jsonToLoad.objects.length;
           
           // 🔥 빈 객체 {}, type이 없는 객체, 유효하지 않은 객체 제거
+          // image/video 객체는 loadFromJSON에서 제외하고 별도로 처리
           jsonToLoad.objects = jsonToLoad.objects.filter((obj, index) => {
             // null/undefined 체크
             if (!obj || typeof obj !== 'object') {
@@ -304,6 +544,13 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
             if (!obj.type) {
               console.warn(`⚠️ JSON 객체 ${index}: type이 없음, 제거`, obj);
               return false;
+            }
+            
+            // 🔥 image/video 객체는 loadFromJSON에서 제외하고 별도로 처리
+            const hasUrl = obj.url || obj.videoUrl || obj.src;
+            if ((obj.type === 'image' || obj.type === 'video') && hasUrl) {
+              imageVideoObjects.push(obj);
+              return false; // loadFromJSON에서 제외
             }
             
             // 🔥 중첩 객체 정리 (shadow, clipPath 등)
@@ -329,7 +576,7 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
           });
           
           if (originalCount !== jsonToLoad.objects.length) {
-            console.warn(`⚠️ JSON objects 정리: ${originalCount}개 → ${jsonToLoad.objects.length}개`);
+            console.warn(`⚠️ JSON objects 정리: ${originalCount}개 → ${jsonToLoad.objects.length}개 (image/video ${imageVideoObjects.length}개 별도 처리)`);
           }
         }
         
@@ -386,6 +633,18 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
               invalidObjects.push({ obj, index, reason: `toObject() 호출 실패: ${e.message}` });
             }
           });
+          
+          // 🔥 image/video 객체를 실제 FabricImage로 생성 (loadFromJSON에서 제외했으므로 여기서 추가)
+          for (const objData of imageVideoObjects) {
+            try {
+              const fabricImg = await createImageObject(canvas, objData);
+              canvas.add(fabricImg);
+              const url = objData.url || objData.videoUrl || objData.src;
+              console.log("✅ 이미지 객체 생성 완료:", url);
+            } catch (error) {
+              console.error("❌ 이미지 객체 생성 실패:", error);
+            }
+          }
           
           // 유효하지 않은 객체 제거
           if (invalidObjects.length > 0) {
@@ -475,7 +734,33 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
       if (backgroundColor) canvas.backgroundColor = backgroundColor;
       
       await applyBackgroundImage(canvas, bgUrl);
-      addTextObjectsFromTemplate(canvas, objects);
+      
+      // textbox와 image/video 객체 분리
+      const textObjects = [];
+      const imageObjects = [];
+      
+      objects.forEach(obj => {
+        if (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text') {
+          textObjects.push(obj);
+        } else if (obj.type === 'image' || obj.type === 'video') {
+          imageObjects.push(obj);
+        }
+      });
+      
+      // textbox 객체 추가
+      addTextObjectsFromTemplate(canvas, textObjects);
+      
+      // image/video 객체를 실제 FabricImage로 생성
+      for (const objData of imageObjects) {
+        try {
+          const fabricImg = await createImageObject(canvas, objData);
+          canvas.add(fabricImg);
+          const url = objData.url || objData.src || objData.videoUrl;
+          console.log("✅ 이미지 객체 생성 완료:", url);
+        } catch (error) {
+          console.error("❌ 이미지 객체 생성 실패:", error);
+        }
+      }
       
       await ensureRendering();
       

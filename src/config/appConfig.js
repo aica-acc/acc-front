@@ -8,6 +8,9 @@
 // 또는: "C:/final_project/ACC/acc-frontend/public"
 export const PUBLIC_FOLDER_PATH = "C:\\final_project\\ACC\\acc-frontend\\public";
 
+// AI 서버 URL
+export const AI_SERVER_URL = "http://127.0.0.1:5000";
+
 /**
  * 상대 경로(data/...)를 전체 파일 시스템 경로로 변환
  * @param {string} relativePath - data/로 시작하는 상대 경로
