@@ -83,16 +83,16 @@ export default function CreatePosterPromptPage() {
     }
 
     const proposalData = JSON.parse(proposalDataStr);
-    
+
     // 이미지 경로를 전체 파일 시스템 경로로 변환
     const fullImagePath = convertToFullPath(detail.fileUrl);
-    
+
     // postersPayload 구성
     const postersPayload = [
       {
         posterImageUrl: fullImagePath, // 전체 경로로 변환된 이미지 URL
         title: proposalData.title || "",
-        festivalStartDate: proposalData.festivalStartDate 
+        festivalStartDate: proposalData.festivalStartDate
           ? new Date(proposalData.festivalStartDate).toISOString().split('T')[0]
           : "",
         festivalEndDate: proposalData.festivalEndDate
@@ -117,9 +117,9 @@ export default function CreatePosterPromptPage() {
 
   return (
     <div className="relative flex flex-col items-center min-h-screen pb-24">
-      <ImageViewer 
-        url={detail.fileUrl} 
-        onClick={() => {}}
+      <ImageViewer
+        url={detail.fileUrl}
+        onClick={() => { }}
         selectedTypes={selectedTypes}
         onTypesChange={setSelectedTypes}
       />
@@ -143,8 +143,8 @@ export default function CreatePosterPromptPage() {
           onClick={handleCreateDerivative}
           disabled={selectedTypes.length === 0}
           className={`px-8 py-3 rounded-lg text-white font-semibold shadow-lg transition-all
-            ${selectedTypes.length === 0 
-              ? "bg-gray-400 cursor-not-allowed" 
+            ${selectedTypes.length === 0
+              ? "bg-gray-400 cursor-not-allowed"
               : "bg-indigo-600 hover:bg-indigo-700"
             }`}
         >
