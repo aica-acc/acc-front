@@ -54,20 +54,23 @@ export const requestAIColorRecommendation = async ({
  * 에디터에서 수정한 이미지를 서버에 저장하고 DB에 저장하는 API
  * @param {Object} params
  * @param {number} params.pNo - 프로젝트 번호
- * @param {string} params.imageBase64 - base64 이미지 데이터 (data:image/png;base64,...)
+ * @param {string} params.imageBase64 - base64 이미지 데이터 (data:image/png;base64,...) - 선택적, 하위 호환성
+ * @param {string} params.imagePath - 이미지 경로 (상대 경로: /data/promotion/... 또는 절대 경로) - 우선 사용
  * @param {string} params.dbFileType - 파일 타입 (예: "poster", "mascot", "banner" 등)
  * @returns {Promise<Object>} { success: boolean, savedPath: string }
  */
 export const saveEditorImage = async ({
   pNo,
   imageBase64,
+  imagePath,
   dbFileType,
 }) => {
   try {
     console.log("💾 [Editor Save] 이미지 저장 요청 시작:", {
       pNo,
       dbFileType,
-      imageSize: imageBase64?.length || 0,
+      imagePath: imagePath ? "제공됨" : "없음",
+      imageBase64: imageBase64 ? "제공됨" : "없음",
     });
 
     const response = await api.post(
@@ -75,6 +78,7 @@ export const saveEditorImage = async ({
       {
         pNo,
         imageBase64,
+        imagePath,
         dbFileType,
       },
       {

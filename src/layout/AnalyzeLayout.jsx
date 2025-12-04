@@ -33,7 +33,7 @@ export default function AnalyzeLayout() {
       {/* 헤더 (고정) */}
       <StepHeader />
 
-      <div className="flex flex-1 pt-20"> {/* 헤더 높이만큼 패딩 */}
+      <div className="flex flex-1 pt-28"> {/* 헤더 높이만큼 패딩 */}
         
         {/* 사이드바 (왼쪽 고정) - 헤더 아래에 위치 */}
         <div
@@ -43,7 +43,7 @@ export default function AnalyzeLayout() {
           style={{ 
             backgroundColor: "rgb(37, 37, 47)", // 헤더와 동일한 색상
             borderColor: "rgb(55, 55, 65)",
-            top: "88px", // 헤더 높이보다 약간 더 아래로 (py-6 = 24px * 2 + 내용)
+            top: "112px", // 헤더 높이보다 약간 더 아래로 (py-8 = 32px * 2 + 내용)
             zIndex: 45 // 헤더(z-50)보다 낮지만 충분히 높게
           }}
         >
