@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import ProjectPage from "../pages/mypage/projectpage";
+import ProjectPage from "../pages/mypage/ProjectPage";
+import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 
 import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
@@ -69,7 +70,7 @@ const Approuter = () => {
           {/* 프롬포트 생성 그룹 */}
           <Route path="/create" element={<CreatePromptLayout/>}>         
             <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
-            <Route path="mascort" element={<CreateMascortPromptPage />} />
+            <Route path="mascort/detail/:filePathNo/:promptNo" element={<CreateMascortPromptPage />} />
             <Route path="upload" element={<CreateUploadPage />} />
           </Route>                                                   
         
@@ -78,6 +79,10 @@ const Approuter = () => {
               <Route path="project" element={<ProjectPage />} />
               <Route path="drive" element={<DrivePage />} />
               <Route path="profile" element={<ProfilePage />} />  
+              {/* ✅ 새로 추가: 프로젝트 상세 */}
+              <Route path="project/:projectId" element={<ProjectDetailPage />} />
+          </Route> 
+      
           </Route>
 
           {/* 리포트 결과 페이지 그룹 */} 

@@ -87,23 +87,51 @@ const CreatePromptLayout = () => {
                   <div className="ml-9 mt-1 space-y-1 border-l-2 pl-2" style={{ borderColor: "rgb(55, 55, 65)" }}>
                     {createSubItems.map((sub) => {
                       const handleClick = () => {
-                        // 포스터 메뉴인 경우, sessionStorage에서 thumbnailList의 첫 번째 항목으로 이동
+                        // 포스터 메뉴인 경우, sessionStorage에서 posterThumbnailList의 첫 번째 항목으로 이동
                         if (sub.key === "poster") {
-                          const saved = sessionStorage.getItem("thumbnailList");
-                          if (saved) {
-                            try {
-                              const list = JSON.parse(saved);
-                              if (list && list.length > 0) {
-                                const first = list[0];
-                                navigate(`/create/poster/detail/${first.filePathNo}/${first.promptNo}`);
-                                return;
-                              }
-                            } catch (e) {
-                              console.error("thumbnailList 파싱 오류:", e);
+                          const saved = sessionStorage.getItem("posterThumbnailList");
+                          if (!saved) {
+                            alert("생성된 포스터 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+                            return;
+                          }
+                          try {
+                            const list = JSON.parse(saved);
+                            if (!list || list.length === 0) {
+                              alert("생성된 포스터 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+                              return;
                             }
+                            const first = list[0];
+                            navigate(`/create/poster/detail/${first.filePathNo}/${first.promptNo}`);
+                            return;
+                          } catch (e) {
+                            console.error("posterThumbnailList 파싱 오류:", e);
+                            alert("포스터 이미지 데이터를 불러오는 중 오류가 발생했습니다.");
+                            return;
                           }
                         }
-                        // 다른 메뉴나 thumbnailList가 없는 경우 기본 경로로 이동
+                        // 마스코트 메뉴인 경우, sessionStorage에서 mascotThumbnailList의 첫 번째 항목으로 이동
+                        if (sub.key === "mascort") {
+                          const saved = sessionStorage.getItem("mascotThumbnailList");
+                          if (!saved) {
+                            alert("생성된 마스코트 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+                            return;
+                          }
+                          try {
+                            const list = JSON.parse(saved);
+                            if (!list || list.length === 0) {
+                              alert("생성된 마스코트 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+                              return;
+                            }
+                            const first = list[0];
+                            navigate(`/create/mascort/detail/${first.filePathNo}/${first.promptNo}`);
+                            return;
+                          } catch (e) {
+                            console.error("mascotThumbnailList 파싱 오류:", e);
+                            alert("마스코트 이미지 데이터를 불러오는 중 오류가 발생했습니다.");
+                            return;
+                          }
+                        }
+                        // 업로드 같은 다른 메뉴는 기본 경로로 이동
                         navigate(sub.path);
                       };
 
@@ -157,6 +185,7 @@ const CreatePromptLayout = () => {
               promptNo={promptNo}
               index={index}
               thumbnailList={thumbnailList}
+              readonly={location.pathname.includes("/mascort")}
               onRegenerateComplete={() => {
                 window.dispatchEvent(new CustomEvent("regenerate-complete"));
               }}

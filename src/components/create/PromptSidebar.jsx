@@ -8,6 +8,7 @@ export default function PromptSidebar({
   index,
   thumbnailList,
   onRegenerateComplete, // 부모에게 알려주는 콜백
+  readonly = false, // 읽기 전용 모드 (마스코트용)
 }) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,15 @@ export default function PromptSidebar({
   };
 
   return (
-    <aside className="w-[22vw] min-w-[320px] max-w-[420px] bg-gray-800 border-l border-gray-700 flex flex-col">
+    <aside 
+      className="bg-gray-800 border-l border-gray-700 flex flex-col"
+      style={{ 
+        width: '420px',
+        height: 'calc(100vh - 88px)',
+        minWidth: '320px',
+        maxWidth: '420px'
+      }}
+    >
 
       {/* 로딩 전면 블러 처리 */}
       {loading && (
@@ -57,7 +66,9 @@ export default function PromptSidebar({
 
       <div className="px-5 pt-5 pb-4 border-b border-gray-700">
         <h2 className="text-lg font-semibold text-gray-100 mb-1">프롬프트</h2>
-        <p className="text-sm text-gray-400 mb-4">이미지를 생성하거나 수정하세요</p>
+        <p className="text-sm text-gray-400 mb-4">
+          {readonly ? "프롬프트를 확인하세요" : "이미지를 생성하거나 수정하세요"}
+        </p>
 
         <div className="bg-gray-700 rounded-lg border border-gray-600 px-4 py-3 text-sm text-gray-200">
           {basePrompt || "초안 프롬프트가 여기에 들어갑니다."}
@@ -82,14 +93,13 @@ export default function PromptSidebar({
         />
 
         <button
-          onClick={handleSubmit}
-          disabled={loading}
+          onClick={readonly ? () => {} : handleSubmit}
+          disabled={loading || readonly}
           className={`w-full mt-3 py-3 rounded-lg text-white text-sm font-medium transition
-            ${loading ? "bg-gray-600" : "bg-gray-700 hover:bg-gray-600"}`}
+            ${loading || readonly ? "bg-gray-600 cursor-not-allowed opacity-50" : "bg-gray-700 hover:bg-gray-600"}`}
         >
-          {loading ? "이미지 생성 중..." : "이미지 생성하기"}
+          {loading ? "이미지 수정 중..." : "이미지 수정하기"}
         </button>
-
       </div>
     
     </aside>

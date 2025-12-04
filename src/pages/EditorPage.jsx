@@ -5,7 +5,7 @@ import { Canvas } from "fabric";
 import api from "../utils/api/BaseAPI";
 
 import EditorSidebar from "../components/editor/sidebar/EditorSidebar";
-import Header from "../layout/Header";
+import StepHeader from "../layout/StepHeader";
 import EditorToolbar from "../components/editor/toolbar/EditorToolbar";
 
 // 분리된 훅들
@@ -14,7 +14,7 @@ import useCanvasHistory from "../components/editor/hooks/useCanvasHistory";
 import useDesignManager from "../components/editor/hooks/useDesignManager";
 import { Textbox } from "fabric";
 import { loadDesignToCanvas } from "../utils/editor/canvasLoader";
-import { requestAIColorRecommendation } from "../utils/api/EditorAPI";
+import { requestAIColorRecommendation, saveEditorImage } from "../utils/api/EditorAPI";
 
 // 폰트 옵션 import
 import { FONT_OPTIONS } from "../constants/fontOptions";
@@ -34,6 +34,7 @@ const EditorPage = () => {
       id: index,
       title: item.category || `디자인 ${index}`,
       category: item.category || "미분류",
+      type: item.type || item.promotionType || item.promotion_type || null, // 🔥 영어 type 필드 추가
       thumbnailUrl: item.backgroundImageUrl,
       backgroundImageUrl: item.backgroundImageUrl,
       exportWidth: item.canvasData?.width || 800,
@@ -340,138 +341,81 @@ const EditorPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [selectedDesign, recalcCanvasViewport]);
 
-  // 🔥 모두 저장 핸들러 (모든 디자인을 이미지로 다운로드)
-  const handleSaveAll = useCallback(async () => {
+  // 저장 - 현재 선택된 디자인을 서버에 저장하고 DB에 저장
+  const handleDownloadCurrent = useCallback(async () => {
+    console.log("🔘 [저장 버튼] 클릭됨");
+    
     const canvas = fabricRef.current;
-    if (!canvas || !designList || designList.length === 0) {
-      alert("저장할 디자인이 없습니다.");
+    if (!canvas) {
+      console.error("❌ 캔버스가 없습니다.");
+      alert("캔버스가 초기화되지 않았습니다.");
+      return;
+    }
+    
+    if (!selectedDesign) {
+      console.error("❌ 선택된 디자인이 없습니다.");
+      alert("저장할 디자인을 선택해주세요.");
       return;
     }
 
-    if (isLoadingRef.current) {
-      alert("로딩 중에는 저장할 수 없습니다.");
+    // pNo 가져오기
+    const pNoStr = sessionStorage.getItem("editorPNo");
+    if (!pNoStr) {
+      console.error("❌ pNo가 없습니다.");
+      alert("프로젝트 번호를 찾을 수 없습니다.");
       return;
     }
+    const pNo = parseInt(pNoStr, 10);
+    console.log("📌 pNo:", pNo);
 
-    console.log("💾 [모두 저장] 시작:", designList.length, "개");
-    
-    // 현재 선택된 디자인과 뷰포트 상태 저장
-    const currentSelectedId = selectedDesign?.id;
-    const originalVpt = canvas.viewportTransform;
-    
     try {
-      // 각 디자인을 순회하며 저장
-      for (let i = 0; i < designList.length; i++) {
-        const design = designList[i];
-        console.log(`📥 [${i + 1}/${designList.length}] ${design.title} 저장 중...`);
-        
-        // 현재 디자인을 캔버스에 로드 (캔버스는 재초기화하지 않고 객체만 교체)
-        await loadDesignToCanvas(canvas, design, saveHistory, isLoadingRef);
-        
-        // 디자인 크기 가져오기
-        const currentWidth = design.canvasJson?.width || design.exportWidth || 800;
-        const currentHeight = design.canvasJson?.height || design.exportHeight || 450;
-        const targetWidth = design.exportWidth || currentWidth;
-        const targetHeight = design.exportHeight || currentHeight;
+      console.log("💾 [저장] 시작:", selectedDesign.title);
 
-        const scaleX = targetWidth / currentWidth;
-        const scaleY = targetHeight / currentHeight;
-        const multiplier = Math.min(scaleX, scaleY);
+      const currentWidth = selectedDesign.canvasJson?.width || canvas.width;
+      const currentHeight = selectedDesign.canvasJson?.height || canvas.height;
+      const targetWidth = selectedDesign.exportWidth || currentWidth;
+      const targetHeight = selectedDesign.exportHeight || currentHeight;
 
-        // 뷰포트 초기화 후 캡처
-        canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-        
-        const dataUrl = canvas.toDataURL({
-          format: "png",
-          multiplier: multiplier > 0 ? multiplier : 1,
-          width: currentWidth,
-          height: currentHeight,
-          left: 0,
-          top: 0
-        });
+      const scaleX = targetWidth / currentWidth;
+      const scaleY = targetHeight / currentHeight;
+      const multiplier = Math.min(scaleX, scaleY);
 
-        // 다운로드
-        const link = document.createElement("a");
-        const baseName = `${design.category || "design"}_${design.id}`;
-        link.download = `${baseName}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // 다음 디자인 로드를 위한 짧은 딜레이
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      // 뷰포트 초기화 후 캡처
+      const originalVpt = canvas.viewportTransform;
+      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
       
-      // 원래 선택된 디자인으로 복원
-      if (currentSelectedId) {
-        const originalDesign = designList.find(d => d.id === currentSelectedId);
-        if (originalDesign) {
-          await loadDesignToCanvas(canvas, originalDesign, saveHistory, isLoadingRef);
-        }
-      }
-      
+      const dataUrl = canvas.toDataURL({
+        format: "png",
+        multiplier: multiplier > 0 ? multiplier : 1,
+        width: currentWidth,
+        height: currentHeight,
+        left: 0,
+        top: 0
+      });
+
       // 뷰포트 복구
       canvas.setViewportTransform(originalVpt);
-      
-      alert(`모든 디자인(${designList.length}개)이 저장되었습니다.`);
-      console.log("✅ [모두 저장] 완료");
-    } catch (error) {
-      console.error("❌ [모두 저장] 실패:", error);
-      alert(`저장 중 오류가 발생했습니다: ${error.message}`);
-      
-      // 에러 발생 시 원래 상태로 복원 시도
-      if (currentSelectedId) {
-        const originalDesign = designList.find(d => d.id === currentSelectedId);
-        if (originalDesign) {
-          await loadDesignToCanvas(canvas, originalDesign, saveHistory, isLoadingRef);
-        }
+
+      // dbFileType 결정 (영어 type 우선, 없으면 category, 없으면 "design")
+      // category는 한글일 수 있으므로 영어 type을 우선 사용
+      const dbFileType = selectedDesign.type || selectedDesign.category || "design";
+      console.log("📌 dbFileType:", dbFileType, "category:", selectedDesign.category, "type:", selectedDesign.type);
+
+      // 서버에 저장하고 DB에 저장
+      const result = await saveEditorImage({
+        pNo,
+        imageBase64: dataUrl,
+        dbFileType,
+      });
+
+      if (result.success) {
+        alert(`저장 완료!\n경로: ${result.savedPath}`);
+        console.log("✅ [저장] 완료:", result.savedPath);
       }
-      canvas.setViewportTransform(originalVpt);
+    } catch (error) {
+      console.error("❌ [저장] 실패:", error);
+      alert(`저장 중 오류가 발생했습니다: ${error.message}`);
     }
-  }, [designList, selectedDesign, fabricRef, saveHistory, isLoadingRef]);
-
-  // 단일 저장 (다운로드) - 현재 선택된 디자인만 다운로드
-  const handleDownloadCurrent = useCallback(() => {
-    const canvas = fabricRef.current;
-    if (!canvas || !selectedDesign) return;
-
-    // 🔥 다운로드 전에 저장하지 않음 (사용자가 Save 버튼을 눌러야 저장됨)
-    console.log("📥 다운로드 시작 (저장하지 않음)");
-
-    const currentWidth = selectedDesign.canvasJson?.width || canvas.width;
-    const currentHeight = selectedDesign.canvasJson?.height || canvas.height;
-    const targetWidth = selectedDesign.exportWidth || currentWidth;
-    const targetHeight = selectedDesign.exportHeight || currentHeight;
-
-    const scaleX = targetWidth / currentWidth;
-    const scaleY = targetHeight / currentHeight;
-    const multiplier = Math.min(scaleX, scaleY);
-
-    // 뷰포트 초기화 후 캡처 (보이는 그대로가 아니라 원본 크기로)
-    const originalVpt = canvas.viewportTransform;
-    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-    
-    const dataUrl = canvas.toDataURL({
-      format: "png",
-      multiplier: multiplier > 0 ? multiplier : 1,
-      // 캡처 영역 지정 (전체 화면이 아니라 디자인 영역만)
-      width: currentWidth,
-      height: currentHeight,
-      left: 0,
-      top: 0
-    });
-
-    // 뷰포트 복구
-    canvas.setViewportTransform(originalVpt);
-
-    const link = document.createElement("a");
-    const baseName = `${selectedDesign.category || "design"}_${selectedDesign.id}`;
-    link.download = `${baseName}.png`;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }, [fabricRef, selectedDesign]);
 
   // 초기 캔버스 설정 (로딩 완료 후에만 실행)
@@ -1085,7 +1029,20 @@ const EditorPage = () => {
         throw new Error("캔버스가 초기화되지 않았습니다.");
       }
       
+      // 🔥 현재 캔버스의 실제 객체들을 가져와서 현재 상태 추출
+      const canvasObjects = canvas.getObjects();
       const currentCanvasData = canvas.toJSON(['selectable', 'evented']); // 현재 상태 추출
+      
+      console.log("📊 [AI 색상 추천] 현재 캔버스 데이터:", {
+        objectsCount: currentCanvasData.objects?.length || 0,
+        objects: currentCanvasData.objects?.map((obj, idx) => ({
+          index: idx,
+          type: obj.type,
+          text: obj.text || obj.type,
+          fill: obj.fill,
+          fontSize: obj.fontSize
+        }))
+      });
       
       // AI 서버로 보낼 때는 변경 가능한 필드만 포함하도록 필터링
       // 변경 가능한 필드: fontFamily, fontSize, fontWeight, fontStyle, fill, stroke, strokeWidth, 
@@ -1110,26 +1067,28 @@ const EditorPage = () => {
         // 객체 식별을 위한 필수 필드 (AI 서버가 객체를 구분하기 위해 필요)
         const requiredFields = ['type', 'role'];
 
-        const filteredObjects = canvasJson.objects.map(obj => {
-          const filteredObj = {};
+        const filteredObjects = canvasJson.objects.map((obj, index) => {
+          const filteredObj = {
+            _index: index, // 🔥 인덱스 정보 추가 (매칭을 위해)
+          };
           
           // 필수 필드 포함
           requiredFields.forEach(field => {
-            if (obj.hasOwnProperty(field)) {
+            if (Object.prototype.hasOwnProperty.call(obj, field)) {
               filteredObj[field] = obj[field];
             }
           });
 
           // 변경 가능한 필드만 포함
           modifiableFields.forEach(field => {
-            if (obj.hasOwnProperty(field)) {
+            if (Object.prototype.hasOwnProperty.call(obj, field)) {
               filteredObj[field] = obj[field];
             }
           });
 
           // 텍스트 객체의 경우 text 필드도 포함 (AI가 읽어야 함)
-          if (obj.type === 'textbox' || obj.type === 'i-text') {
-            if (obj.hasOwnProperty('text')) {
+          if (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text') {
+            if (Object.prototype.hasOwnProperty.call(obj, 'text')) {
               filteredObj.text = obj.text;
             }
           }
@@ -1165,74 +1124,40 @@ const EditorPage = () => {
         throw new Error("AI 서버 응답에 objects 배열이 없습니다.");
       }
 
-      // AI가 변경한 객체들과 기존 객체들을 merge
-      // 변경 불가능한 필드(left, top, width, height, angle, scale 등)는 기존 값 유지
-      const mergeCanvasData = (original, updated) => {
-        if (!updated || !updated.objects || !Array.isArray(updated.objects)) {
-          console.warn("⚠️ [AI 색상 추천] updatedCanvas에 objects가 없습니다.");
-          return original;
+      console.log("📥 [AI 색상 추천] AI 응답 데이터:", {
+        objectsCount: updatedCanvasData.objects?.length || 0,
+        objects: updatedCanvasData.objects?.map((obj, idx) => ({
+          index: idx,
+          type: obj.type,
+          text: obj.text || obj.type,
+          fill: obj.fill,
+          fontSize: obj.fontSize
+        }))
+      });
+
+      // 🔥 현재 캔버스 객체와 AI 응답을 type과 index로 매칭하여 업데이트
+      // 1. 현재 캔버스의 객체들을 type별로 그룹화하고 index로 정렬
+      const currentObjectsByType = {};
+      canvasObjects.forEach((obj, index) => {
+        const objType = obj.type || 'unknown';
+        if (!currentObjectsByType[objType]) {
+          currentObjectsByType[objType] = [];
         }
+        currentObjectsByType[objType].push({ obj, index });
+      });
 
-        if (!original || !original.objects || !Array.isArray(original.objects)) {
-          console.warn("⚠️ [AI 색상 추천] original canvasData에 objects가 없습니다.");
-          return updated;
+      // 2. AI 응답의 객체들도 type별로 그룹화하고 _index로 정렬
+      const aiObjectsByType = {};
+      updatedCanvasData.objects.forEach((aiObj, aiIndex) => {
+        const objType = aiObj.type || 'unknown';
+        const originalIndex = aiObj._index !== undefined ? aiObj._index : aiIndex;
+        if (!aiObjectsByType[objType]) {
+          aiObjectsByType[objType] = [];
         }
+        aiObjectsByType[objType].push({ aiObj, originalIndex });
+      });
 
-        // 인덱스 기반으로 객체 매칭 (순서 유지)
-        // original 객체를 기준으로, updated의 변경 가능한 필드만 업데이트
-        const mergedObjects = original.objects.map((originalObj, index) => {
-          const updatedObj = updated.objects[index];
-          
-          // AI 응답에 해당 인덱스 객체가 없으면 기존 객체 그대로 유지
-          if (!updatedObj) {
-            return originalObj;
-          }
-
-          // 변경 가능한 필드 목록 (AI 서버가 수정 가능한 필드만)
-          const modifiableFields = [
-            'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
-            'fill', 'stroke', 'strokeWidth',
-            'opacity',
-            'charSpacing', 'lineHeight',
-            'textBackgroundColor', 'textAlign', 'underline', 'linethrough',
-            'shadow'
-          ];
-
-          // 기존 객체를 베이스로 하되, AI 응답에서 변경 가능한 필드만 업데이트
-          // 나머지 필드(left, top, width, height, angle, scaleX, scaleY, text 등)는 기존 값 유지
-          const mergedObj = { ...originalObj };
-          
-          modifiableFields.forEach(field => {
-            // AI 응답에 해당 필드가 명시적으로 있으면 업데이트 (undefined가 아닌 경우)
-            if (updatedObj.hasOwnProperty(field) && updatedObj[field] !== undefined) {
-              mergedObj[field] = updatedObj[field];
-            }
-          });
-
-          return mergedObj;
-        });
-
-        // AI 응답에 새로 추가된 객체가 있는 경우 (원본보다 많은 경우)
-        // 사용자가 추가한 텍스트 등이 AI 응답에 포함된 경우
-        if (updated.objects.length > original.objects.length) {
-          const newObjects = updated.objects.slice(original.objects.length);
-          mergedObjects.push(...newObjects);
-        }
-
-        return {
-          ...original,
-          objects: mergedObjects,
-          width: original.width || updated.width, // 항상 기존 값 유지, 없으면 updated
-          height: original.height || updated.height, // 항상 기존 값 유지, 없으면 updated
-        };
-      };
-
-      // merge할 때는 현재 canvas 상태(original)를 기준으로 하고, AI 응답(updated)에서 변경 가능한 필드만 업데이트
-      const mergedCanvasData = mergeCanvasData(currentCanvasData, updatedCanvasData);
-      console.log("🔄 [AI 색상 추천] 데이터 병합 완료");
-
-      // 캔버스를 재로딩하지 않고 객체만 직접 업데이트 (캔버스 설정 유지)
-      const canvasObjects = canvas.getObjects();
+      // 3. type별로 매칭하여 업데이트
       const modifiableFields = [
         'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
         'fill', 'stroke', 'strokeWidth',
@@ -1242,21 +1167,49 @@ const EditorPage = () => {
         'shadow'
       ];
 
-      // 인덱스 순서대로 객체 업데이트
-      mergedCanvasData.objects.forEach((updatedObj, index) => {
-        const canvasObj = canvasObjects[index];
-        if (!canvasObj) {
-          console.warn(`⚠️ [AI 색상 추천] 인덱스 ${index}에 객체가 없습니다.`);
-          return;
-        }
+      let updateCount = 0;
+      
+      // 각 type별로 처리
+      Object.keys(aiObjectsByType).forEach(type => {
+        const currentTypeObjects = currentObjectsByType[type] || [];
+        const aiTypeObjects = aiObjectsByType[type] || [];
+        
+        // type이 같은 객체들을 index 순서대로 매칭
+        aiTypeObjects.forEach(({ aiObj, originalIndex }) => {
+          // originalIndex를 기준으로 현재 캔버스 객체 찾기
+          const currentObjData = currentTypeObjects.find(co => co.index === originalIndex);
+          
+          if (!currentObjData) {
+            console.warn(`⚠️ [AI 색상 추천] type=${type}, index=${originalIndex}에 해당하는 현재 캔버스 객체를 찾을 수 없습니다.`);
+            return;
+          }
 
-        // 변경 가능한 필드만 업데이트
-        modifiableFields.forEach(field => {
-          if (updatedObj.hasOwnProperty(field) && updatedObj[field] !== undefined) {
-            canvasObj.set(field, updatedObj[field]);
+          const canvasObj = currentObjData.obj;
+          let hasChanges = false;
+
+          // 변경 가능한 필드만 업데이트 (바뀐 것만)
+          modifiableFields.forEach(field => {
+            if (Object.prototype.hasOwnProperty.call(aiObj, field) && aiObj[field] !== undefined) {
+              // 현재 값과 비교하여 다를 때만 업데이트
+              const currentValue = canvasObj[field];
+              const newValue = aiObj[field];
+              
+              // 값이 실제로 다른 경우에만 업데이트
+              if (JSON.stringify(currentValue) !== JSON.stringify(newValue)) {
+                canvasObj.set(field, newValue);
+                hasChanges = true;
+                console.log(`🔄 [AI 색상 추천] 업데이트: type=${type}, index=${originalIndex}, field=${field}, ${JSON.stringify(currentValue)} → ${JSON.stringify(newValue)}`);
+              }
+            }
+          });
+
+          if (hasChanges) {
+            updateCount++;
           }
         });
       });
+
+      console.log(`✅ [AI 색상 추천] ${updateCount}개 객체 업데이트 완료`);
 
       // 변경사항 반영
       canvas.requestRenderAll();
@@ -1270,18 +1223,29 @@ const EditorPage = () => {
       // useDesignManager의 useEffect에서 isLoadingRef.current를 체크하여 캔버스 로딩을 건너뜀
       isLoadingRef.current = true;
 
+      // 🔥 현재 캔버스 상태를 다시 가져와서 initialDesigns 업데이트 (동기화)
+      const updatedCanvasJson = canvas.toJSON(['selectable', 'evented']);
+      
       // initialDesigns 상태 업데이트 (동기화)
       setInitialDesigns((prevDesigns) => {
         return prevDesigns.map((design) => {
           if (design.id === selectedDesign.id) {
             return {
               ...design,
-              canvasJson: mergedCanvasData,
+              canvasJson: updatedCanvasJson,
             };
           }
           return design;
         });
       });
+
+      // 🔥 AI 색상 추천 후 zoom in 적용을 위해 recalcCanvasViewport 호출
+      // updatedCanvasJson을 사용하여 업데이트된 디자인 정보로 뷰포트 재계산
+      const updatedDesign = {
+        ...selectedDesign,
+        canvasJson: updatedCanvasJson,
+      };
+      recalcCanvasViewport(updatedDesign);
 
       // 약간의 딜레이 후 isLoadingRef 해제
       setTimeout(() => {
@@ -1295,7 +1259,7 @@ const EditorPage = () => {
       console.error("❌ [AI 색상 추천] 실패:", error);
       alert(`AI 색상 추천 중 오류가 발생했습니다: ${error.message}`);
     }
-  }, [selectedDesign, saveHistory, isLoadingRef]);
+  }, [selectedDesign, saveHistory, isLoadingRef, recalcCanvasViewport]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -1322,10 +1286,10 @@ const EditorPage = () => {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col bg-slate-100 mt-20">
-      <Header />
+    <div className="w-full h-screen flex flex-col" style={{ backgroundColor: "rgb(37, 37, 47)" }}>
+      <StepHeader />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden" style={{ paddingTop: '76px' }}>
         <EditorSidebar
           activeTab={activeTab}
           onChangeTab={setActiveTab}
@@ -1347,19 +1311,11 @@ const EditorPage = () => {
             <div className="flex items-center gap-2 text-xs">
               <button
                 type="button"
-                onClick={handleSaveAll}
-                className="px-3 py-1 rounded bg-green-600 hover:bg-green-500 font-semibold"
-                title="모든 디자인 저장"
-              >
-                모두 저장
-              </button>
-              <button
-                type="button"
                 onClick={handleDownloadCurrent}
-                className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 font-semibold"
-                title="현재 선택된 디자인만 저장"
+                className="px-3 py-1 rounded bg-green-600 hover:bg-green-500 font-semibold"
+                title="현재 선택된 디자인 저장"
               >
-                단일 저장
+                저장
               </button>
             </div>
           </div>

@@ -14,7 +14,7 @@ export const promotionItems = [
       { value: "logo_typography", label: "로고 타이포그래피" },
       { value: "poster_cardnews", label: "안내 카드뉴스" },
       { value: "poster_video", label: "포스터 홍보영상" },
-      { value: "live_poster", label: "라이브 포스터" },
+      { value: "leaflet", label: "리플렛" },
       { value: "road_banner", label: "도로용 현수막" },
       { value: "bus_shelter", label: "버스정류장 광고" },
       { value: "subway_light", label: "지하철 조명광고" },
