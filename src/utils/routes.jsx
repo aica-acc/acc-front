@@ -34,6 +34,7 @@ import CreateUploadPage from "../pages/create/CreateUploadPage";
 
 import MyReportPage from '../pages/report/MyReportPage';
 import TempEditorEntry from '../pages/report/TempEditorEntry';
+import CheckPage from "../pages/CheckPage";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -48,8 +49,11 @@ const Approuter = () => {
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
-        <Route path="/testlodingpage" element={<EditorLoadingPage />} />  
+        <Route path="/testlodingpage" element={<EditorLoadingPage />} />
+        {/* 에디터 페이지 */}  
         <Route path="/editorpage" element={<EditorPage />} />
+        {/* 에디터 페이지 */}  
+        <Route path="/check" element={<CheckPage />} />
         <Route path="/testpage" element={<TestPage />} />  
         <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           {/* 기획서 분석 그룹 */}
@@ -82,8 +86,7 @@ const Approuter = () => {
               {/* ✅ 새로 추가: 프로젝트 상세 */}
               <Route path="project/:projectId" element={<ProjectDetailPage />} />
           </Route> 
-      
-          </Route>
+    
 
           {/* 리포트 결과 페이지 그룹 */} 
           <Route path="/report">

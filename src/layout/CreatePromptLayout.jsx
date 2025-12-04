@@ -31,7 +31,7 @@ const CreatePromptLayout = () => {
       {/* 헤더 (고정) */}
       <StepHeader />
 
-      <div className="flex flex-1 pt-20">
+      <div className="flex flex-1 pt-28">
         {/* 사이드바 (왼쪽 고정) - 헤더 아래에 위치 */}
         <div
           className={`fixed left-0 bottom-0 border-r transition-all duration-300 flex flex-col ${
@@ -40,7 +40,7 @@ const CreatePromptLayout = () => {
           style={{ 
             backgroundColor: "rgb(37, 37, 47)",
             borderColor: "rgb(55, 55, 65)",
-            top: "88px",
+            top: "112px",
             zIndex: 45
           }}
         >
@@ -164,7 +164,7 @@ const CreatePromptLayout = () => {
         >
           <div className="flex w-full h-full">
             {/* ⭐ Page에서 setter 호출 가능하도록 context 내려줌 */}
-            <main className="flex-1 overflow-hidden flex justify-center" style={{ height: 'calc(100vh - 88px)' }}>
+            <main className="flex-1 overflow-hidden flex justify-center" style={{ height: 'calc(100vh - 112px)' }}>
               <Outlet
                 context={{
                   setBasePrompt,
