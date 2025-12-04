@@ -80,13 +80,14 @@ const ProjectPage = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-8 justify-center">
+        {/* 🔥 여기만 flex → grid 로 변경 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center">
           {projects.map((p) => (
             <button
               key={p.projectId}
               type="button"
               onClick={() => handleClickCard(p.projectId)}
-              className="relative w-full max-w-md bg-gradient-to-b from-[#27283b] to-[#1b1c25] rounded-3xl shadow-xl overflow-hidden text-left transition-transform hover:-translate-y-1 hover:shadow-2xl focus:outline-none"
+              className="relative w-full bg-gradient-to-b from-[#27283b] to-[#1b1c25] rounded-3xl shadow-xl overflow-hidden text-left transition-transform hover:-translate-y-1 hover:shadow-2xl focus:outline-none"
             >
               {/* 상단 폴더 탭 모양 */}
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-40 h-10 rounded-2xl bg-[#30324a] shadow-md" />
