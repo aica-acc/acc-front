@@ -66,7 +66,7 @@ const Approuter = () => {
           {/* 프롬포트 생성 그룹 */}
           <Route path="/create" element={<CreatePromptLayout/>}>         
             <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
-            <Route path="mascort" element={<CreateMascortPromptPage />} />
+            <Route path="mascort/detail/:filePathNo/:promptNo" element={<CreateMascortPromptPage />} />
             <Route path="upload" element={<CreateUploadPage />} />
           </Route>                                                   
         
