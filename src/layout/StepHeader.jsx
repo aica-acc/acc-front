@@ -27,11 +27,10 @@ const StepHeader = () => {
     <header
       className="fixed top-0 left-0 w-full z-50 "
       style={{ 
-        backgroundColor: "rgb(37, 37, 47)",
-        borderBottom: "1px solid rgb(55, 55, 65)"
+        backgroundColor: "rgb(37, 37, 47)"
       }}
     >
-      <div className="flex items-center justify-between px-6 py-6">
+      <div className="flex items-center justify-between px-6 py-3">
         {/* 왼쪽: 백 버튼 (화살표만) */}
         <div className="flex items-center">
           <button

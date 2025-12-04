@@ -49,15 +49,16 @@ const CreateLoadingPage = () => {
         ]);
       })
       .then(([posterList, mascotList]) => {
-        // 두 리스트 병합
-        const combinedList = [...posterList, ...mascotList];
-        sessionStorage.setItem("thumbnailList", JSON.stringify(combinedList));
+        // 포스터와 마스코트 리스트를 각각 분리 저장
+        sessionStorage.setItem("posterThumbnailList", JSON.stringify(posterList));
+        sessionStorage.setItem("mascotThumbnailList", JSON.stringify(mascotList));
 
-        if (combinedList.length === 0) {
-          throw new Error("생성된 이미지가 없습니다.");
+        // 포스터 리스트가 없으면 에러
+        if (posterList.length === 0) {
+          throw new Error("생성된 포스터 이미지가 없습니다.");
         }
 
-        const first = combinedList[0];
+        const first = posterList[0];
 
         return Image.getDetail({
           filePathNo: first.filePathNo,
@@ -67,7 +68,8 @@ const CreateLoadingPage = () => {
       .then((detail) => {
         sessionStorage.setItem("currentDetail", JSON.stringify(detail));
 
-        const first = JSON.parse(sessionStorage.getItem("thumbnailList"))[0];
+        const posterList = JSON.parse(sessionStorage.getItem("posterThumbnailList"));
+        const first = posterList[0];
 
         navigate(`/create/poster/detail/${first.filePathNo}/${first.promptNo}`);
       })

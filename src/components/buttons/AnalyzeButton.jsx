@@ -9,17 +9,26 @@ const AnalyzeButton = ({ label = "각 홍보물 프롬프트 생성하기" }) =>
     const trendRaw = sessionStorage.getItem("trendData");
 
     if (!proposalRaw || !trendRaw) {
-      alert("필요한 분석 데이터가 없습니다.");
+      alert("필요한 분석 데이터가 없습니다. proposalData 또는 trendData가 없습니다.");
+      console.error("AnalyzeButton 에러:", { 
+        hasProposalData: !!proposalRaw, 
+        hasTrendData: !!trendRaw 
+      });
       return;
     }
-    const trendData = JSON.parse(trendRaw);
-    
 
-    navigate("/generate-prompt/loading", {
-      state: {
-        trendData,
-      },
-    });
+    try {
+      const trendData = JSON.parse(trendRaw);
+      
+      navigate("/generate-prompt/loading", {
+        state: {
+          trendData,
+        },
+      });
+    } catch (error) {
+      console.error("trendData 파싱 오류:", error);
+      alert("데이터 처리 중 오류가 발생했습니다.");
+    }
   };
 
   return (
