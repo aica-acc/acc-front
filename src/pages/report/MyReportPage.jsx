@@ -12,6 +12,9 @@ const MyReportPage = () => {
     const [activeTab, setActiveTab] = useState('article');
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    
+    // ✅ [이 부분이 없어서 빨간 줄이 떴던 겁니다! 꼭 있어야 해요]
+    const [projectImages, setProjectImages] = useState([]); 
 
     // 1. 페이지 진입 시 한 번에 모두 요청 (All-in-One)
     useEffect(() => {
@@ -30,18 +33,14 @@ const MyReportPage = () => {
             try {
                 console.log(`🚀 [전체 생성 시작] 프로젝트 번호: ${pNo}`);
 
-                // 2. Promise.all로 4개 API를 동시에 요청
-                const promises = Object.entries(reportTypes).map(async ([key, endpoint]) => {
+                // (1) 리포트 텍스트 요청들
+                const textPromises = Object.entries(reportTypes).map(async ([key, endpoint]) => {
                     try {
-                        // 🔥 중요: 백엔드 DTO에 맞춘 변수명 (projectNo)
                         const response = await api.post(`/api/report/${endpoint}`, {
                             projectNo: parseInt(pNo),
-                            // m_no는 BaseAPI가 자동으로 넣어주거나, 필요 시 여기서 추가 가능
-                            // m_no: "M000001" 
                         });
 
                         if (response.data.status === 'success') {
-                            // JSON 문자열 파싱
                             return { key, content: JSON.parse(response.data.content) };
                         }
                         return { key, content: null };
@@ -51,17 +50,33 @@ const MyReportPage = () => {
                     }
                 });
 
-                // 3. 결과 합치기
-                const results = await Promise.all(promises);
+                // ✅ (2) [추가] 이미지 리스트 요청 (이게 있어야 이미지를 가져옵니다)
+                const imagePromise = api.get(`/api/images/project/${pNo}`)
+                    .then(res => res.data)
+                    .catch(err => {
+                        console.error("이미지 로딩 실패:", err);
+                        return [];
+                    });
+
+                // (3) 모든 요청 병렬 처리 (텍스트 4개 + 이미지 1개)
+                const [textResults, images] = await Promise.all([
+                    Promise.all(textPromises),
+                    imagePromise
+                ]);
+
+                // 데이터 정리
                 const finalData = {};
-                results.forEach(result => {
+                textResults.forEach(result => {
                     if (result.content) {
                         finalData[result.key] = result.content;
                     }
                 });
 
                 console.log("✅ [전체 생성 완료]", finalData);
+                console.log("📸 [이미지 로딩 완료]", images);
+
                 setData(finalData);
+                setProjectImages(images); // ✅ 받아온 이미지를 변수에 저장
 
             } catch (error) {
                 console.error("❌ 치명적 오류:", error);
@@ -102,12 +117,10 @@ const MyReportPage = () => {
         <div className="min-h-screen bg-[#111118] text-white">
             <Header />
             <div className="flex h-screen pt-24 overflow-hidden">
-                {/* Sidebar - 다크모드 스타일 */}
+                {/* Sidebar */}
                 <aside 
                     className="w-[260px] min-w-[260px] flex flex-col p-6 h-full z-10"
-                    style={{ 
-                        backgroundColor: "rgb(37, 37, 47)"
-                    }}
+                    style={{ backgroundColor: "rgb(37, 37, 47)" }}
                 >
                     <div className="mb-8 pb-4 border-b" style={{ borderColor: "rgb(55, 55, 65)" }}>
                         <h2 className="font-serif text-lg font-bold text-gray-200 tracking-tight">
@@ -142,11 +155,24 @@ const MyReportPage = () => {
                 {/* Main Content */}
                 <main className="flex-1 h-full overflow-y-auto p-8 flex flex-col">
                     <div id="content-area" className="max-w-[1100px] mx-auto bg-white p-12 rounded-sm shadow-sm border border-slate-200 flex-1 w-full text-slate-700">
-                        {/* 데이터 렌더링 */}
-                        {activeTab === 'article' && data?.article && <ArticleView data={data.article} />}
-                        {activeTab === 'notice' && data?.notice && <NoticeView data={data.notice} />}
-                        {activeTab === 'sns' && data?.sns && <SnsView data={data.sns} />}
-                        {activeTab === 'package' && data?.package && <PackageView data={data.package} articleData={data.article} />}
+                        
+                        {/* ✅ 각 뷰에 images props 전달 (빨간 줄 해결!) */}
+                        {activeTab === 'article' && data?.article && 
+                            <ArticleView data={data.article} images={projectImages} />
+                        }
+                        
+                        {activeTab === 'notice' && data?.notice && 
+                            <NoticeView data={data.notice} />
+                        }
+                        
+                        {/* ✅ SNS 뷰에도 images 전달 */}
+                        {activeTab === 'sns' && data?.sns && 
+                            <SnsView data={data.sns} images={projectImages} />
+                        }
+                        
+                        {activeTab === 'package' && data?.package && 
+                            <PackageView data={data.package} articleData={data.article} />
+                        }
                     </div>
                 </main>
             </div>
