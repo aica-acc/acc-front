@@ -6,7 +6,7 @@
 // ⚠️ 각자 컴퓨터의 public 폴더 절대 경로를 여기에 설정하세요
 // 예시: "C:\\final_project\\ACC\\acc-frontend\\public"
 // 또는: "C:/final_project/ACC/acc-frontend/public"
-export const PUBLIC_FOLDER_PATH = "C:\\final_project\\ACC\\acc-front\\public";
+export const PUBLIC_FOLDER_PATH = import.meta.env.VITE_PUBLIC_FOLDER_PATH;
 
 // AI 서버 URL
 export const AI_SERVER_URL = "http://127.0.0.1:5000";
