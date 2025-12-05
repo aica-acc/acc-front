@@ -44,13 +44,13 @@ const Header = forwardRef((props, ref) => {
     <header
       ref={ref}
       className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
-      style={{ 
-        backgroundColor: isMainPage && !isScrolled 
-          ? "transparent" 
-          : "rgb(37, 37, 47)" 
+      style={{
+        backgroundColor: isMainPage && !isScrolled
+          ? "transparent"
+          : "rgb(37, 37, 47)"
       }}
     >
-      <div className="flex items-center justify-between px-8 py-8">
+      <div className="flex items-center justify-between px-8 py-4">
         {/* 로고 */}
         <div
           className="flex items-center gap-4 cursor-pointer group"
@@ -58,32 +58,35 @@ const Header = forwardRef((props, ref) => {
         >
           <img
             src={mainIcon}
-            className="w-14 h-14 group-hover:scale-110 transition"
+            className="w-24 h-14 group-hover:scale-110 transition"
           />
-          <span className="text-3xl font-bold text-gray-200 group-hover:text-indigo-400 transition">
+          {/* <span className="text-3xl font-bold text-gray-200 group-hover:text-indigo-400 transition">
             ACC
-          </span>
+          </span> */}
         </div>
 
         {/* 유저 */}
-        <div className="flex items-center gap-5 relative" ref={dropdownRef}>
-          <span className="px-4 py-2 bg-gray-700 rounded text-base font-bold text-gray-200">
-            크레딧: 10000
-          </span>
+        <div className="flex items-center gap-4 relative" ref={dropdownRef}>
+          {/* 크레딧 - 그라디언트 + 둥근 알약 모양 */}
+          <div className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full text-sm font-bold text-white shadow-lg">
+            크레딧: <span className="text-blue-100">10000</span>
+          </div>
 
-          <button className="px-6 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition font-bold text-base">
-            로그아웃 
+          {/* 로그아웃 버튼 - 둥근 + 그림자 효과 */}
+          <button className="px-7 py-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transition-all font-semibold text-sm">
+            로그아웃
           </button>
 
+          {/* 프로필 아이콘 - 그라디언트 + 호버 확대 */}
           <button
             onClick={() => setOpen(!open)}
-            className="w-12 h-12 rounded-full bg-amber-700 text-white flex items-center justify-center hover:bg-amber-600 transition-colors"
+            className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all shadow-md"
           >
             <UserCircle className="w-7 h-7" />
           </button>
 
           {open && (
-            <div 
+            <div
               className="absolute right-0 top-full mt-2 w-44 border border-gray-700 rounded shadow-lg py-2 text-base"
               style={{ backgroundColor: "rgb(37, 37, 47)" }}
             >
