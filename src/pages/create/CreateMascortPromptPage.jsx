@@ -36,6 +36,15 @@ export default function CreateMascortPromptPage() {
     const list = JSON.parse(saved);
     setThumbnailList(list);
 
+    // filePathNo와 promptNo가 없으면 첫 번째 항목으로 자동 이동
+    if (!filePathNo || !promptNo) {
+      if (list && list.length > 0) {
+        const first = list[0];
+        navigate(`/create/mascort/detail/${first.filePathNo}/${first.promptNo}`, { replace: true });
+        return;
+      }
+    }
+
     const foundIndex = list.findIndex(
       (item) =>
         String(item.filePathNo) === String(filePathNo) &&
@@ -44,8 +53,12 @@ export default function CreateMascortPromptPage() {
 
     if (foundIndex !== -1) {
       setIndex(foundIndex);
+    } else if (list && list.length > 0) {
+      // 매칭되는 항목이 없으면 첫 번째 항목으로 이동
+      const first = list[0];
+      navigate(`/create/mascort/detail/${first.filePathNo}/${first.promptNo}`, { replace: true });
     }
-  }, [filePathNo, promptNo, setThumbnailList, setIndex]);
+  }, [filePathNo, promptNo, setThumbnailList, setIndex, navigate]);
 
   /** 2) detail API */
   useEffect(() => {
@@ -119,13 +132,23 @@ export default function CreateMascortPromptPage() {
       sessionStorage.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
     }
     
+    // 상대 경로와 절대 경로 모두 저장
+    const relativePath = detail.fileUrl; // /data/promotion/... 형태
     const fullImagePath = convertToFullPath(detail.fileUrl);
+    
     sessionStorage.setItem("selectedMascotImage", JSON.stringify({
-      fileUrl: fullImagePath,
+      fileUrl: relativePath,        // 상대 경로 (DB 저장용)
+      fullPath: fullImagePath,      // 절대 경로 (표시용)
       filePathNo: detail.filePathNo,
       promptNo: detail.promptNo,
       source: "generated"
     }));
+    
+    console.log("✅ [마스코트 선택] 세션에 저장됨:", {
+      relativePath,
+      fullPath: fullImagePath
+    });
+    
     setIsSelected(true);
     setHasUploadedImage(false);
   };
@@ -202,44 +225,64 @@ export default function CreateMascortPromptPage() {
     const selectedPoster = JSON.parse(selectedPosterStr);
     const selectedMascot = JSON.parse(selectedMascotStr);
     
-    // 이미지 URL 처리 (업로드된 경우와 생성된 경우 구분)
-    let posterImageUrl = selectedPoster.fileUrl;
-    let mascotImageUrl = selectedMascot.fileUrl;
-    
-    // 생성된 이미지인 경우 전체 경로로 변환
-    if (selectedPoster.source === "generated") {
-      posterImageUrl = convertToFullPath(selectedPoster.fileUrl);
-    }
-    if (selectedMascot.source === "generated") {
-      mascotImageUrl = convertToFullPath(selectedMascot.fileUrl);
-    }
-
-    // pNo 가져오기 (proposalData에서 projectNo 사용)
-    const pNo = proposalData.projectNo || 1;
+    // pNo 가져오기 (proposalData에서 pNo 또는 projectNo 사용)
+    const pNo = proposalData.pNo || proposalData.projectNo || 1;
 
     try {
       // 1️⃣ 베이스 이미지 2개를 먼저 promotion_path에 저장
       console.log("💾 [베이스 이미지 저장] 시작...");
       
-      // 포스터 이미지를 base64로 변환 후 저장
-      const posterBase64 = await imageUrlToBase64(posterImageUrl);
-      const posterSaveResult = await saveEditorImage({
-        pNo,
-        imageBase64: posterBase64,
-        dbFileType: "poster",
-      });
+      // 포스터 이미지 저장 (생성된 이미지는 경로만, 업로드된 이미지는 base64)
+      let posterSaveResult;
+      let posterImageUrl; // payload용 경로
+      
+      if (selectedPoster.source === "generated") {
+        // 생성된 이미지: 상대 경로 사용
+        const posterPath = selectedPoster.fileUrl; // /data/promotion/... 형태
+        posterImageUrl = selectedPoster.fullPath || convertToFullPath(posterPath); // payload용은 절대 경로
+        posterSaveResult = await saveEditorImage({
+          pNo,
+          imagePath: posterPath,
+          dbFileType: "poster",
+        });
+      } else {
+        // 업로드된 이미지: base64 변환 (하위 호환성)
+        posterImageUrl = selectedPoster.fileUrl;
+        const posterBase64 = await imageUrlToBase64(selectedPoster.fileUrl);
+        posterSaveResult = await saveEditorImage({
+          pNo,
+          imageBase64: posterBase64,
+          dbFileType: "poster",
+        });
+      }
       console.log("✅ [포스터 저장 완료]:", posterSaveResult.savedPath);
 
-      // 마스코트 이미지를 base64로 변환 후 저장
-      const mascotBase64 = await imageUrlToBase64(mascotImageUrl);
-      const mascotSaveResult = await saveEditorImage({
-        pNo,
-        imageBase64: mascotBase64,
-        dbFileType: "mascot",
-      });
+      // 마스코트 이미지 저장 (생성된 이미지는 경로만, 업로드된 이미지는 base64)
+      let mascotSaveResult;
+      let mascotImageUrl; // payload용 경로
+      
+      if (selectedMascot.source === "generated") {
+        // 생성된 이미지: 상대 경로 사용
+        const mascotPath = selectedMascot.fileUrl; // /data/promotion/... 형태
+        mascotImageUrl = selectedMascot.fullPath || convertToFullPath(mascotPath); // payload용은 절대 경로
+        mascotSaveResult = await saveEditorImage({
+          pNo,
+          imagePath: mascotPath,
+          dbFileType: "mascot",
+        });
+      } else {
+        // 업로드된 이미지: base64 변환 (하위 호환성)
+        mascotImageUrl = selectedMascot.fileUrl;
+        const mascotBase64 = await imageUrlToBase64(selectedMascot.fileUrl);
+        mascotSaveResult = await saveEditorImage({
+          pNo,
+          imageBase64: mascotBase64,
+          dbFileType: "mascot",
+        });
+      }
       console.log("✅ [마스코트 저장 완료]:", mascotSaveResult.savedPath);
 
-      // 2️⃣ postersPayload 구성
+      // 2️⃣ postersPayload 구성 (절대 경로 사용)
       const postersPayload = [
         {
           posterImageUrl: posterImageUrl,
@@ -258,11 +301,16 @@ export default function CreateMascortPromptPage() {
         },
       ];
 
-      // 업로드 이미지 세션 삭제
+      console.log("📦 [Payload 구성 완료]:", postersPayload);
+
+      // 3️⃣ 세션 삭제 (payload 전송 전에 삭제)
       sessionStorage.removeItem("uploadedPosterImage");
       sessionStorage.removeItem("uploadedMascotImage");
+      sessionStorage.removeItem("selectedPosterImage");
+      sessionStorage.removeItem("selectedMascotImage");
+      console.log("🗑️ [세션 삭제 완료] 선택된 이미지 정보 삭제됨");
 
-      // 3️⃣ EditorLoadingPage로 이동 (파생물 생성)
+      // 4️⃣ EditorLoadingPage로 이동 (파생물 생성)
       navigate("/testlodingpage", {
         state: {
           pNo,

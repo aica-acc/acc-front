@@ -409,7 +409,7 @@ const EditorPage = () => {
       });
 
       if (result.success) {
-        alert(`저장 완료!\n경로: ${result.savedPath}`);
+        alert("저장 완료");
         console.log("✅ [저장] 완료:", result.savedPath);
       }
     } catch (error) {
@@ -1224,7 +1224,37 @@ const EditorPage = () => {
       isLoadingRef.current = true;
 
       // 🔥 현재 캔버스 상태를 다시 가져와서 initialDesigns 업데이트 (동기화)
+      // 이미지 객체의 URL을 보존하기 위해 toJSON 호출 시 이미지 객체의 원본 URL 저장
       const updatedCanvasJson = canvas.toJSON(['selectable', 'evented']);
+      
+      // 🔥 이미지 객체의 URL 보존 (toJSON이 src를 제대로 직렬화하지 못할 수 있음)
+      if (updatedCanvasJson.objects && Array.isArray(updatedCanvasJson.objects)) {
+        const canvasObjects = canvas.getObjects();
+        updatedCanvasJson.objects.forEach((objJson, index) => {
+          if (objJson.type === 'image' || objJson.type === 'video') {
+            const canvasObj = canvasObjects[index];
+            if (canvasObj) {
+              // 원본 URL 보존
+              const originalUrl = canvasObj.url || canvasObj.videoUrl || canvasObj.src;
+              if (originalUrl) {
+                objJson.url = originalUrl;
+                objJson.videoUrl = originalUrl; // video 타입도 지원
+                objJson.src = originalUrl; // 하위 호환성
+              }
+              // element에서 src 가져오기 (fallback)
+              const element = canvasObj.getElement ? canvasObj.getElement() : null;
+              if (element && (element.tagName === 'IMG' || element.tagName === 'VIDEO')) {
+                const elementSrc = element.src || element.currentSrc;
+                if (elementSrc && !objJson.url) {
+                  objJson.url = elementSrc;
+                  objJson.videoUrl = elementSrc;
+                  objJson.src = elementSrc;
+                }
+              }
+            }
+          }
+        });
+      }
       
       // initialDesigns 상태 업데이트 (동기화)
       setInitialDesigns((prevDesigns) => {
@@ -1241,16 +1271,22 @@ const EditorPage = () => {
 
       // 🔥 AI 색상 추천 후 zoom in 적용을 위해 recalcCanvasViewport 호출
       // updatedCanvasJson을 사용하여 업데이트된 디자인 정보로 뷰포트 재계산
+      // 단, 이미지 객체는 이미 로드되어 있으므로 재로딩하지 않음
       const updatedDesign = {
         ...selectedDesign,
         canvasJson: updatedCanvasJson,
       };
+      
+      // 🔥 뷰포트만 재계산 (이미지 객체는 그대로 유지)
+      // 뷰포트 재계산은 이미지 객체에 영향을 주지 않음 (뷰포트 변환만 변경)
       recalcCanvasViewport(updatedDesign);
 
-      // 약간의 딜레이 후 isLoadingRef 해제
+      // 🔥 충분한 딜레이 후 isLoadingRef 해제 (initialDesigns 업데이트 완료 대기)
+      // React 상태 업데이트는 비동기이므로 충분한 시간 확보
       setTimeout(() => {
         isLoadingRef.current = false;
-      }, 300);
+        console.log("🔓 [AI 색상 추천] isLoadingRef 해제 완료");
+      }, 500);
 
       console.log("✅ [AI 색상 추천] 캔버스 객체 업데이트 완료 (캔버스 재로딩 없음)");
 
@@ -1289,7 +1325,7 @@ const EditorPage = () => {
     <div className="w-full h-screen flex flex-col" style={{ backgroundColor: "rgb(37, 37, 47)" }}>
       <StepHeader />
 
-      <div className="flex-1 flex overflow-hidden" style={{ paddingTop: '76px' }}>
+      <div className="flex-1 flex overflow-hidden" style={{ paddingTop: '112px' }}>
         <EditorSidebar
           activeTab={activeTab}
           onChangeTab={setActiveTab}
@@ -1316,6 +1352,14 @@ const EditorPage = () => {
                 title="현재 선택된 디자인 저장"
               >
                 저장
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/check")}
+                className="px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 font-semibold"
+                title="최종 완료"
+              >
+                최종
               </button>
             </div>
           </div>

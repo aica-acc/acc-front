@@ -20,8 +20,7 @@ const IntroSection = () => {
 
       <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center text-white">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          AI 동영상 생성기:
-          <br /> 축제 홍보물 자동 생성 서비스 
+          <br /> 축제 홍보물 자동생성 서비스
         </h1>
         <p className="text-lg md:text-xl mb-8 text-gray-200">
           기회석 하나로 포스터부터 현수막, 영상 까지 한번에 해결하세요<br />

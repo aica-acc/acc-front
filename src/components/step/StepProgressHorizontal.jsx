@@ -6,9 +6,8 @@ const STEP_MAP = [
   { step: 2, match: /^\/upload/ },
   { step: 3, match: /^\/analyze/ },
   { step: 4, match: /^\/create\/poster/ },
-  { step: 5, match: /^\/select\/secondary/ },
-  { step: 6, match: /^\/create\/secondary/ },
-  { step: 7, match: /^\/confirm/ },
+  { step: 5, match: /^\/editorpage/ },
+  { step: 6, match: /^\/check/ },
 ];
 
 const STEPS = [
@@ -17,7 +16,7 @@ const STEPS = [
   { id: 3, name: "분석결과 확인", path: "/analyze" },
   { id: 4, name: "베이스 홍보물 선택", path: "/create/poster" },
   { id: 5, name: "확인 및 수정", path: "/editorpage" },
-  { id: 6, name: "보도자료", path: "/create/secondary" },
+  { id: 6, name: "완료", path: "/check" },
 ];
 
 export default function StepProgressHorizontal() {
