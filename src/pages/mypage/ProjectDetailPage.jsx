@@ -187,14 +187,14 @@ const ProjectDetailPage = () => {
 
                 {/* 이미지/영상 영역 (클릭 가능) */}
                 <div 
-                  className="aspect-[4/3] overflow-hidden cursor-pointer relative bg-gray-900"
+                  className="aspect-[4/3] overflow-hidden cursor-pointer relative bg-gray-900 flex items-center justify-center"
                   onClick={() => handleImageClick(asset.imageUrl, asset.typeCode)}
                 >
                   {getMediaType(asset.imageUrl, asset.typeCode) === "video" ? (
                     // 영상 썸네일 표시
                     <video
                       src={asset.imageUrl}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform group-hover:scale-105"
                       muted
                       preload="metadata"
                       onLoadedMetadata={(e) => {
@@ -209,7 +209,7 @@ const ProjectDetailPage = () => {
                     <img
                       src={asset.imageUrl}
                       alt={asset.typeLabel}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform group-hover:scale-105"
                     />
                   )}
                   {/* 영상 아이콘 표시 */}

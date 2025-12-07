@@ -1,86 +1,123 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { promotionItems } from "../../assets/promotionItems";
 
-/**
- * props
- * - item: { id, title, titleKo, icon, colors: { base, active }, subOptions: [{value, label}] }
- * - selectedOptions: string[] (영어 value 배열)
- * - onClick: () => void  // 모달 열기
- */
-const PromotionCard = ({ item, selectedOptions = [], onClick }) => {
-  const isSelected = selectedOptions.length > 0;
-  const IconComponent = item.icon && typeof item.icon === 'function' ? item.icon : null;
+// --- Poster 이미지 ---
+import poster_1 from "../../assets/promotion/poster/poster_1.jpg";
+import poster_2 from "../../assets/promotion/poster/poster_2.png";
+import poster_3 from "../../assets/promotion/poster/poster_3.PNG";
+import poster_4 from "../../assets/promotion/poster/poster_4.jpg";
+import poster_5 from "../../assets/promotion/poster/poster_5.jpg";
+import poster_6 from "../../assets/promotion/poster/poster_6.png";
+import poster_7 from "../../assets/promotion/poster/poster_7.png";
+import poster_8 from "../../assets/promotion/poster/poster_8.jpg";
 
-  return (
-    <div
-      onClick={onClick}
-      className={[
-        "cursor-pointer rounded-2xl overflow-hidden transition",
-        "border shadow-lg hover:shadow-xl flex flex-col justify-between h-full",
-        isSelected
-          ? "border-indigo-500 ring-2 ring-indigo-400/50"
-          : "border-gray-700 hover:border-gray-600",
-      ].join(" ")}
-    >
-      {/* 상단 헤더(색 영역) */}
-      <div
-        className={[
-          "relative h-32 flex flex-col items-center justify-center",
-          isSelected ? item.colors.active : item.colors.base,
-        ].join(" ")}
-      >
-        {/* 우측 상단 원형 체크 */}
-        {isSelected && (
-          <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/30">
-            <Check className="w-4 h-4 text-white" />
-          </div>
-        )}
+// --- Mascot 이미지 ---
+import mascot_1 from "../../assets/promotion/mascot/mascot_1.png";
+import mascot_2 from "../../assets/promotion/mascot/mascot_2.png";
+import mascot_3 from "../../assets/promotion/mascot/mascot_3.png";
+import mascot_4 from "../../assets/promotion/mascot/mascot_4.png";
+import mascot_5 from "../../assets/promotion/mascot/mascot_5.png";
+import mascot_6 from "../../assets/promotion/mascot/mascot_6.png";
+import mascot_7 from "../../assets/promotion/mascot/mascot_7.png";
 
-        {/* 아이콘 + 타이틀 */}
-        <div className="text-white" aria-hidden>
-          {IconComponent ? (
-            <IconComponent className="w-16 h-16" strokeWidth={1.5} />
-          ) : (
-            <span className="text-4xl leading-none">{item.icon}</span>
-          )}
-        </div>
-        <div
-          className={[
-            "mt-3 text-2xl font-bold",
-            "text-white",
-          ].join(" ")}
-        >
-          {item.titleKo || item.title}
-        </div>
-      </div>
+// OPTION value → 대표 이미지
+const THUMBNAIL_MAP = {
+  // poster
+  logo_illustration: poster_1,
+  logo_typography: poster_2,
+  poster_cardnews: poster_3,
+  poster_video: poster_4,
+  leaflet: poster_5,
+  road_banner: poster_6,
+  bus_shelter: poster_7,
+  subway_light: poster_8,
+  bus_road: poster_1,
+  streetlamp_banner: poster_2,
+  subway_inner: poster_3,
 
-      {/* 하단 다크 영역 (중분류 + 안내문구 포함) */}
-      <div className="bg-gray-800 px-6 py-6 flex flex-col flex-1 justify-between min-h-[200px]">
-        <ul className="space-y-3">
-          {item.subOptions.map((opt) => {
-            const checked = selectedOptions.includes(opt.value);
-            return (
-              <li key={opt.value} className="flex items-center gap-2">
-                {checked ? (
-                  <Check className="w-5 h-5 text-indigo-400 shrink-0" />
-                ) : (
-                  <span className="w-5 h-5 shrink-0" />
-                )}
-                <span className="text-gray-300 text-base">{opt.label}</span>
-              </li>
-            );
-          })}
-        </ul>
+  // mascot
+  sign_parking: mascot_1,
+  sign_welcome: mascot_2,
+  sign_toilet: mascot_3,
+  mascot_video: mascot_4,
+  goods_sticker: mascot_5,
+  goods_key_ring: mascot_6,
+  goods_emoticon: mascot_7,
 
-        {/* ✅ 항상 카드 하단 동일 위치에 */}
-        {!isSelected && (
-          <div className="pt-4 text-center text-sm text-gray-500">
-            클릭하여 옵션 선택
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  // etc (임시)
+  news: poster_1,
+  etc_video: poster_2,
 };
 
-export default PromotionCard;
+// 아이콘 내부 정의 (import 없음)
+const ICON_MAP = {
+  logo_illustration: () => <div className="w-6 h-6 bg-indigo-400 rounded" />,
+  logo_typography: () => <div className="w-6 h-6 bg-indigo-400 rounded-full" />,
+  poster_cardnews: () => <div className="w-6 h-6 border-2 border-indigo-400 rounded" />,
+  poster_video: () => <div className="w-6 h-6 border-2 border-indigo-400 border-dashed" />,
+  leaflet: () => <div className="w-6 h-6 bg-indigo-400 rotate-12" />,
+  road_banner: () => <div className="w-6 h-1 bg-indigo-400" />,
+  bus_shelter: () => <div className="w-6 h-6 bg-indigo-400 opacity-70" />,
+  subway_light: () => <div className="w-6 h-6 bg-indigo-400 blur-sm" />,
+  bus_road: () => <div className="w-6 h-1 bg-indigo-400" />,
+  streetlamp_banner: () => <div className="w-1 h-6 bg-indigo-400" />,
+  subway_inner: () => <div className="w-6 h-6 bg-indigo-400 rounded-sm" />,
+
+  sign_parking: () => <div className="w-6 h-6 border border-indigo-400 text-indigo-400 text-xs flex items-center justify-center">P</div>,
+  sign_welcome: () => <div className="w-6 h-6 border border-indigo-400 text-indigo-400 text-xs flex items-center justify-center">W</div>,
+  sign_toilet: () => <div className="w-6 h-6 border border-indigo-400 text-indigo-400 text-xs flex items-center justify-center">T</div>,
+  mascot_video: () => <div className="w-6 h-6 bg-indigo-400/50 rounded-full" />,
+  goods_sticker: () => <div className="w-6 h-6 border-2 border-indigo-400 rounded-lg" />,
+  goods_key_ring: () => <div className="w-6 h-6 border-2 border-indigo-400 rounded-full" />,
+  goods_emoticon: () => <div className="w-6 h-6 bg-indigo-400 rounded-lg" />,
+
+  news: () => <div className="w-6 h-6 bg-indigo-400" />,
+  etc_video: () => <div className="w-6 h-6 bg-indigo-400/40" />,
+};
+
+export default function PromotionCard({ category, selected, onToggle }) {
+  const item = promotionItems.find((p) => p.id === category);
+  if (!item) return null;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+      {item.subOptions.map((opt) => {
+        const isActive = selected.includes(opt.value);
+        const thumbnail = THUMBNAIL_MAP[opt.value];
+        const Icon = ICON_MAP[opt.value] || (() => <div />);
+
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onToggle(opt.value)}
+            className={[
+              "relative w-full h-40 rounded-2xl border transition shadow bg-[#1a1c22]",
+              isActive
+                ? "border-indigo-500 bg-indigo-600/10"
+                : "border-gray-700 hover:border-indigo-400 hover:bg-gray-700/40",
+            ].join(" ")}
+          >
+            <div className="flex justify-between items-start h-full p-4 gap-3">
+              <div className="flex flex-col h-full">
+                <div className="mb-2">
+                  <Icon />
+                </div>
+                <span className="text-white font-semibold mt-auto">
+                  {opt.label}
+                </span>
+              </div>
+
+              {thumbnail && (
+                <img
+                  src={thumbnail}
+                  alt={opt.label}
+                  className="w-24 h-24 rounded-lg object-cover"
+                />
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
