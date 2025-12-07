@@ -97,11 +97,20 @@ export default function PromotionCard({ category, selected, onToggle }) {
                 : "border-gray-700 hover:border-indigo-400 hover:bg-gray-700/40",
             ].join(" ")}
           >
+            {/* 체크 아이콘 - 우측 상단 */}
+            <div className="absolute top-3 right-3 z-10">
+              {isActive ? (
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                  <i className="bi bi-check text-white text-sm font-bold"></i>
+                </div>
+              ) : (
+                <div className="w-6 h-6 rounded border-2 border-gray-400 flex items-center justify-center bg-transparent">
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between items-start h-full p-4 gap-3">
               <div className="flex flex-col h-full">
-                <div className="mb-2">
-                  <Icon />
-                </div>
                 <span className="text-white font-semibold mt-auto">
                   {opt.label}
                 </span>
