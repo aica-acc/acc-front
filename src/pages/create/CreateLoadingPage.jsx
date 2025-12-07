@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Poster, Image } from "../../utils/api/PosterAPI";
-import LoadingSpinner from "../../components/loding/LoadingSpinner";
+import UnifiedLoadingPage from "../../components/loding/UnifiedLoadingPage";
 
 const CreateLoadingPage = () => {
   const navigate = useNavigate();
@@ -81,9 +81,10 @@ const CreateLoadingPage = () => {
   }, [])
 
   return (
-    <div className="w-full h-screen flex justify-center items-center bg-white">
-      <LoadingSpinner message={message} />
-    </div>
+    <UnifiedLoadingPage 
+      title={message}
+      description="잠시만 기다려 주세요."
+    />
   );
 };
 

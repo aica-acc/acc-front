@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api/BaseAPI";
+import UnifiedLoadingPage from "../../components/loding/UnifiedLoadingPage";
 
 const formatDate = (d) => (d ? d.replaceAll("-", ".") : "");
 
@@ -40,9 +41,10 @@ const ProjectPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111118] text-white flex items-center justify-center">
-        <p className="text-gray-300">프로젝트를 불러오는 중입니다...</p>
-      </div>
+      <UnifiedLoadingPage 
+        title="프로젝트를 불러오는 중입니다..."
+        description="잠시만 기다려 주세요."
+      />
     );
   }
 
