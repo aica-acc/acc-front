@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
-import LoadingSpinner from "../components/loding/LoadingSpinner";
+import UnifiedLoadingPage from "../components/loding/UnifiedLoadingPage";
 
 const ProposalLoadingPage = () => {
   const navigate = useNavigate();
@@ -149,9 +149,10 @@ const ProposalLoadingPage = () => {
   }, [navigate, state]);
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
-      <LoadingSpinner message={message} />
-    </div>
+    <UnifiedLoadingPage 
+      title={message}
+      description="잠시만 기다려 주세요."
+    />
   );
 };
 
