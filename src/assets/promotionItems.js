@@ -4,7 +4,7 @@ export const promotionItems = [
     id: "poster",
     title: "Poster",
     titleKo: "포스터",
-    icon: "🖼️",
+    icon: "poster",
     colors: {
       base: "bg-gray-800",
       active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",
@@ -27,7 +27,7 @@ export const promotionItems = [
     id: "mascot",
     title: "Mascot",
     titleKo: "마스코트",
-    icon: "😊",
+    icon: "mascot",
     colors: {
       base: "bg-gray-800",
       active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",
@@ -46,7 +46,7 @@ export const promotionItems = [
     id: "etc",
     title: "Etc",
     titleKo: "기타",
-    icon: "📄",
+    icon: "etc",
     colors: {
       base: "bg-gray-800",
       active: "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600",

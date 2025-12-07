@@ -25,6 +25,7 @@ dist-ssr
 ./assets/sections/video/*
 *.png
 *.mp4
+*.jpg
 .env
 
 /public/data/*

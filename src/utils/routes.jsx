@@ -7,7 +7,8 @@ import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
 import MainPage from "../pages/MainPage";
 import ProfilePage from "../pages/mypage/ProfilePage";
-import SelectPromoitonPage from "../pages/SelectPromoitonPage";
+// import SelectPromoitonPage from "../pages/SelectPromoitonPage";
+import SelectPromotionPage_New from "../components/select_promotion/SelectPromotionPage";
 import ProposalUploadPage from "../pages/ProposalUploadPage";
 import MainLayout from "../layout/MainLayout";
 
@@ -44,7 +45,7 @@ const Approuter = () => {
         <Route path="/" element={<MainPage />} />
         <Route element={<MainLayout />}>
           {/* 홍보물 선택 페이지 */}
-          <Route path="/select" element={<SelectPromoitonPage />} />    
+          <Route path="/select" element={<SelectPromotionPage_New />} />    
           {/* 기획서 업로드 페이지 */}
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
