@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../utils/api/BaseAPI";
 import ImageModal from "../../components/mypage/ImageModal";
+import UnifiedLoadingPage from "../../components/loding/UnifiedLoadingPage";
 
 const formatDate = (d) => (d ? d.replaceAll("-", ".") : "");
 
@@ -36,9 +37,10 @@ const ProjectDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111118] text-white flex items-center justify-center">
-        <p className="text-gray-300">프로젝트 정보를 불러오는 중입니다...</p>
-      </div>
+      <UnifiedLoadingPage 
+        title="프로젝트 정보를 불러오는 중입니다..."
+        description="잠시만 기다려 주세요."
+      />
     );
   }
 
@@ -63,12 +65,10 @@ const ProjectDetailPage = () => {
     festivalStartDate,
     festivalEndDate,
     location,
-    promotionCount,
     assets = [],
     projectNo, // pNo (프로젝트 번호)
   } = project;
 
-  const countLabel = promotionCount ?? assets.length ?? 0;
   // pNo는 projectNo 또는 projectId로 사용 (API 응답에 따라)
   const pNo = projectNo || projectId;
 
@@ -235,7 +235,10 @@ const ProjectDetailPage = () => {
                     <a
                       href={asset.imageUrl}
                       download
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert("다운로드가 시작되었습니다.");
+                      }}
                       className="flex-1 text-center text-sm py-2 rounded-xl border border-gray-500 hover:border-purple-400 hover:bg-purple-600/20 transition"
                     >
                       ⬇ 다운로드
