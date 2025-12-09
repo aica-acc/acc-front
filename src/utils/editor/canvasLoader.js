@@ -10,7 +10,7 @@ import { Textbox, FabricImage, Shadow } from "fabric";
  * @param {string} path - 절대 경로 또는 상대 경로
  * @returns {string} public 기준 상대 경로
  */
-function convertToPublicPath(path) {
+export function convertToPublicPath(path) {
   if (!path) return path;
   
   // Windows 경로를 정규화 (백슬래시를 슬래시로)
