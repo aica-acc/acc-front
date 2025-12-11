@@ -1,17 +1,146 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🎨 ACC – 축제홍보 마케터 AI Agent
 
-Currently, two official plugins are available:
+**기획부터 다양한 홍보물을 한 번에 생성하는 원터치 AI 플랫폼**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 서비스소개
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+매년 증가하는 축제 수에 비해, 홍보물 제작은 여전히 **높은 비용·낮은 일관성·느린 제작 속도**라는 구조적 문제를 안고 있습니다.
+여러 제작 업체에 분산 제작을 맡기며 **기획 의도가 반영되지 않거나**,
+각 홍보물간 **디자인 통일성이 무너지는 문제**도 존재합니다.
 
-## Expanding the ESLint configuration
+ACC(Automatic Creative Content)는 이러한 문제를 해결하기 위해 기획되었습니다.
+기획서 분석부터 트렌드 분석, 메인·파생 홍보물 생성, OCR 편집까지
+**하나의 자동화된 흐름으로 연결하는 AI 기반 통합 홍보물 생성 플랫폼**입니다.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# acc-front
+---
+
+## 🎯 기대효과
+
+- **낭비되는 홍보 제작 비용 절감**
+- **기획 의도를 반영한 시각적 결과물 자동 생성**
+- **포스터–배너–파생템의 브랜드 일관성 확보**
+- **다양한 파생 홍보물 제작을 통한 공급자 수익 구조 확보**
+
+---
+
+## ✨ 주요기능
+
+### 1) 기획서 분석
+
+업로드된 기획서를 기반으로 축제의 핵심 메시지·의도·톤앤매너 분석
+
+### 2) 트렌드 분석
+
+- 키워드 기반 트렌드 분석
+- 지역 기반 행사/키워드 검색
+- SNS/뉴스·시각적 트렌드 자동 감지
+
+### 3) 홍보물 자동 생성
+
+LLM + LangGraph + 이미지 생성 모델을 활용해
+포스터/마스코트/굿즈 시각물을 자동 생성
+
+### 4) OCR 기반 편집 기능 (Fabric Library)
+
+이미지 내 텍스트를 추출하여 사용자가 직접 수정 가능
+
+### 5) 파생 홍보물 자동 생성
+
+메인 포스터/마스코트를 기반으로
+배너, 카드뉴스, 굿즈 등 다양한 2차 홍보물 자동 생성
+
+### 6) 프로젝트 관리 (Mypage)
+
+생성물 이력 관리, 수정/재생성 제공
+
+---
+
+## 🧩 System Architecture
+
+ACC는 **Backend(Spring)**, **AI(FastAPI)**, **Frontend(React)**가 유기적으로 연결된 구조입니다.
+
+---
+
+### Backend – Spring Boot
+
+- 프론트/AI/DB 연결하는 핵심 허브
+- AI 모듈 호출 & 트랜잭션 안정성 보장
+- 파일 저장 및 경로 관리
+
+### AI Module – FastAPI
+
+- LLM 분석 및 프롬프트 생성
+- LangGraph 기반 이미지 생성 orchestrator
+- OCR 및 후처리
+
+### Frontend – React + Vite
+
+- 입력/업로드/편집 UI 제공
+- Zustand로 매끄러운 상태 관리
+- 이미지 편집기 제공
+
+---
+
+## 🔄 User Flow
+
+1. 사용자 → 홍보물 유형 선택
+2. 축제명/키워드/테마/기획서 입력
+3. AI가 입력 분석 → 사용자에게 분석 결과 제공
+4. 사용자 → 수정 또는 그대로 사용
+5. 메인 홍보물(포스터·마스코트) 생성
+6. 파생 홍보물 생성 + OCR 기반 텍스트 편집
+7. 마이페이지에서 프로젝트별 생성물 관리
+
+> 상세 UX Flow는 배포 페이지/노션 문서에서 제공 예정
+
+---
+
+## 🛠 Tech Stack
+
+### Backend
+
+- Spring Boot
+- Java 17
+- MyBatis
+- Spring Security
+
+### Frontend
+
+- React
+- Vite
+- Zustand
+- TailwindCSS
+
+### AI / ML
+
+- FastAPI
+- LangChain / LangGraph
+- OpenAI API
+- Replicate (Flux 등)
+- YOLO / OCR
+
+### Infra
+
+- AWS EC2
+- Docker
+- GitHub Actions
+- Nginx
+- MySQL 8
+
+> 전체 기술 스택 이미지는 추후 삽입 예정
+
+---
+
+## ⚙️ Installation & Usage
+
+> 상세 실행 방법은 노션 문서로 이동하여 확인하도록 구성 예정
+
+### Frontend
+
+```bash
+npm install
+npm run dev
+```

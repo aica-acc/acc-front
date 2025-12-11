@@ -91,14 +91,23 @@ export const Poster = {
      *    message: string,           // "success" 또는 "fail"  
      * }
      */
-    updatePosterInfo: (filePathNo, visualPrompt) => {
-        return api.post(`/api/posters/${filePathNo}/regenerate`, { visual_prompt: visualPrompt })
-            .then(({ data }) => data)
-            .catch(err => {
-                console.error("이미지 재생성 중 에러:", err);
-                throw err;
-            });
-    },
+    updatePosterInfo: (filePathNo, visualPrompt, promotionType = "poster") => {
+        return api
+          .post(
+            `/api/posters/${filePathNo}/regenerate`,
+            { visual_prompt: visualPrompt },
+            {
+              params: {
+                promotionType, // ⭐ 쿼리 파라미터 추가
+              },
+            }
+          )
+          .then(({ data }) => data)
+          .catch((err) => {
+            console.error("이미지 재생성 중 에러:", err);
+            throw err;
+          });
+      },
 
     // 1) 프롬프트 생성
     generatePrompt: (trendData, promotionType = 'poster') => {
