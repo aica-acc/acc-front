@@ -13,7 +13,7 @@ import useTextStyleControls from "../components/editor/hooks/useTextStyleControl
 import useCanvasHistory from "../components/editor/hooks/useCanvasHistory";
 import useDesignManager from "../components/editor/hooks/useDesignManager";
 import { Textbox } from "fabric";
-import { loadDesignToCanvas } from "../utils/editor/canvasLoader";
+import { loadDesignToCanvas, convertToPublicPath } from "../utils/editor/canvasLoader";
 import { requestAIColorRecommendation, saveEditorImage } from "../utils/api/EditorAPI";
 
 // 폰트 옵션 import
@@ -30,17 +30,25 @@ const EditorPage = () => {
       return [];
     }
 
-    return itemsData.map((item, index) => ({
-      id: index,
-      title: item.category || `디자인 ${index}`,
-      category: item.category || "미분류",
-      type: item.type || item.promotionType || item.promotion_type || null, // 🔥 영어 type 필드 추가
-      thumbnailUrl: item.backgroundImageUrl,
-      backgroundImageUrl: item.backgroundImageUrl,
-      exportWidth: item.canvasData?.width || 800,
-      exportHeight: item.canvasData?.height || 450,
-      canvasJson: item.canvasData,
-    }));
+    return itemsData.map((item, index) => {
+      // 🔥 backgroundImageUrl이 있으면 public 기준 상대 경로로 변환하여 썸네일로 사용
+      let thumbnailUrl = null;
+      if (item.backgroundImageUrl) {
+        thumbnailUrl = convertToPublicPath(item.backgroundImageUrl);
+      }
+      
+      return {
+        id: index,
+        title: item.category || `디자인 ${index}`,
+        category: item.category || "미분류",
+        type: item.type || item.promotionType || item.promotion_type || null, // 🔥 영어 type 필드 추가
+        thumbnailUrl: thumbnailUrl,
+        backgroundImageUrl: item.backgroundImageUrl ? convertToPublicPath(item.backgroundImageUrl) : null,
+        exportWidth: item.canvasData?.width || 800,
+        exportHeight: item.canvasData?.height || 450,
+        canvasJson: item.canvasData,
+      };
+    });
   }, []);
 
   const [initialDesigns, setInitialDesigns] = useState([]);

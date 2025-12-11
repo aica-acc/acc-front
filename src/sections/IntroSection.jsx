@@ -23,7 +23,7 @@ const IntroSection = () => {
           <br /> 축제 홍보물 자동생성 서비스
         </h1>
         <p className="text-lg md:text-xl mb-8 text-gray-200">
-          기회석 하나로 포스터부터 현수막, 영상 까지 한번에 해결하세요<br />
+          기획서 하나로 포스터부터 현수막, 영상 까지 한번에 해결하세요<br />
           프롬포트 부터 생성까지 AI가 도와줍니다.<br />
           
         </p>
