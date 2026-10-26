@@ -36,6 +36,9 @@ import CreateUploadPage from "../pages/create/CreateUploadPage";
 import MyReportPage from '../pages/report/MyReportPage';
 import TempEditorEntry from '../pages/report/TempEditorEntry';
 import CheckPage from "../pages/CheckPage";
+import LoginPage from "../pages/LoginPage";
+import AdminPage from "../pages/AdminPage";
+import RequireAuth from "../components/auth/RequireAuth";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -43,6 +46,11 @@ const Approuter = () => {
     <Routes>
         {/* 메인 페이지 */}
         <Route path="/" element={<MainPage />} />
+        {/* 로그인 / 회원가입 / test 로그인 */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* 이하 모든 화면은 로그인 필요 */}
+        <Route element={<RequireAuth />}>
         <Route element={<MainLayout />}>
           {/* 홍보물 선택 페이지 */}
           <Route path="/select" element={<SelectPromotionPage_New />} />    
@@ -94,6 +102,12 @@ const Approuter = () => {
             <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
             <Route path="result" element={<MyReportPage />} />
           </Route>
+
+          {/* 관리자 전용 */}
+          <Route element={<RequireAuth roles={["ADMIN"]} />}>
+            <Route path="/admin" element={<AdminPage />} />
+          </Route>
+        </Route>
     </Routes>
   );
 };

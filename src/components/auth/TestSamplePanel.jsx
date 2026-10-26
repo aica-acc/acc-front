@@ -1,0 +1,85 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import api from "../../utils/api/BaseAPI";
+
+/**
+ * test 계정 / 관리자 전용: 샘플 기획서(파일)와 입력값을 자동으로 채워서
+ * 사용자가 "분석 시작하기"만 눌러 다음 단계로 넘어갈 수 있게 한다.
+ *  - 폼이 비어 있으면 첫 번째 샘플을 자동 적용한다.
+ *  - 드롭다운으로 다른 샘플을 고르면 다시 채운다.
+ */
+const TestSamplePanel = ({ formIsEmpty, onApply }) => {
+  const [samples, setSamples] = useState([]);
+  const [selected, setSelected] = useState("");
+  const [status, setStatus] = useState("");
+  const autoApplied = useRef(false);
+
+  const apply = useCallback(
+    async (sample) => {
+      setStatus("샘플 기획서를 불러오는 중...");
+      try {
+        const res = await api.get(`/api/test/samples/${sample.id}/file`, { responseType: "blob" });
+        const name = String(sample.file).split("/").pop();
+        const file = new File([res.data], name, { type: res.data.type || "application/pdf" });
+        onApply({
+          festivalName: sample.title,
+          keywords: sample.keywords || [],
+          theme: sample.theme || "",
+          file,
+        });
+        setSelected(sample.id);
+        setStatus(`샘플 "${sample.title}" 이(가) 자동 입력되었습니다.`);
+      } catch {
+        setStatus("샘플을 불러오지 못했습니다. (assets/samples 폴더와 test.samples-dir 설정을 확인하세요)");
+      }
+    },
+    [onApply]
+  );
+
+  useEffect(() => {
+    api
+      .get("/api/test/samples")
+      .then((res) => setSamples(res.data || []))
+      .catch(() => setStatus("샘플 목록을 불러오지 못했습니다."));
+  }, []);
+
+  useEffect(() => {
+    if (samples.length > 0 && formIsEmpty && !autoApplied.current) {
+      autoApplied.current = true;
+      apply(samples[0]);
+    }
+  }, [samples, formIsEmpty, apply]);
+
+  if (samples.length === 0 && !status) return null;
+
+  return (
+    <div className="mb-8 p-4 rounded-xl border border-indigo-500/50 bg-indigo-500/10">
+      <div className="flex items-center gap-3 mb-2">
+        <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-500 text-white">TEST</span>
+        <span className="text-indigo-200 font-medium">테스트 계정 – 샘플 기획서 자동 입력</span>
+      </div>
+      {samples.length > 0 && (
+        <select
+          value={selected}
+          onChange={(e) => {
+            const s = samples.find((x) => x.id === e.target.value);
+            if (s) apply(s);
+          }}
+          className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 mb-2"
+        >
+          <option value="" disabled>
+            다른 샘플 선택...
+          </option>
+          {samples.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.title}
+            </option>
+          ))}
+        </select>
+      )}
+      {status && <p className="text-sm text-indigo-200">{status}</p>}
+      <p className="text-xs text-gray-400 mt-1">값은 자유롭게 수정할 수 있습니다. 아래 "분석 시작하기"를 눌러 다음 단계로 진행하세요.</p>
+    </div>
+  );
+};
+
+export default TestSamplePanel;

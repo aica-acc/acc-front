@@ -1,10 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import mainVideo from "../assets/sections/video/main_video.mp4";
+import api from "../utils/api/BaseAPI";
+import { isLoggedIn, setSession } from "../utils/auth";
 
 
 const IntroSection = () => {
   const navigate = useNavigate();
+  const [testBusy, setTestBusy] = React.useState(false);
+  const [testError, setTestError] = React.useState("");
+
+  // test 계정으로 로그인 → 샘플 데이터가 자동 입력되는 흐름으로 바로 진입
+  const startAsTest = async () => {
+    setTestError("");
+    setTestBusy(true);
+    try {
+      const res = await api.post("/api/auth/test-login");
+      setSession(res.data);
+      navigate("/select");
+    } catch {
+      setTestError("테스트 로그인을 사용할 수 없습니다.");
+    } finally {
+      setTestBusy(false);
+    }
+  };
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
@@ -29,14 +48,26 @@ const IntroSection = () => {
         </p>
        
           {/* 버튼 */}
-          <button
-            onClick={() => navigate("/select")}
-            className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 
-                       bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
-                       hover:brightness-110 hover:scale-105"
-          >
-            ACC AI 시작하기
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button
+              onClick={startAsTest}
+              disabled={testBusy}
+              className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition
+                         border border-white/70 bg-white/10 backdrop-blur
+                         hover:bg-white/20 hover:scale-105 disabled:opacity-60"
+            >
+              test 계정으로 로그인하기
+            </button>
+            <button
+              onClick={() => navigate(isLoggedIn() ? "/select" : "/login")}
+              className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 
+                         bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
+                         hover:brightness-110 hover:scale-105"
+            >
+              실제 이용하기
+            </button>
+          </div>
+          {testError && <p className="mt-3 text-sm text-red-300">{testError}</p>}
       </div>
     </section>
   );
