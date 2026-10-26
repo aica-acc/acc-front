@@ -16,9 +16,9 @@
 import React, { useEffect, useState } from "react";
 
 // acc-ai(이미지 서버) 기본 주소
-// - .env 에 REACT_APP_ACCAI_BASE_URL 를 넣어두면 그 값을 사용
+// - .env 에 VITE_AI_SERVER_URL 를 넣어두면 그 값을 사용
 // - 없으면 개발용으로 http://localhost:5000 사용
-const ACCAI_BASE_URL = "http://localhost:5000";
+const ACCAI_BASE_URL = import.meta.env.VITE_AI_SERVER_URL || "http://localhost:5000";
 
 /**
  * 상대 경로/절대 경로를 받아서

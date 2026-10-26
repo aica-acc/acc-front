@@ -1,11 +1,12 @@
 import axios from "axios";
+import { API_BASE_URL } from "../../config/appConfig";
 
 /**
  * 🧩 Base API 설정 (JSON + FormData 자동 인식 + 기본 m_no 주입)
  */
 
 const api = axios.create({
-  baseURL: "http://localhost:8081", // 👉 백엔드 포트
+  baseURL: API_BASE_URL, // 👉 백엔드 주소 (.env: VITE_API_BASE_URL)
   withCredentials: true,
 });
 

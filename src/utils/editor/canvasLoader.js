@@ -248,14 +248,9 @@ function convertToProxyUrl(url) {
     return convertToPublicPath(url);
   }
   
-  // http://127.0.0.1:5000/static/... 형태를 /static/... 로 변환
-  if (url.includes('http://127.0.0.1:5000/static')) {
-    return url.replace('http://127.0.0.1:5000', '');
-  }
-  
-  // http://localhost:5000/static/... 형태도 처리
-  if (url.includes('http://localhost:5000/static')) {
-    return url.replace('http://localhost:5000', '');
+  // http://<AI 서버 호스트>/static/... 형태를 /static/... 로 변환 (호스트/포트는 환경에 따라 달라짐)
+  if (/^https?:\/\/[^/]+\/static\//.test(url)) {
+    return url.replace(/^https?:\/\/[^/]+/, '');
   }
   
   return url;
