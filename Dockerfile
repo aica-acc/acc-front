@@ -10,7 +10,7 @@ COPY . .
 RUN cd src/assets/sections/cardnews && for f in *.PNG; do [ -e "$f" ] && mv "$f" "${f%.PNG}.png"; done || true
 
 # src/assets/promotion/{poster,mascot} 이미지는 .gitignore 되어 레포에 없다.
-# 실제 파일은 팀 공유문서에서 받아 acc-front/src/assets/promotion 에 넣어 빌드하고,
+# 실제 파일은 팀 원본 자료에서 받아 acc-front/src/assets/promotion 에 넣어 빌드하고,
 # 없을 때만 빌드가 깨지지 않도록 1x1 임시 이미지로 채운다.
 RUN set -e; d=src/assets/promotion; mkdir -p $d/poster $d/mascot; \
     px='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=='; \
