@@ -1,19 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle, ArrowLeft } from "lucide-react";
-import { clearSession, getMember } from "../utils/auth";
+import { useAuthStore } from "../store/authStore";
 import StepProgressHorizontal from "../components/step/StepProgressHorizontal";
 
 const StepHeader = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const member = getMember();
+  const member = useAuthStore((s) => s.member);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
   const logout = () => {
     clearSession();
     setOpen(false);
     navigate("/");
-    window.location.reload();
   };
   const dropdownRef = useRef(null);
 

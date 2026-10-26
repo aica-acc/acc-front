@@ -2,11 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import mainVideo from "../assets/sections/video/main_video.mp4";
 import api from "../utils/api/BaseAPI";
-import { isLoggedIn, setSession } from "../utils/auth";
+import { useAuthStore } from "../store/authStore";
 
 
 const IntroSection = () => {
   const navigate = useNavigate();
+  const loggedIn = useAuthStore((s) => !!s.token);
+  const setSession = useAuthStore((s) => s.setSession);
   const [testBusy, setTestBusy] = React.useState(false);
   const [testError, setTestError] = React.useState("");
 
@@ -59,7 +61,7 @@ const IntroSection = () => {
               test 계정으로 로그인하기
             </button>
             <button
-              onClick={() => navigate(isLoggedIn() ? "/select" : "/login")}
+              onClick={() => navigate(loggedIn ? "/select" : "/login")}
               className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 
                          bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
                          hover:brightness-110 hover:scale-105"

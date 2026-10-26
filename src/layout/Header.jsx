@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserCircle } from "lucide-react";
 import mainIcon from "../assets/icorn/main_icorn.png";
-import { clearSession, getMember, isLoggedIn } from "../utils/auth";
+import { useAuthStore } from "../store/authStore";
 
 const ROLE_LABEL = { USER: "", TEST: "TEST", ADMIN: "관리자" };
 
@@ -14,14 +14,14 @@ const Header = forwardRef((props, ref) => {
   const dropdownRef = useRef(null);
 
   const isMainPage = location.pathname === "/";
-  const loggedIn = isLoggedIn();
-  const member = getMember();
+  const member = useAuthStore((s) => s.member);
+  const loggedIn = useAuthStore((s) => !!s.token);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
   const logout = () => {
     clearSession();
     setOpen(false);
     navigate("/");
-    window.location.reload();
   };
 
   useEffect(() => {

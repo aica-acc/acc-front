@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import Header from "../layout/Header";
-import { setSession } from "../utils/auth";
+import { useAuthStore } from "../store/authStore";
 
 const inputClass =
   "w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 mb-4 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500";
@@ -11,6 +11,8 @@ const inputClass =
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const setSession = useAuthStore((s) => s.setSession);
+  const loggedIn = useAuthStore((s) => !!s.token);
   const [mode, setMode] = useState("login"); // login | signup
   const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" });
   const [error, setError] = useState("");
@@ -18,6 +20,11 @@ const LoginPage = () => {
   const [testEnabled, setTestEnabled] = useState(false);
 
   const afterLogin = location.state?.from || "/select";
+
+  // 이미 로그인한 사용자가 /login 에 들어오면 바로 다음 화면으로 (로그인 직후 이동도 이 효과가 처리한다)
+  useEffect(() => {
+    if (loggedIn) navigate(afterLogin, { replace: true });
+  }, [loggedIn, afterLogin, navigate]);
 
   useEffect(() => {
     api
@@ -39,8 +46,8 @@ const LoginPage = () => {
           ? { email: form.email, password: form.password }
           : form;
       const res = await api.post(path, body);
+      // 이동은 위의 효과가 처리한다 (스토어의 로그인 상태가 바뀌면 자동으로 다음 화면으로)
       setSession(res.data);
-      navigate(afterLogin, { replace: true });
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -63,7 +70,6 @@ const LoginPage = () => {
     try {
       const res = await api.post("/api/auth/test-login");
       setSession(res.data);
-      navigate("/select", { replace: true });
     } catch {
       setError("테스트 로그인에 실패했습니다.");
     } finally {
