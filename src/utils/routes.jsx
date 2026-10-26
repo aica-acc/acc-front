@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import ProjectPage from "../pages/mypage/ProjectPage";
 import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 
@@ -39,6 +39,7 @@ import CheckPage from "../pages/CheckPage";
 import LoginPage from "../pages/LoginPage";
 import AdminPage from "../pages/AdminPage";
 import RequireAuth from "../components/auth/RequireAuth";
+import NotFoundPage from "../pages/NotFoundPage";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -68,6 +69,8 @@ const Approuter = () => {
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
             <Route index element={<AnalyzeProposalListPage />} />          
+            {/* 사이드바의 "기획서" 항목: 개요 화면으로 연결 */}
+            <Route path="proposal" element={<Navigate to="/analyze/list" replace />} />
             <Route path="list" element={<AnalyzeProposalListPage />} />
             <Route path="theme" element={<AnalyzeProposalThemePage />} />
             <Route path="region_trend" element={<AnalyzeRegionTrendPage />} />
@@ -108,6 +111,9 @@ const Approuter = () => {
             <Route path="/admin" element={<AdminPage />} />
           </Route>
         </Route>
+
+        {/* 없는 주소 */}
+        <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
