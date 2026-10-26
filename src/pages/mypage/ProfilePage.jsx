@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api/BaseAPI";
-import { updateMember } from "../../utils/auth";
+import { useAuthStore } from "../../store/authStore";
 
 const ROLE_LABEL = { USER: "일반 회원", TEST: "테스트 계정", ADMIN: "관리자" };
 
@@ -17,6 +17,7 @@ const errorText = (e, fallback) =>
 /** 마이프로필: 내 정보 확인 · 이름/연락처 수정 · 비밀번호 변경 · 내 활동 요약 */
 const ProfilePage = () => {
   const [me, setMe] = useState(null);
+  const updateMember = useAuthStore((s) => s.updateMember);
   const [form, setForm] = useState({ name: "", phone: "" });
   const [pw, setPw] = useState({ currentPassword: "", newPassword: "", confirm: "" });
   const [stats, setStats] = useState({ projects: 0, assets: 0 });

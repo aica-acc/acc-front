@@ -51,6 +51,7 @@ ACC(Automatic Creative Content)는 이러한 문제를 해결하기 위해 기�
 |---|---|
 | 프레임워크 | React 19, Vite 7, React Router 7 |
 | 스타일 | Tailwind CSS 4, styled-components, Bootstrap Icons, lucide-react |
+| 상태 관리 | **Zustand 5** (로그인 상태, `persist` 로 localStorage 저장) |
 | HTTP | axios (JWT 자동 첨부 인터셉터) |
 | 편집/출력 | Fabric.js 6 (이미지 편집기), html2canvas, html-to-image, jsPDF |
 | 차트 | Recharts |
@@ -101,7 +102,15 @@ Vite 는 `VITE_` 로 시작하는 값만 브라우저에 노출합니다. **빌�
 
 ## 🔐 로그인 / 권한
 
-- **JWT** 를 `localStorage` 의 `acc_auth` 에 저장하고, `src/utils/api/BaseAPI.jsx` 의 axios 인터셉터가 `Authorization: Bearer` 로 자동 첨부합니다. 토큰이 만료/무효(401)면 로그인 화면으로 이동합니다.
+- 로그인 상태(`token`, `member`)는 **Zustand 스토어**(`src/store/authStore.js`)가 관리합니다. `persist` 로 `localStorage`(`acc_auth`)에 저장되어 새로고침해도 유지됩니다.
+- 컴포넌트는 훅으로 구독합니다. 로그인·로그아웃·프로필 수정이 일어나면 헤더, 보호 라우트 등이 **새로고침 없이 자동으로 갱신**됩니다. 다른 탭에서 로그아웃해도 이 탭에 즉시 반영됩니다.
+  ```jsx
+  import { useAuthStore } from "../store/authStore";
+  const member = useAuthStore((s) => s.member);           // 값 구독
+  const clearSession = useAuthStore((s) => s.clearSession); // 액션
+  ```
+- React 밖(axios 인터셉터 등)에서는 `src/utils/auth.js` 의 `getToken()`, `getMember()` 처럼 현재 값을 읽는 함수를 씁니다. 내부적으로 같은 스토어를 사용합니다.
+- `src/utils/api/BaseAPI.jsx` 의 axios 인터셉터가 `Authorization: Bearer` 를 자동 첨부하고, 토큰이 만료/무효(401)면 세션을 지우고 로그인 화면으로 보냅니다.
 - `src/components/auth/RequireAuth.jsx` 가 `/`, `/login` 을 제외한 모든 화면을 로그인 필요로 막습니다. `/admin` 은 `ADMIN` 만 접근합니다.
 - 권한: `USER`(일반) / `TEST`(테스트 계정, 샘플 기획서 자동 입력) / `ADMIN`(관리자 화면).
 - 로그아웃하면 작성 중이던 폼(`festivalForm`)도 함께 지워 다른 계정에 보이지 않게 합니다.
@@ -168,8 +177,9 @@ src/
 ├─ main.jsx, App.jsx
 ├─ utils/
 │  ├─ routes.jsx        라우트 정의 (RequireAuth 로 보호)
-│  ├─ auth.js           로그인 상태(JWT/회원) 저장소
+│  ├─ auth.js           스토어를 읽고 쓰는 헬퍼 (React 밖에서 사용)
 │  └─ api/BaseAPI.jsx   axios 인스턴스 (토큰 첨부, 401 처리)
+├─ store/authStore.js   Zustand 스토어 (로그인 상태)
 ├─ config/appConfig.js  API / AI 서버 주소, 경로 변환
 ├─ pages/               화면 (analyze, create, mypage, report, Login, Admin, NotFound ...)
 ├─ components/          auth, editor, select_promotion, mypage, report ...
@@ -183,3 +193,5 @@ src/
 - 백엔드가 `C:\...` 같은 윈도우 경로를 DB 에 저장한 과거 데이터가 있어, `canvasLoader.js` / `imageUtils.js` 는 이런 경로를 `/data/...` 웹 경로로 바꿔 줍니다. 새 데이터는 `/data/...` 로 저장됩니다.
 - 새 화면은 `src/utils/routes.jsx` 의 `RequireAuth` 안에 추가하세요 (로그인 필요).
 - API 호출은 `src/utils/api/BaseAPI.jsx` 의 `api` 인스턴스를 사용하세요. 토큰과 회원번호가 자동으로 붙습니다.
+- 화면에서 로그인 정보가 필요하면 `useAuthStore` 훅을 쓰세요. 일반 함수(`getMember()`)는 값이 바뀌어도 화면을 다시 그리지 않습니다.
+- 그 밖의 임시 상태(`festivalForm`, `selectedPromotions` 등)는 아직 `localStorage`/`sessionStorage` 를 직접 쓰고 있습니다. 필요하면 같은 방식으로 스토어로 옮길 수 있습니다.

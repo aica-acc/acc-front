@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import api from "../utils/api/BaseAPI";
 import Header from "../layout/Header";
-import { getMember } from "../utils/auth";
+import { useAuthStore } from "../store/authStore";
 
 const ROLES = ["USER", "TEST", "ADMIN"];
 const ROLE_LABEL = { USER: "일반", TEST: "테스트", ADMIN: "관리자" };
 
 /** 관리자 화면: 회원 목록, 권한 변경, 계정 정지/해제, 회원 데이터 초기화(test 계정 되돌리기) */
 const AdminPage = () => {
-  const me = getMember();
+  const me = useAuthStore((s) => s.member);
   const [members, setMembers] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
