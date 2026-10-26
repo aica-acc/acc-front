@@ -124,7 +124,7 @@ const ProjectDetailPage = () => {
           <div className="flex items-start gap-4 mb-6">
             {/* 프로필 아바타 */}
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold">
-              약
+              {(festivalName || "?").trim().charAt(0)}
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-1">{festivalName}</h1>

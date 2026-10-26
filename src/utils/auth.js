@@ -27,6 +27,17 @@ export const setSession = ({ token, member }) => {
   }
 };
 
+/** 프로필 수정 후 저장된 회원 정보만 갱신 (토큰은 유지) */
+export const updateMember = (member) => {
+  const cur = read();
+  if (!cur) return;
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ ...cur, member }));
+  } catch {
+    /* ignore */
+  }
+};
+
 export const clearSession = () => {
   try {
     localStorage.removeItem(KEY);
