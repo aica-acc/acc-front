@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import mainVideo from "../assets/sections/video/main_video.mp4";
 import api from "../utils/api/BaseAPI";
 import { useAuthStore } from "../store/authStore";
+import { openProject, stepLabel } from "../utils/project";
 
 
 const IntroSection = () => {
@@ -11,6 +12,32 @@ const IntroSection = () => {
   const setSession = useAuthStore((s) => s.setSession);
   const [testBusy, setTestBusy] = React.useState(false);
   const [testError, setTestError] = React.useState("");
+  // 가장 최근에 진행한 프로젝트 ("이어서 하기")
+  const [recent, setRecent] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!loggedIn) {
+      setRecent(null);
+      return;
+    }
+    let alive = true;
+    api
+      .get("/api/progress/current")
+      .then((res) => alive && setRecent(res.status === 200 ? res.data : null))
+      .catch(() => alive && setRecent(null));
+    return () => {
+      alive = false;
+    };
+  }, [loggedIn]);
+
+  const resumeRecent = async () => {
+    try {
+      const route = await openProject();
+      navigate(route || "/select");
+    } catch {
+      setTestError("프로젝트를 불러오지 못했습니다.");
+    }
+  };
 
   // test 계정으로 로그인 → 샘플 데이터가 자동 입력되는 흐름으로 바로 진입
   const startAsTest = async () => {
@@ -69,6 +96,14 @@ const IntroSection = () => {
               실제 이용하기
             </button>
           </div>
+          {recent && (
+            <button
+              onClick={resumeRecent}
+              className="mt-4 text-sm text-white/90 underline underline-offset-4 hover:text-white"
+            >
+              이어서 하기 · {recent.title || `프로젝트 ${recent.pNo}`} ({stepLabel(recent.route)})
+            </button>
+          )}
           {testError && <p className="mt-3 text-sm text-red-300">{testError}</p>}
       </div>
     </section>

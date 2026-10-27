@@ -1,6 +1,7 @@
 // src/pages/mypage/ProjectDetailPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { openProject } from "../../utils/project";
 import api from "../../utils/api/BaseAPI";
 import ImageModal from "../../components/mypage/ImageModal";
 import UnifiedLoadingPage from "../../components/loding/UnifiedLoadingPage";
@@ -98,11 +99,20 @@ const ProjectDetailPage = () => {
     setModalMediaType(null);
   };
 
+  // 이 프로젝트를 현재 프로젝트로 열고 마지막으로 머문 단계로 이동
+  const handleResume = async () => {
+    try {
+      const route = await openProject(pNo);
+      navigate(route || "/analyze/list");
+    } catch {
+      alert("프로젝트를 불러오지 못했습니다.");
+    }
+  };
+
   const handleStrategyTabClick = () => {
-    // pNo를 sessionStorage에 저장하고 리포트 페이지로 이동
+    // ?p= 로 이 프로젝트를 현재 프로젝트로 열고 리포트 페이지로 이동
     if (pNo) {
-      sessionStorage.setItem("editorPNo", pNo.toString());
-      navigate("/report/result");
+      navigate(`/report/result?p=${pNo}`);
     } else {
       alert("프로젝트 번호를 찾을 수 없습니다.");
     }
@@ -135,6 +145,15 @@ const ProjectDetailPage = () => {
                 <p className="text-sm text-gray-500 mt-1">{location}</p>
               )}
             </div>
+            {pNo && (
+              <button
+                onClick={handleResume}
+                className="ml-auto self-center px-4 py-2 rounded-lg text-sm font-semibold
+                           bg-gradient-to-r from-purple-500 to-pink-500 hover:brightness-110"
+              >
+                이 프로젝트 이어서 하기
+              </button>
+            )}
           </div>
 
           {/* 탭 버튼 (테두리 없이 밑줄만) */}
