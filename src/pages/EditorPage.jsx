@@ -34,9 +34,13 @@ const EditorPage = () => {
 
     return itemsData.map((item, index) => {
       // 🔥 backgroundImageUrl이 있으면 public 기준 상대 경로로 변환하여 썸네일로 사용
+      // 배경이 없는 항목(로고·표지판·굿즈 등 파생물은 이미지 객체로 들어온다)은 첫 이미지 객체로 썸네일을 만든다
       let thumbnailUrl = null;
+      const firstImage = item.canvasData?.objects?.find((o) => o.type === "image" && (o.url || o.src));
       if (item.backgroundImageUrl) {
         thumbnailUrl = convertToPublicPath(item.backgroundImageUrl);
+      } else if (firstImage) {
+        thumbnailUrl = convertToPublicPath(firstImage.url || firstImage.src);
       }
       
       return {
