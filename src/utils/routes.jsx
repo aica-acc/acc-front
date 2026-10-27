@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import ProjectPage from "../pages/mypage/ProjectPage";
 import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 
@@ -36,6 +36,11 @@ import CreateUploadPage from "../pages/create/CreateUploadPage";
 import MyReportPage from '../pages/report/MyReportPage';
 import TempEditorEntry from '../pages/report/TempEditorEntry';
 import CheckPage from "../pages/CheckPage";
+import LoginPage from "../pages/LoginPage";
+import AdminPage from "../pages/AdminPage";
+import RequireAuth from "../components/auth/RequireAuth";
+import NotFoundPage from "../pages/NotFoundPage";
+import ProjectGate from "../components/project/ProjectGate";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -43,23 +48,34 @@ const Approuter = () => {
     <Routes>
         {/* 메인 페이지 */}
         <Route path="/" element={<MainPage />} />
+        {/* 로그인 / 회원가입 / test 로그인 */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* 이하 모든 화면은 로그인 필요 */}
+        <Route element={<RequireAuth />}>
         <Route element={<MainLayout />}>
-          {/* 홍보물 선택 페이지 */}
-          <Route path="/select" element={<SelectPromotionPage_New />} />    
+          {/* 홍보물 선택 페이지 (새 프로젝트 초안: 기획서 분석 전이라 ProjectGate 밖) */}
+          <Route path="/select" element={<SelectPromotionPage_New />} />
           {/* 기획서 업로드 페이지 */}
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
+        {/* 기획서 분석: 여기서 새 프로젝트가 만들어진다 (ProjectGate 밖) */}
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
+        <Route path="/testpage" element={<TestPage />} />
+
+        {/* 이하 프로젝트 흐름 화면: 서버의 진행 상태를 불러온 뒤 그린다 ("이어서 하기") */}
+        <Route element={<ProjectGate />}>
         <Route path="/testlodingpage" element={<EditorLoadingPage />} />
         {/* 에디터 페이지 */}  
         <Route path="/editorpage" element={<EditorPage />} />
         {/* 에디터 페이지 */}  
         <Route path="/check" element={<CheckPage />} />
-        <Route path="/testpage" element={<TestPage />} />  
         <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
             <Route index element={<AnalyzeProposalListPage />} />          
+            {/* 사이드바의 "기획서" 항목: 개요 화면으로 연결 */}
+            <Route path="proposal" element={<Navigate to="/analyze/list" replace />} />
             <Route path="list" element={<AnalyzeProposalListPage />} />
             <Route path="theme" element={<AnalyzeProposalThemePage />} />
             <Route path="region_trend" element={<AnalyzeRegionTrendPage />} />
@@ -77,7 +93,14 @@ const Approuter = () => {
             <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
             <Route path="mascort/detail/:filePathNo/:promptNo" element={<CreateMascortPromptPage />} />
             <Route path="upload" element={<CreateUploadPage />} />
-          </Route>                                                   
+          </Route>
+
+          {/* 리포트 결과 페이지 그룹 */}
+          <Route path="/report">
+            <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
+            <Route path="result" element={<MyReportPage />} />
+          </Route>
+        </Route>
         
           {/* 마이 페이지  그룹 */}
           <Route path="/mypage" element={<MyPageLayout />}>
@@ -89,11 +112,14 @@ const Approuter = () => {
           </Route> 
     
 
-          {/* 리포트 결과 페이지 그룹 */} 
-          <Route path="/report">
-            <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
-            <Route path="result" element={<MyReportPage />} />
+          {/* 관리자 전용 */}
+          <Route element={<RequireAuth roles={["ADMIN"]} />}>
+            <Route path="/admin" element={<AdminPage />} />
           </Route>
+        </Route>
+
+        {/* 없는 주소 */}
+        <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

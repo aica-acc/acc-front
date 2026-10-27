@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Approuter from "./utils/routes";
 import './App.css'
 import MainLayout from "./layout/MainLayout";
+import JobNotifier from "./components/job/JobNotifier";
 
 
 function App() {
@@ -16,6 +17,8 @@ function App() {
   return (
       <>
       <Approuter />
+      {/* 백그라운드 생성 작업 알림 (어느 화면에서든) */}
+      <JobNotifier />
       </>
   )
 }

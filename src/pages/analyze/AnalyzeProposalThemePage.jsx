@@ -13,6 +13,7 @@ import {
 import AnalyzeButton from "../../components/buttons/AnalyzeButton";
 import { mergeTrendData } from "../../utils/trendUtils";
 
+import projectSession from "../../utils/projectSession";
 const PAGE_SIZE = 5;
 
 const AnalyzeProposalThemePage = () => {
@@ -33,7 +34,7 @@ const AnalyzeProposalThemePage = () => {
     let data = state?.trend;
 
     if (!data) {
-      const saved = sessionStorage.getItem("trendData");
+      const saved = projectSession.getItem("trendData");
       if (saved) data = JSON.parse(saved);
     }
 
@@ -111,6 +112,15 @@ const AnalyzeProposalThemePage = () => {
           .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
         `}
       </style>
+
+      {/* 데이터 수집 실패 안내 (예: 구글 트렌드 일시 조회 불가) */}
+      {trendData?.notices?.length > 0 && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm text-amber-100">
+          {trendData.notices.map((n) => (
+            <p key={n} className="flex gap-2"><span>⚠</span><span>{n}</span></p>
+          ))}
+        </div>
+      )}
 
       {/* 헤더 섹션 */}
       <div style={{ 

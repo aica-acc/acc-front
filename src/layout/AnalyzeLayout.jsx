@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import StepHeader from "./StepHeader";
 
+import projectSession from "../utils/projectSession";
 export default function AnalyzeLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,7 +13,7 @@ export default function AnalyzeLayout() {
   const [selectedPromotions, setSelectedPromotions] = useState({});
 
   useEffect(() => {
-    const raw = sessionStorage.getItem("selectedPromotions");
+    const raw = projectSession.getItem("selectedPromotions");
     if (raw) setSelectedPromotions(JSON.parse(raw));
   }, []);
 

@@ -18,10 +18,8 @@ const ProjectPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await api.get("/api/mypage/projects", {
-          // 로그인 붙기 전까지는 임시 고정
-          params: { m_no: "M000001" },
-        });
+        // 로그인한 회원의 프로젝트만 내려온다 (토큰 기준)
+        const res = await api.get("/api/mypage/projects");
         // 백엔드에서 이미 thumbnailUrl을 포함해서 반환하므로 그대로 사용
         setProjects(res.data);
       } catch (e) {

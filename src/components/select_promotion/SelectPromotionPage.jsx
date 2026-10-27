@@ -16,6 +16,8 @@ export default function SelectPromotionPage() {
 
   /* -----------------------------------------
    * 1. 세션 로드
+   *  - 유형 선택은 기획서 분석(프로젝트 생성) 전 단계라 이 탭의 sessionStorage 에 "초안"으로 둔다.
+   *  - 분석이 끝나 프로젝트가 생기면 ProposalLoadingPage 가 서버 진행 상태로 옮긴다.
    * ----------------------------------------- */
   useEffect(() => {
     const raw = sessionStorage.getItem("types");
