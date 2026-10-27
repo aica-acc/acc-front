@@ -4,12 +4,14 @@ import { useAuthStore } from "../../store/authStore";
 import { JobAPI, summarizeBuild } from "../../utils/api/JobAPI";
 
 const POLL_MS = 5000;
-const KIND_LABEL = { EDITOR_BUILD: "파생물 생성" };
+const KIND_LABEL = { EDITOR_BUILD: "파생물 생성", CREATE_IMAGES: "포스터·마스코트 생성" };
+// 작업 종류별 진행 화면 (같은 정보가 이미 보이므로 그 화면에서는 알림을 숨긴다)
+const PROGRESS_PAGE = { EDITOR_BUILD: "/testlodingpage", CREATE_IMAGES: "/generate-prompt/loading" };
 
 /**
  * 화면 오른쪽 아래 생성 작업 알림.
  * 어느 화면에 있든 진행 중인 작업의 진행률과, 끝났지만 아직 확인하지 않은 작업을 보여 준다.
- * 진행 화면(/testlodingpage)에서는 같은 정보가 이미 보이므로 숨긴다.
+ * 진행 화면(/testlodingpage, /generate-prompt/loading)에서는 같은 정보가 이미 보이므로 숨긴다.
  */
 export default function JobNotifier() {
   const loggedIn = useAuthStore((s) => !!s.token);
@@ -35,7 +37,8 @@ export default function JobNotifier() {
     };
   }, [loggedIn, location.pathname]);
 
-  if (!loggedIn || jobs.length === 0 || location.pathname === "/testlodingpage") return null;
+  const visible = jobs.filter((j) => PROGRESS_PAGE[j.kind] !== location.pathname);
+  if (!loggedIn || visible.length === 0) return null;
 
   const dismiss = (job) => {
     JobAPI.markSeen(job.jobId).catch(() => {});
@@ -43,17 +46,18 @@ export default function JobNotifier() {
   };
 
   const open = (job) => {
-    if (job.status === "SUCCEEDED") {
+    if (job.status === "SUCCEEDED" && job.kind === "EDITOR_BUILD") {
       dismiss(job);
       navigate(`/editorpage?p=${job.pNo}`, { state: { pNo: job.pNo, runId: job.result?.runId } });
     } else {
-      navigate(`/testlodingpage?p=${job.pNo}`);
+      // 포스터·마스코트는 완료 후에도 진행 화면이 결과 화면으로 넘겨 준다
+      navigate(`${PROGRESS_PAGE[job.kind] || "/testlodingpage"}?p=${job.pNo}`);
     }
   };
 
   return (
     <div className="fixed bottom-5 right-5 z-[3000] flex w-80 flex-col gap-2">
-      {jobs.map((job) => {
+      {visible.map((job) => {
         const label = KIND_LABEL[job.kind] || "생성 작업";
         const running = job.status === "QUEUED" || job.status === "RUNNING";
         const { percent } = summarizeBuild(job);
@@ -89,7 +93,7 @@ export default function JobNotifier() {
             )}
             {job.status !== "FAILED" && (
               <button onClick={() => open(job)} className="mt-3 w-full rounded-lg bg-gray-800 py-1.5 text-xs font-semibold hover:bg-gray-700">
-                {running ? "진행 상황 보기" : "에디터 열기"}
+                {running ? "진행 상황 보기" : job.kind === "EDITOR_BUILD" ? "에디터 열기" : "결과 보기"}
               </button>
             )}
           </div>

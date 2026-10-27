@@ -24,6 +24,14 @@ export const JobAPI = {
 
   markSeen: (jobId) => api.post(`/api/jobs/${jobId}/seen`),
 
+  /** 베이스 포스터·마스코트 생성 시작 (프롬프트 → 이미지, 포스터 → 마스코트). body 는 분석 화면의 trendData */
+  startCreateImages: (pNo, trendData) =>
+    api.post("/api/create-jobs", trendData, { params: { pNo } }).then((res) => res.data),
+
+  /** 이 프로젝트의 최근 포스터·마스코트 생성 작업 (없으면 null) */
+  latestCreateImages: (pNo) =>
+    api.get("/api/create-jobs/latest", { params: { pNo } }).then((res) => (res.status === 204 ? null : res.data)),
+
   /** 이미 만든 파생물: { 유형: 만든 베이스 경로 } */
   derivatives: (pNo) => api.get(`/api/editor/project/${pNo}/derivatives`).then((res) => res.data || {}),
 };
@@ -41,6 +49,7 @@ export function summarizeBuild(job) {
   const p = job?.progress;
   if (job?.status === "SUCCEEDED") return { percent: 100, remaining: 0 };
   if (!p || !p.total) return { percent: job?.status === "RUNNING" ? 3 : 0, remaining: null };
+  if (p.items.some((it) => it.expectSeconds)) return summarizeSteps(p);
 
   const avg = p.avgItemSeconds || DEFAULT_ITEM_SECONDS;
   const running = p.items.find((it) => it.status === "running");
@@ -58,6 +67,30 @@ export function summarizeBuild(job) {
   const remaining = p.status === "done" ? 0 : Math.round(left * avg + runningLeft + finishing);
 
   return { percent: Math.max(1, Math.min(99, Math.round(percent))), remaining };
+}
+
+/**
+ * 단계마다 예상 시간이 있는 작업(포스터·마스코트 생성)의 진행률.
+ * 예상 시간을 가중치로 쓰고, 진행 중인 단계는 경과 시간만큼 채운다 (단계 예상치의 95% 까지).
+ */
+function summarizeSteps(p) {
+  const total = p.items.reduce((sum, it) => sum + (it.expectSeconds || DEFAULT_ITEM_SECONDS), 0);
+  let doneSec = 0;
+  let remaining = 0;
+  for (const it of p.items) {
+    const expect = it.expectSeconds || DEFAULT_ITEM_SECONDS;
+    if (it.status === "done") {
+      doneSec += expect;
+    } else if (it.status === "running") {
+      const elapsed = Math.max(p.now - it.startedAt, 0);
+      doneSec += Math.min(elapsed, expect * 0.95);
+      remaining += Math.max(expect - elapsed, 5);
+    } else {
+      remaining += expect;
+    }
+  }
+  if (p.status === "done") return { percent: 100, remaining: 0 };
+  return { percent: Math.max(1, Math.min(99, Math.round((doneSec / total) * 100))), remaining: Math.round(remaining) };
 }
 
 export function formatDuration(sec) {
