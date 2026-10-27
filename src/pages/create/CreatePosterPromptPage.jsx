@@ -3,6 +3,8 @@ import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { Image } from "../../utils/api/PosterAPI";
 import ImageViewer from "../../components/create/ImageViewer";
 import DerivativePicker from "../../components/create/DerivativePicker";
+import { JobAPI } from "../../utils/api/JobAPI";
+import { useProjectStore } from "../../store/projectStore";
 import BulletIndicator from "../../components/create/BulletIndicator";
 import NaviControls from "../../components/buttons/NavControls";
 import BaseSelectButton from "../../components/buttons/BaseSelectButton";
@@ -35,6 +37,14 @@ export default function CreatePosterPromptPage() {
     setDerivativeTypes(next);
     projectSession.setItem("types", JSON.stringify(next));
   };
+
+  // 이미 만든 파생물 (같은 베이스면 다시 만들지 않음 → 패널에 "생성됨" 표시)
+  const [generated, setGenerated] = useState({});
+  useEffect(() => {
+    const pNo = useProjectStore.getState().pNo;
+    if (pNo) JobAPI.derivatives(pNo).then(setGenerated).catch(() => {});
+  }, []);
+  const selectedBase = JSON.parse(projectSession.getItem("selectedPosterImage") || "null")?.fileUrl;
   const [isSelected, setIsSelected] = useState(false);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
 
@@ -364,6 +374,8 @@ export default function CreatePosterPromptPage() {
         types={derivativeTypes}
         onChange={handleDerivativeTypesChange}
         onSubmit={handleCreateDerivative}
+        generated={generated}
+        currentBase={selectedBase || detail?.fileUrl}
       />
     </div>
   );
