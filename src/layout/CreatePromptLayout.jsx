@@ -164,7 +164,7 @@ const CreatePromptLayout = () => {
             collapsed ? "ml-20" : "ml-64"
           }`}
         >
-          <div className="flex w-full h-full">
+          <div className="flex w-full h-full gap-6">
             {/* ⭐ Page에서 setter 호출 가능하도록 context 내려줌 */}
             {/* 높이는 부모(헤더 112px·여백 64px 를 뺀 영역)를 그대로 채운다. 예전 calc(100vh - 112px)는 여백을 빼지 않아 64px 넘쳤다 */}
             <main className="flex-1 h-full min-h-0 overflow-hidden flex justify-center">

@@ -43,15 +43,8 @@ export default function PromptSidebar({
   };
 
   return (
-    <aside 
-      className="bg-gray-800 border-l border-gray-700 flex flex-col"
-      style={{ 
-        width: '420px',
-        height: 'calc(100vh - 88px)',
-        minWidth: '320px',
-        maxWidth: '420px'
-      }}
-    >
+    // 높이는 레이아웃 본문을 그대로 채운다 (이미지·파생물 패널과 위아래 선을 맞춤)
+    <aside className="relative w-[360px] shrink-0 h-full min-h-0 flex flex-col overflow-hidden rounded-xl bg-gray-800 border border-gray-700">
 
       {/* 로딩 전면 블러 처리 */}
       {loading && (
