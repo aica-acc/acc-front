@@ -14,11 +14,9 @@
 
 // ####################### 임 시 코 드 ##################################
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "../../config/appConfig";
 
-// acc-ai(이미지 서버) 기본 주소
-// - .env 에 VITE_AI_SERVER_URL 를 넣어두면 그 값을 사용
-// - 없으면 개발용으로 http://localhost:5000 사용
-const ACCAI_BASE_URL = import.meta.env.VITE_AI_SERVER_URL || "http://localhost:5000";
+// 이미지(/static/...)는 백엔드가 AI 서버에서 중계한다
 
 /**
  * 상대 경로/절대 경로를 받아서
@@ -34,11 +32,11 @@ function resolveImageUrl(rawUrl) {
 
   // 2) "/"로 시작하면 그대로 base 뒤에 붙이기
   if (rawUrl.startsWith("/")) {
-    return `${ACCAI_BASE_URL}${rawUrl}`;
+    return `${API_BASE_URL}${rawUrl}`;
   }
 
   // 3) 나머지는 "static/xxx.jpg" 같은 형태라고 보고, 중간에 "/" 하나 넣어줌
-  return `${ACCAI_BASE_URL}/${rawUrl}`;
+  return `${API_BASE_URL}/${rawUrl}`;
 }
 
 const AnalyzeBannerTrendPage = () => {

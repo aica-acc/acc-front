@@ -8,11 +8,9 @@
 // 또는: "C:/final_project/ACC/acc-frontend/public"
 export const PUBLIC_FOLDER_PATH = import.meta.env.VITE_PUBLIC_FOLDER_PATH;
 
-// AI 서버 URL (.env 의 VITE_AI_SERVER_URL, 없으면 로컬 기본값)
-export const AI_SERVER_URL = import.meta.env.VITE_AI_SERVER_URL || "http://127.0.0.1:5000";
-
 // 백엔드(Spring) URL (.env 의 VITE_API_BASE_URL, 없으면 로컬 기본값)
-// 빈 문자열("")이면 같은 도메인으로 요청한다 (nginx 가 /api/ 를 백엔드로 전달하는 배포 환경)
+// 프론트는 백엔드만 호출한다. AI 서버 정적 파일(/static/...)도 백엔드가 중계한다.
+// 빈 문자열("")이면 같은 도메인으로 요청한다 (nginx 가 /api/, /static/ 을 백엔드로 전달하는 배포 환경)
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081";
 
 /**

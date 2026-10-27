@@ -57,13 +57,14 @@ ACC(Automatic Creative Content)는 이러한 문제를 해결하기 위해 기�
 | 차트 | Recharts |
 | 배포 | Docker 멀티 스테이지 (Node 22 빌드 → nginx 1.28) |
 
-시스템 구성: **acc-front(nginx) → acc-backend(Spring, MySQL) / acc-ai(FastAPI)**
+시스템 구성: **acc-front(nginx) → acc-backend(Spring, MySQL) → acc-ai(FastAPI)**
+프론트는 백엔드만 호출합니다. 백엔드가 모든 데이터의 중심이고, AI 서버는 백엔드만 호출합니다.
 
 ---
 
 ## ⚙️ 빠른 실행 (로컬 개발)
 
-사전 준비: Node.js **22** (Vite 7 은 20.19+ / 22.12+ 필요), 백엔드(`:8081`)와 AI 서버(`:5000`)가 떠 있어야 화면이 동작합니다.
+사전 준비: Node.js **22** (Vite 7 은 20.19+ / 22.12+ 필요), 백엔드(`:8081`)와, 백엔드가 호출하는 AI 서버(`:5000`)가 떠 있어야 화면이 동작합니다.
 
 ```bash
 npm ci
@@ -73,7 +74,7 @@ npm run dev              # http://localhost:5173
 
 | 스크립트 | 설명 |
 |---|---|
-| `npm run dev` | 개발 서버 (`/static` 은 AI 서버로 프록시) |
+| `npm run dev` | 개발 서버 (`/static` 은 백엔드로 프록시, 백엔드가 AI 서버에서 중계) |
 | `npm run build` | 운영 빌드 (`dist/`) |
 | `npm run preview` | 빌드 결과 미리보기 |
 | `npm run lint` | ESLint |
@@ -84,8 +85,7 @@ Vite 는 `VITE_` 로 시작하는 값만 브라우저에 노출합니다. **빌�
 
 | 변수 | 설명 | 기본값 |
 |---|---|---|
-| `VITE_API_BASE_URL` | 백엔드 주소. **빈 문자열이면 같은 도메인**(`/api/...`)으로 요청 — Docker/도메인 배포용 | `http://localhost:8081` |
-| `VITE_AI_SERVER_URL` | AI 서버 주소 (`/ai` 처럼 상대경로도 가능) | `http://127.0.0.1:5000` |
+| `VITE_API_BASE_URL` | 백엔드 주소. **빈 문자열이면 같은 도메인**(`/api/...`, `/static/...`)으로 요청 — Docker/도메인 배포용 | `http://localhost:8081` |
 | `VITE_PUBLIC_FOLDER_PATH` | 백엔드가 파일을 저장하는 `public` 폴더 경로 (**백엔드 프로세스 기준**) | |
 
 ### 레포에 없는 파일 (필수)
@@ -144,25 +144,23 @@ Vite 는 `VITE_` 로 시작하는 값만 브라우저에 노출합니다. **빌�
    - `src/assets/promotion/*` 이 없으면 1×1 임시 이미지로 채웁니다 (실제 이미지를 넣으면 그대로 사용).
 2. **실행** (`nginx:1.28-alpine`): `dist/` 를 서빙하고 `nginx.conf` 템플릿으로 프록시합니다.
 
-빌드 인자 (`--build-arg`): `VITE_PUBLIC_FOLDER_PATH`, `VITE_API_BASE_URL`, `VITE_AI_SERVER_URL`
+빌드 인자 (`--build-arg`): `VITE_PUBLIC_FOLDER_PATH`, `VITE_API_BASE_URL`(기본 빈 값 = 같은 도메인)
 
 ### nginx 라우팅 (`nginx.conf`)
 
-브라우저는 nginx 하나만 바라보고, nginx 가 경로별로 나눠 전달합니다.
+브라우저는 nginx 하나만 바라보고, nginx 는 **백엔드로만** 전달합니다. AI 서버는 백엔드가 호출하며 외부에 노출하지 않습니다.
 
 | 경로 | 전달 대상 |
 |---|---|
 | `/` | React 정적 파일 (SPA 라우팅 지원) |
 | `/api/` | 백엔드 (`BACKEND_HOST:BACKEND_PORT`) |
-| `/ai/` | AI 서버 (`AI_HOST:AI_PORT`), `/ai` 접두어는 제거 |
-| `/static/` | AI 서버 정적 파일 |
+| `/static/` | 백엔드 → AI 서버 정적 파일 (백엔드가 중계) |
 | `/data/` | 백엔드가 생성한 홍보물 (공유 볼륨 `/srv/public/data/`) |
 
-업스트림 주소는 환경변수(기본 `BACKEND_HOST=backend`, `BACKEND_PORT=8081`, `AI_HOST=ai`, `AI_PORT=5000`)로 바꿀 수 있습니다.
+업스트림 주소는 환경변수(기본 `BACKEND_HOST=backend`, `BACKEND_PORT=8081`)로 바꿀 수 있습니다.
 
 ```bash
-docker build -t scv3114/acc-front \
-  --build-arg VITE_API_BASE_URL="" --build-arg VITE_AI_SERVER_URL=/ai .
+docker build -t scv3114/acc-front .
 docker run -p 5173:80 -v /경로/public:/srv/public:ro scv3114/acc-front
 ```
 
@@ -180,7 +178,7 @@ src/
 │  ├─ auth.js           스토어를 읽고 쓰는 헬퍼 (React 밖에서 사용)
 │  └─ api/BaseAPI.jsx   axios 인스턴스 (토큰 첨부, 401 처리)
 ├─ store/authStore.js   Zustand 스토어 (로그인 상태)
-├─ config/appConfig.js  API / AI 서버 주소, 경로 변환
+├─ config/appConfig.js  백엔드 주소, 경로 변환
 ├─ pages/               화면 (analyze, create, mypage, report, Login, Admin, NotFound ...)
 ├─ components/          auth, editor, select_promotion, mypage, report ...
 ├─ layout/              Header, StepHeader, 각 영역 레이아웃
