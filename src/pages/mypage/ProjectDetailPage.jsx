@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { openProject } from "../../utils/project";
+import { useProjectStore } from "../../store/projectStore";
 import api from "../../utils/api/BaseAPI";
 import ImageModal from "../../components/mypage/ImageModal";
 import UnifiedLoadingPage from "../../components/loding/UnifiedLoadingPage";
@@ -19,6 +20,7 @@ const ProjectDetailPage = () => {
   const [modalImage, setModalImage] = useState(null);
   const [modalMediaType, setModalMediaType] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false); // 프로젝트 삭제 중
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -109,6 +111,27 @@ const ProjectDetailPage = () => {
     }
   };
 
+  // 프로젝트 삭제: DB 기록과 생성 파일을 모두 지운다 (되돌릴 수 없음)
+  const handleDelete = async () => {
+    const name = festivalName || `프로젝트 ${pNo}`;
+    if (!window.confirm(`"${name}" 프로젝트를 삭제할까요?
+생성한 홍보물과 진행 기록이 모두 지워지며 되돌릴 수 없습니다.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.delete(`/api/project/${pNo}`);
+      // "이어서 하기" 대상이던 프로젝트면 비운다
+      if (String(useProjectStore.getState().pNo) === String(pNo)) {
+        useProjectStore.getState().reset();
+      }
+      navigate("/mypage/project", { replace: true });
+    } catch {
+      alert("프로젝트를 삭제하지 못했습니다.");
+      setDeleting(false);
+    }
+  };
+
   const handleStrategyTabClick = () => {
     // ?p= 로 이 프로젝트를 현재 프로젝트로 열고 리포트 페이지로 이동
     if (pNo) {
@@ -146,13 +169,23 @@ const ProjectDetailPage = () => {
               )}
             </div>
             {pNo && (
-              <button
-                onClick={handleResume}
-                className="ml-auto self-center px-4 py-2 rounded-lg text-sm font-semibold
-                           bg-gradient-to-r from-purple-500 to-pink-500 hover:brightness-110"
-              >
-                이 프로젝트 이어서 하기
-              </button>
+              <div className="ml-auto self-center flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-red-500/70 text-red-400
+                             hover:bg-red-600/20 disabled:opacity-50"
+                >
+                  {deleting ? "삭제 중..." : "프로젝트 삭제"}
+                </button>
+                <button
+                  onClick={handleResume}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold
+                             bg-gradient-to-r from-purple-500 to-pink-500 hover:brightness-110"
+                >
+                  이 프로젝트 이어서 하기
+                </button>
+              </div>
             )}
           </div>
 
