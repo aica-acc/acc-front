@@ -15,21 +15,24 @@ const TestSamplePanel = ({ formIsEmpty, onApply }) => {
 
   const apply = useCallback(
     async (sample) => {
+      const values = {
+        festivalName: sample.title,
+        keywords: sample.keywords || [],
+        theme: sample.theme || "",
+      };
+      // 축제명·키워드·테마는 먼저 채운다 (기획서 파일을 못 받아도 입력값은 남도록)
+      onApply({ ...values, file: null });
+      setSelected(sample.id);
       setStatus("샘플 기획서를 불러오는 중...");
       try {
         const res = await api.get(`/api/test/samples/${sample.id}/file`, { responseType: "blob" });
-        const name = String(sample.file).split("/").pop();
+        // 디스크 파일명(file)은 영문 id, 사용자에게 보이는 이름은 fileName(원래 한글 파일명)
+        const name = sample.fileName || String(sample.file).split("/").pop();
         const file = new File([res.data], name, { type: res.data.type || "application/pdf" });
-        onApply({
-          festivalName: sample.title,
-          keywords: sample.keywords || [],
-          theme: sample.theme || "",
-          file,
-        });
-        setSelected(sample.id);
+        onApply({ ...values, file });
         setStatus(`샘플 "${sample.title}" 이(가) 자동 입력되었습니다.`);
       } catch {
-        setStatus("샘플을 불러오지 못했습니다. (assets/samples 폴더와 test.samples-dir 설정을 확인하세요)");
+        setStatus("기획서 파일을 불러오지 못했습니다. 축제 정보만 입력되었으니 기획서는 직접 첨부해 주세요.");
       }
     },
     [onApply]
