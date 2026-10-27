@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { Image } from "../../utils/api/PosterAPI";
 import ImageViewer from "../../components/create/ImageViewer";
+import DerivativePicker from "../../components/create/DerivativePicker";
 import BulletIndicator from "../../components/create/BulletIndicator";
 import NaviControls from "../../components/buttons/NavControls";
 import BaseSelectButton from "../../components/buttons/BaseSelectButton";
@@ -26,7 +27,14 @@ export default function CreatePosterPromptPage() {
 
   const { filePathNo, promptNo } = useParams();
   const [detail, setDetail] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  // 만들 파생물 = 프로젝트의 types (유형 선택 화면에서 고른 값, 서버 진행 상태). 파생 만들기가 같은 값을 읽는다
+  const [derivativeTypes, setDerivativeTypes] = useState(() =>
+    JSON.parse(projectSession.getItem("types") || "[]")
+  );
+  const handleDerivativeTypesChange = (next) => {
+    setDerivativeTypes(next);
+    projectSession.setItem("types", JSON.stringify(next));
+  };
   const [isSelected, setIsSelected] = useState(false);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
 
@@ -317,23 +325,19 @@ export default function CreatePosterPromptPage() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full w-full bg-neutral-900 overflow-hidden">
-      {/* 우측 상단 선택하기 버튼 및 체크 표시 */}
-      <BaseSelectButton
-        isSelected={isSelected}
-        hasUploadedImage={hasUploadedImage}
-        onSelect={handleSelectImage}
-      />
+    <div className="flex h-full w-full gap-6 bg-neutral-900 overflow-hidden">
+      {/* 왼쪽: 베이스 이미지 */}
+      <div className="relative flex-1 min-w-0 flex flex-col items-center justify-center h-full gap-4">
+        {/* 우측 상단 선택하기 버튼 및 체크 표시 */}
+        <BaseSelectButton
+          isSelected={isSelected}
+          hasUploadedImage={hasUploadedImage}
+          onSelect={handleSelectImage}
+        />
 
-      <div className="flex flex-col items-center justify-center h-full w-full gap-4">
         {/* 이미지 뷰어 - 남은 공간을 차지하도록 flex-1 사용 */}
         <div className="flex-1 flex items-center justify-center min-h-0 w-full px-4">
-          <ImageViewer 
-            url={detail.fileUrl} 
-            onClick={() => {}}
-            selectedTypes={selectedTypes}
-            onTypesChange={setSelectedTypes}
-          />
+          <ImageViewer url={detail.fileUrl} onClick={() => {}} />
         </div>
 
         {/* 하단 컨트롤 영역 - 고정 높이 */}
@@ -351,15 +355,16 @@ export default function CreatePosterPromptPage() {
             onSelect={(i) => goToIndex(i)}
           />
 
-          {/* 파생 만들기 버튼 */}
-          <button
-            onClick={handleCreateDerivative}
-            className="px-8 py-3 rounded-lg text-white font-semibold shadow-lg transition-all bg-yellow-500 hover:bg-yellow-600"
-          >
-            파생 만들기
-          </button>
         </div>
       </div>
+
+      {/* 오른쪽: 만들 파생물 (항상 보임) + 파생 만들기 */}
+      <DerivativePicker
+        category="poster"
+        types={derivativeTypes}
+        onChange={handleDerivativeTypesChange}
+        onSubmit={handleCreateDerivative}
+      />
     </div>
   );
 }
