@@ -1,5 +1,6 @@
 import api from '../api/BaseAPI';
 
+import { useProjectStore } from "../../store/projectStore";
 export const Image = {
     /**
      * 썸네일 리스트 조회 API
@@ -16,8 +17,10 @@ export const Image = {
      * ]
      */
     getThumbnailList: (type = "포스터") => {
+        // 현재 프로젝트의 목록을 받는다 (없으면 서버가 가장 최근 프로젝트로 처리)
+        const pNo = useProjectStore.getState().pNo;
         return api.get(`/api/assets/list`, {
-            params: { type }
+            params: pNo ? { type, pNo } : { type }
         })
             .then(res => res.data)
             .catch(err => {
