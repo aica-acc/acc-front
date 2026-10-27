@@ -92,7 +92,9 @@ const AnalyzeProposalListPage = () => {
   const handleSave = () => {
     // 🔥 수정된 formData를 sessionStorage에 저장
 
-    const updated = { ...formData };
+    // 화면에 없는 값(pNo, projectNo 등)은 기존 proposalData 에서 보존하고 입력값만 덮어쓴다
+    const prev = JSON.parse(sessionStorage.getItem("proposalData") || "{}");
+    const updated = { ...prev, ...formData };
     sessionStorage.setItem("proposalData", JSON.stringify(updated));
     setFormData(updated);
     alert("저장이 완료되었습니다.");

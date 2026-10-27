@@ -8,6 +8,7 @@ import BaseSelectButton from "../../components/buttons/BaseSelectButton";
 import { convertToFullPath } from "../../config/appConfig";
 import { saveEditorImage } from "../../utils/api/EditorAPI";
 import { imageUrlToBase64 } from "../../utils/imageUtils";
+import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
 export default function CreateMascortPromptPage() {
   const navigate = useNavigate();
@@ -226,7 +227,11 @@ export default function CreateMascortPromptPage() {
     const selectedMascot = JSON.parse(selectedMascotStr);
     
     // pNo 가져오기 (proposalData에서 pNo 또는 projectNo 사용)
-    const pNo = proposalData.pNo || proposalData.projectNo || 1;
+    const pNo = await resolveProjectNo(proposalData);
+    if (!pNo) {
+      alert(PROJECT_NOT_FOUND_MESSAGE);
+      return;
+    }
 
     try {
       // 1️⃣ 베이스 이미지 2개를 먼저 promotion_path에 저장

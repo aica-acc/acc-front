@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SelectCheckIcon from "../../components/buttons/SelectCheckIcon";
 import { convertToFullPath } from "../../config/appConfig";
+import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
 const CreateUploadPage = () => {
   const navigate = useNavigate();
@@ -169,7 +170,7 @@ const CreateUploadPage = () => {
   };
 
   // 파생 만들기 버튼 핸들러
-  const handleCreateDerivative = () => {
+  const handleCreateDerivative = async () => {
     // 선택된 이미지 확인
     const selectedPosterStr = sessionStorage.getItem("selectedPosterImage");
     const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
@@ -265,7 +266,11 @@ const CreateUploadPage = () => {
       },
     ];
 
-    const pNo = proposalData.projectNo || 1;
+    const pNo = await resolveProjectNo(proposalData);
+    if (!pNo) {
+      alert(PROJECT_NOT_FOUND_MESSAGE);
+      return;
+    }
 
     // 업로드 이미지 세션 삭제
     sessionStorage.removeItem("uploadedPosterImage");
