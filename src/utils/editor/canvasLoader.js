@@ -442,8 +442,10 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
     return Promise.resolve();
   }
 
-  // 배경 이미지는 backgroundImageUrl 우선, 없으면 thumbnailUrl 사용
-  const bgUrl = design.backgroundImageUrl || design.thumbnailUrl;
+  // 배경 이미지는 backgroundImageUrl 만 쓴다.
+  // (썸네일은 목록 표시용이다. 배경이 없는 파생물은 썸네일이 첫 이미지 객체라,
+  //  썸네일을 배경으로 쓰면 같은 그림이 배경과 객체로 두 번 그려진다)
+  const bgUrl = design.backgroundImageUrl;
 
   console.log("🎨 작업물 로딩 시작:", design.title, `(ID: ${design.id})`);
   console.log("📋 로드할 데이터 상세:", {
