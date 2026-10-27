@@ -28,11 +28,12 @@ const CreatePromptLayout = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-900">
+    // 화면 높이에 고정: 페이지 자체는 스크롤되지 않고, 넘치는 내용은 각 영역 안에서 스크롤한다
+    <div className="flex flex-col h-screen overflow-hidden bg-neutral-900">
       {/* 헤더 (고정) */}
       <StepHeader />
 
-      <div className="flex flex-1 pt-28">
+      <div className="flex flex-1 min-h-0 pt-28">
         {/* 사이드바 (왼쪽 고정) - 헤더 아래에 위치 */}
         <div
           className={`fixed left-0 bottom-0 border-r transition-all duration-300 flex flex-col ${
@@ -159,13 +160,14 @@ const CreatePromptLayout = () => {
 
         {/* 메인 콘텐츠 영역 (사이드바 너비만큼 마진 자동 조절) */}
         <div 
-          className={`flex-1 transition-all duration-300 p-8 overflow-y-auto ${
+          className={`flex-1 min-h-0 transition-all duration-300 p-8 overflow-hidden ${
             collapsed ? "ml-20" : "ml-64"
           }`}
         >
           <div className="flex w-full h-full">
             {/* ⭐ Page에서 setter 호출 가능하도록 context 내려줌 */}
-            <main className="flex-1 overflow-hidden flex justify-center" style={{ height: 'calc(100vh - 112px)' }}>
+            {/* 높이는 부모(헤더 112px·여백 64px 를 뺀 영역)를 그대로 채운다. 예전 calc(100vh - 112px)는 여백을 빼지 않아 64px 넘쳤다 */}
+            <main className="flex-1 h-full min-h-0 overflow-hidden flex justify-center">
               <Outlet
                 context={{
                   setBasePrompt,
