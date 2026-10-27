@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StepHeader from '../layout/StepHeader';
 
+import projectSession from "../utils/projectSession";
 const CheckPage = () => {
   const navigate = useNavigate();
   const [types, setTypes] = useState([]);
 
   useEffect(() => {
     // sessionStorage에서 types 가져오기
-    const typesStr = sessionStorage.getItem("types");
+    const typesStr = projectSession.getItem("types");
     if (typesStr) {
       try {
         const parsedTypes = JSON.parse(typesStr);

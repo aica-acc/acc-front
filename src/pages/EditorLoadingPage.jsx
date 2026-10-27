@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import UnifiedLoadingPage from "../components/loding/UnifiedLoadingPage";
 
+import projectSession from "../utils/projectSession";
 const EditorLoadingPage = () => {
   const { state } = useLocation(); // TestPage → { pNo, postersPayload }
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const EditorLoadingPage = () => {
     if (!state) {
       alert("빌드 정보가 없습니다. 포스터 선택 페이지로 이동합니다.");
       // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
-      const saved = sessionStorage.getItem("thumbnailList");
+      const saved = projectSession.getItem("thumbnailList");
       if (saved) {
         const list = JSON.parse(saved);
         if (list && list.length > 0) {
@@ -48,8 +49,7 @@ const EditorLoadingPage = () => {
 
         const runId = buildRes.data.runId;
 
-        // pNo를 sessionStorage에 저장 (EditorPage에서 사용)
-        sessionStorage.setItem("editorPNo", pNo.toString());
+        // pNo 는 현재 프로젝트(useProjectStore)와 같다. EditorPage 는 state 또는 스토어에서 읽는다
 
         /* -------------------------------
          * 2️⃣ EditorPage로 이동 (pNo만 전달, GET은 EditorPage에서 수행)
@@ -65,7 +65,7 @@ const EditorLoadingPage = () => {
         console.error("❌ Editor 빌드 실패:", err);
         alert("빌드 중 오류가 발생했습니다. 포스터 선택 페이지로 이동합니다.");
         // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
-        const saved = sessionStorage.getItem("thumbnailList");
+        const saved = projectSession.getItem("thumbnailList");
         if (saved) {
           const list = JSON.parse(saved);
           if (list && list.length > 0) {

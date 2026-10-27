@@ -19,6 +19,8 @@ import { requestAIColorRecommendation, saveEditorImage } from "../utils/api/Edit
 // 폰트 옵션 import
 import { FONT_OPTIONS } from "../constants/fontOptions";
 
+import projectSession from "../utils/projectSession";
+import { useProjectStore } from "../store/projectStore";
 const EditorPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -157,29 +159,14 @@ const EditorPage = () => {
       try {
         setIsLoading(true);
         
-        // 🔥 테스트용: sessionStorage에 editorPNo 설정 (임시)
-        // sessionStorage.setItem("editorPNo", "17");
-        // console.log("🧪 [테스트] editorPNo를 3으로 설정");
-        
-        // pNo 가져오기 (state 또는 sessionStorage)
-        let pNo = null;
-        if (state && state.pNo) {
-          pNo = state.pNo;
-          // sessionStorage에도 저장
-          sessionStorage.setItem("editorPNo", pNo.toString());
-        } else {
-          // sessionStorage에서 가져오기
-          const storedPNo = sessionStorage.getItem("editorPNo");
-          if (storedPNo) {
-            pNo = parseInt(storedPNo, 10);
-          }
-        }
+        // pNo 가져오기 (state, 없으면 현재 프로젝트 — ProjectGate 가 서버에서 불러온 값)
+        const pNo = state?.pNo || useProjectStore.getState().pNo;
 
         if (!pNo) {
           console.error("❌ EditorPage: pNo가 없습니다.");
           alert("프로젝트 번호가 없습니다. 포스터 선택 페이지로 이동합니다.");
           // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
-          const saved = sessionStorage.getItem("thumbnailList");
+          const saved = projectSession.getItem("thumbnailList");
           if (saved) {
             const list = JSON.parse(saved);
             if (list && list.length > 0) {
@@ -205,7 +192,7 @@ const EditorPage = () => {
           console.warn("⚠️ 템플릿 데이터가 비어있습니다.");
           alert("템플릿 데이터가 없습니다. 포스터 선택 페이지로 이동합니다.");
           // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
-          const saved = sessionStorage.getItem("thumbnailList");
+          const saved = projectSession.getItem("thumbnailList");
           if (saved) {
             const list = JSON.parse(saved);
             if (list && list.length > 0) {
@@ -219,7 +206,7 @@ const EditorPage = () => {
         }
 
         // sessionStorage에 저장 (F5 눌렀을 때를 대비)
-        sessionStorage.setItem("editorTemplateItems", JSON.stringify(items));
+        projectSession.setItem("editorTemplateItems", JSON.stringify(items));
 
         // initialDesigns 업데이트
         const designs = getInitialDesigns(items);
@@ -238,7 +225,7 @@ const EditorPage = () => {
         
         // 에러 발생 시 sessionStorage에서 가져오기 시도
         try {
-          const stored = sessionStorage.getItem("editorTemplateItems");
+          const stored = projectSession.getItem("editorTemplateItems");
           if (stored) {
             const items = JSON.parse(stored);
             if (Array.isArray(items) && items.length > 0) {
@@ -256,7 +243,7 @@ const EditorPage = () => {
         
         alert("템플릿 데이터를 가져오는 중 오류가 발생했습니다. 포스터 선택 페이지로 이동합니다.");
         // sessionStorage에서 thumbnailList의 첫 번째 항목 가져오기
-        const saved = sessionStorage.getItem("thumbnailList");
+        const saved = projectSession.getItem("thumbnailList");
         if (saved) {
           const list = JSON.parse(saved);
           if (list && list.length > 0) {
@@ -366,14 +353,13 @@ const EditorPage = () => {
       return;
     }
 
-    // pNo 가져오기
-    const pNoStr = sessionStorage.getItem("editorPNo");
-    if (!pNoStr) {
+    // pNo 가져오기 (현재 프로젝트)
+    const pNo = useProjectStore.getState().pNo;
+    if (!pNo) {
       console.error("❌ pNo가 없습니다.");
       alert("프로젝트 번호를 찾을 수 없습니다.");
       return;
     }
-    const pNo = parseInt(pNoStr, 10);
     console.log("📌 pNo:", pNo);
 
     try {

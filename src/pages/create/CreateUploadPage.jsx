@@ -4,6 +4,7 @@ import SelectCheckIcon from "../../components/buttons/SelectCheckIcon";
 import { convertToFullPath } from "../../config/appConfig";
 import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
+import projectSession from "../../utils/projectSession";
 const CreateUploadPage = () => {
   const navigate = useNavigate();
   const [posterImage, setPosterImage] = useState(null);
@@ -17,8 +18,8 @@ const CreateUploadPage = () => {
 
   // 세션에서 업로드한 이미지 복원
   useEffect(() => {
-    const uploadedPosterStr = sessionStorage.getItem("uploadedPosterImage");
-    const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+    const uploadedPosterStr = projectSession.getItem("uploadedPosterImage");
+    const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
     
     if (uploadedPosterStr) {
       const uploadedPoster = JSON.parse(uploadedPosterStr);
@@ -33,8 +34,8 @@ const CreateUploadPage = () => {
     }
 
     // 선택된 이미지 확인
-    const selectedPosterStr = sessionStorage.getItem("selectedPosterImage");
-    const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+    const selectedPosterStr = projectSession.getItem("selectedPosterImage");
+    const selectedMascotStr = projectSession.getItem("selectedMascotImage");
     
     if (selectedPosterStr) {
       const selectedPoster = JSON.parse(selectedPosterStr);
@@ -66,7 +67,7 @@ const CreateUploadPage = () => {
       const preview = reader.result;
       setPosterPreview(preview);
       // 세션에 저장
-      sessionStorage.setItem("uploadedPosterImage", JSON.stringify({
+      projectSession.setItem("uploadedPosterImage", JSON.stringify({
         preview: preview,
         fileName: file.name,
         selected: false
@@ -90,7 +91,7 @@ const CreateUploadPage = () => {
       const preview = reader.result;
       setMascotPreview(preview);
       // 세션에 저장
-      sessionStorage.setItem("uploadedMascotImage", JSON.stringify({
+      projectSession.setItem("uploadedMascotImage", JSON.stringify({
         preview: preview,
         fileName: file.name,
         selected: false
@@ -106,18 +107,18 @@ const CreateUploadPage = () => {
     }
 
     // 업로드한 이미지를 세션에 저장
-    sessionStorage.setItem("selectedPosterImage", JSON.stringify({
+    projectSession.setItem("selectedPosterImage", JSON.stringify({
       fileUrl: posterPreview,
       source: "uploaded",
       fileName: posterImage?.name || "uploaded_poster"
     }));
     
     // 업로드 이미지 세션 업데이트
-    const uploadedPosterStr = sessionStorage.getItem("uploadedPosterImage");
+    const uploadedPosterStr = projectSession.getItem("uploadedPosterImage");
     if (uploadedPosterStr) {
       const uploadedPoster = JSON.parse(uploadedPosterStr);
       uploadedPoster.selected = true;
-      sessionStorage.setItem("uploadedPosterImage", JSON.stringify(uploadedPoster));
+      projectSession.setItem("uploadedPosterImage", JSON.stringify(uploadedPoster));
     }
     
     setPosterSelected(true);
@@ -130,18 +131,18 @@ const CreateUploadPage = () => {
     }
 
     // 업로드한 이미지를 세션에 저장
-    sessionStorage.setItem("selectedMascotImage", JSON.stringify({
+    projectSession.setItem("selectedMascotImage", JSON.stringify({
       fileUrl: mascotPreview,
       source: "uploaded",
       fileName: mascotImage?.name || "uploaded_mascot"
     }));
     
     // 업로드 이미지 세션 업데이트
-    const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+    const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
     if (uploadedMascotStr) {
       const uploadedMascot = JSON.parse(uploadedMascotStr);
       uploadedMascot.selected = true;
-      sessionStorage.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
+      projectSession.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
     }
     
     setMascotSelected(true);
@@ -151,8 +152,8 @@ const CreateUploadPage = () => {
     setPosterImage(null);
     setPosterPreview(null);
     setPosterSelected(false);
-    sessionStorage.removeItem("uploadedPosterImage");
-    sessionStorage.removeItem("selectedPosterImage");
+    projectSession.removeItem("uploadedPosterImage");
+    projectSession.removeItem("selectedPosterImage");
     if (posterFileInputRef.current) {
       posterFileInputRef.current.value = "";
     }
@@ -162,8 +163,8 @@ const CreateUploadPage = () => {
     setMascotImage(null);
     setMascotPreview(null);
     setMascotSelected(false);
-    sessionStorage.removeItem("uploadedMascotImage");
-    sessionStorage.removeItem("selectedMascotImage");
+    projectSession.removeItem("uploadedMascotImage");
+    projectSession.removeItem("selectedMascotImage");
     if (mascotFileInputRef.current) {
       mascotFileInputRef.current.value = "";
     }
@@ -172,8 +173,8 @@ const CreateUploadPage = () => {
   // 파생 만들기 버튼 핸들러
   const handleCreateDerivative = async () => {
     // 선택된 이미지 확인
-    const selectedPosterStr = sessionStorage.getItem("selectedPosterImage");
-    const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+    const selectedPosterStr = projectSession.getItem("selectedPosterImage");
+    const selectedMascotStr = projectSession.getItem("selectedMascotImage");
     
     // 유효한 선택인지 확인
     let posterSelected = false;
@@ -205,7 +206,7 @@ const CreateUploadPage = () => {
     }
 
     // sessionStorage에서 proposalData 가져오기
-    const proposalDataStr = sessionStorage.getItem("proposalData");
+    const proposalDataStr = projectSession.getItem("proposalData");
     if (!proposalDataStr) {
       alert("기획서 데이터를 찾을 수 없습니다.");
       return;
@@ -213,7 +214,7 @@ const CreateUploadPage = () => {
 
     const proposalData = JSON.parse(proposalDataStr);
     
-    const typesStr = sessionStorage.getItem("types");
+    const typesStr = projectSession.getItem("types");
     const types = typesStr ? JSON.parse(typesStr) : [];
     
     let programName = [];
@@ -273,8 +274,8 @@ const CreateUploadPage = () => {
     }
 
     // 업로드 이미지 세션 삭제
-    sessionStorage.removeItem("uploadedPosterImage");
-    sessionStorage.removeItem("uploadedMascotImage");
+    projectSession.removeItem("uploadedPosterImage");
+    projectSession.removeItem("uploadedMascotImage");
 
     // EditorLoadingPage로 이동
     navigate("/testlodingpage", {

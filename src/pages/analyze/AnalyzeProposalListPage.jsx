@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import projectSession from "../../utils/projectSession";
 const AnalyzeProposalListPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const AnalyzeProposalListPage = () => {
 
     // sessionStorage 복구
     if (!data) {
-      const saved = sessionStorage.getItem("proposalData");
+      const saved = projectSession.getItem("proposalData");
       if (saved) data = JSON.parse(saved);
     }
 
@@ -93,9 +94,9 @@ const AnalyzeProposalListPage = () => {
     // 🔥 수정된 formData를 sessionStorage에 저장
 
     // 화면에 없는 값(pNo, projectNo 등)은 기존 proposalData 에서 보존하고 입력값만 덮어쓴다
-    const prev = JSON.parse(sessionStorage.getItem("proposalData") || "{}");
+    const prev = JSON.parse(projectSession.getItem("proposalData") || "{}");
     const updated = { ...prev, ...formData };
-    sessionStorage.setItem("proposalData", JSON.stringify(updated));
+    projectSession.setItem("proposalData", JSON.stringify(updated));
     setFormData(updated);
     alert("저장이 완료되었습니다.");
   };

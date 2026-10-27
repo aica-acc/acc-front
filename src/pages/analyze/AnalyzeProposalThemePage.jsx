@@ -13,6 +13,7 @@ import {
 import AnalyzeButton from "../../components/buttons/AnalyzeButton";
 import { mergeTrendData } from "../../utils/trendUtils";
 
+import projectSession from "../../utils/projectSession";
 const PAGE_SIZE = 5;
 
 const AnalyzeProposalThemePage = () => {
@@ -33,7 +34,7 @@ const AnalyzeProposalThemePage = () => {
     let data = state?.trend;
 
     if (!data) {
-      const saved = sessionStorage.getItem("trendData");
+      const saved = projectSession.getItem("trendData");
       if (saved) data = JSON.parse(saved);
     }
 

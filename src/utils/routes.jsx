@@ -40,6 +40,7 @@ import LoginPage from "../pages/LoginPage";
 import AdminPage from "../pages/AdminPage";
 import RequireAuth from "../components/auth/RequireAuth";
 import NotFoundPage from "../pages/NotFoundPage";
+import ProjectGate from "../components/project/ProjectGate";
 
 // ✅ 라우터 관리 컴포넌트
 const Approuter = () => {
@@ -53,18 +54,22 @@ const Approuter = () => {
         {/* 이하 모든 화면은 로그인 필요 */}
         <Route element={<RequireAuth />}>
         <Route element={<MainLayout />}>
-          {/* 홍보물 선택 페이지 */}
-          <Route path="/select" element={<SelectPromotionPage_New />} />    
+          {/* 홍보물 선택 페이지 (새 프로젝트 초안: 기획서 분석 전이라 ProjectGate 밖) */}
+          <Route path="/select" element={<SelectPromotionPage_New />} />
           {/* 기획서 업로드 페이지 */}
           <Route path="/upload" element={<ProposalUploadPage />} />
         </Route>  
+        {/* 기획서 분석: 여기서 새 프로젝트가 만들어진다 (ProjectGate 밖) */}
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
+        <Route path="/testpage" element={<TestPage />} />
+
+        {/* 이하 프로젝트 흐름 화면: 서버의 진행 상태를 불러온 뒤 그린다 ("이어서 하기") */}
+        <Route element={<ProjectGate />}>
         <Route path="/testlodingpage" element={<EditorLoadingPage />} />
         {/* 에디터 페이지 */}  
         <Route path="/editorpage" element={<EditorPage />} />
         {/* 에디터 페이지 */}  
         <Route path="/check" element={<CheckPage />} />
-        <Route path="/testpage" element={<TestPage />} />  
         <Route path="/generate-prompt/loading" element={<CreateLoadingPage />} />
           {/* 기획서 분석 그룹 */}
           <Route path="/analyze" element={<AnalyzeLayout/>}>
@@ -88,7 +93,14 @@ const Approuter = () => {
             <Route path="poster/detail/:filePathNo/:promptNo" element={<CreatePosterPromptPage />} />    
             <Route path="mascort/detail/:filePathNo/:promptNo" element={<CreateMascortPromptPage />} />
             <Route path="upload" element={<CreateUploadPage />} />
-          </Route>                                                   
+          </Route>
+
+          {/* 리포트 결과 페이지 그룹 */}
+          <Route path="/report">
+            <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
+            <Route path="result" element={<MyReportPage />} />
+          </Route>
+        </Route>
         
           {/* 마이 페이지  그룹 */}
           <Route path="/mypage" element={<MyPageLayout />}>
@@ -99,12 +111,6 @@ const Approuter = () => {
               <Route path="project/:projectId" element={<ProjectDetailPage />} />
           </Route> 
     
-
-          {/* 리포트 결과 페이지 그룹 */} 
-          <Route path="/report">
-            <Route path="editor" element={<TempEditorEntry/>} /> {/* 임시 에디터 진입점 */}
-            <Route path="result" element={<MyReportPage />} />
-          </Route>
 
           {/* 관리자 전용 */}
           <Route element={<RequireAuth roles={["ADMIN"]} />}>

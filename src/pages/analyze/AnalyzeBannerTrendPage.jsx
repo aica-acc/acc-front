@@ -16,6 +16,7 @@
 import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../../config/appConfig";
 
+import projectSession from "../../utils/projectSession";
 // 이미지(/static/...)는 백엔드가 AI 서버에서 중계한다
 
 /**
@@ -44,7 +45,7 @@ const AnalyzeBannerTrendPage = () => {
 
   useEffect(() => {
     // ProposalLoadingPage 에서 저장한 배너 트렌드 결과 가져오기
-    const stored = sessionStorage.getItem("bannerTrendData");
+    const stored = projectSession.getItem("bannerTrendData");
     if (!stored) return;
 
     try {

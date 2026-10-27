@@ -8,6 +8,7 @@ import NoticeView from '../../components/report/NoticeView';
 import SnsView from '../../components/report/SnsView';
 import PackageView from '../../components/report/PackageView';
 
+import { useProjectStore } from "../../store/projectStore";
 const MyReportPage = () => {
     const [activeTab, setActiveTab] = useState('article');
     const [data, setData] = useState(null);
@@ -20,7 +21,12 @@ const MyReportPage = () => {
     useEffect(() => {
         const fetchAllReports = async () => {
             setLoading(true);
-            const pNo = sessionStorage.getItem("editorPNo") || 18;
+            // 현재 프로젝트 (ProjectGate 가 ?p= 또는 최근 프로젝트로 불러온 값)
+            const pNo = useProjectStore.getState().pNo;
+            if (!pNo) {
+                setLoading(false);
+                return;
+            }
 
             // 백엔드의 4개 엔드포인트에 맞춰 매핑
             const reportTypes = {

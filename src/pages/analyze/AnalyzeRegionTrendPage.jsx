@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/loding/LoadingSpinner';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import AnalyzeButton from '../../components/buttons/AnalyzeButton';
 
+import projectSession from "../../utils/projectSession";
 const AnalyzeRegionTrendPage = () => {
   const location = useLocation();
   
@@ -22,7 +23,7 @@ const AnalyzeRegionTrendPage = () => {
     let data = regionTrend;
 
     if (!data) {
-      const saved = sessionStorage.getItem('regionTrendData');
+      const saved = projectSession.getItem('regionTrendData');
       if (saved) data = JSON.parse(saved);
     }
 

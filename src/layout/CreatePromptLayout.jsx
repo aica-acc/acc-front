@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import StepHeader from "./StepHeader";
 import PromptSidebar from "../components/create/PromptSidebar";
 
+import projectSession from "../utils/projectSession";
 const CreatePromptLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,7 +90,7 @@ const CreatePromptLayout = () => {
                       const handleClick = () => {
                         // 포스터 메뉴인 경우, sessionStorage에서 posterThumbnailList의 첫 번째 항목으로 이동
                         if (sub.key === "poster") {
-                          const saved = sessionStorage.getItem("posterThumbnailList");
+                          const saved = projectSession.getItem("posterThumbnailList");
                           if (!saved) {
                             alert("생성된 포스터 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
                             return;
@@ -111,7 +112,7 @@ const CreatePromptLayout = () => {
                         }
                         // 마스코트 메뉴인 경우, sessionStorage에서 mascotThumbnailList의 첫 번째 항목으로 이동
                         if (sub.key === "mascort") {
-                          const saved = sessionStorage.getItem("mascotThumbnailList");
+                          const saved = projectSession.getItem("mascotThumbnailList");
                           if (!saved) {
                             alert("생성된 마스코트 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
                             return;

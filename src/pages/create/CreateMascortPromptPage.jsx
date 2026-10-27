@@ -10,6 +10,7 @@ import { saveEditorImage } from "../../utils/api/EditorAPI";
 import { imageUrlToBase64 } from "../../utils/imageUtils";
 import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
+import projectSession from "../../utils/projectSession";
 export default function CreateMascortPromptPage() {
   const navigate = useNavigate();
 
@@ -31,7 +32,7 @@ export default function CreateMascortPromptPage() {
 
   /** 1) 세션 로딩 */
   useEffect(() => {
-    const saved = sessionStorage.getItem("mascotThumbnailList");
+    const saved = projectSession.getItem("mascotThumbnailList");
     if (!saved) return;
 
     const list = JSON.parse(saved);
@@ -72,7 +73,7 @@ export default function CreateMascortPromptPage() {
       setPromptNo(Number(promptNo));
       
       // 선택된 이미지 확인
-      const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+      const selectedMascotStr = projectSession.getItem("selectedMascotImage");
       const currentFilePathNo = Number(filePathNo);
       const currentPromptNo = Number(promptNo);
       
@@ -90,7 +91,7 @@ export default function CreateMascortPromptPage() {
       }
       
       // 업로드된 이미지 확인 (업로드된 이미지가 선택되어 있지 않은 경우에만 표시)
-      const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+      const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
       const hasUploaded = !!uploadedMascotStr;
       
       // 업로드된 이미지가 선택되어 있는지 확인
@@ -126,18 +127,18 @@ export default function CreateMascortPromptPage() {
     if (!detail) return;
     
     // 업로드 선택 해제 (생성된 이미지를 선택하면 업로드 선택이 해제됨)
-    const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+    const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
     if (uploadedMascotStr) {
       const uploadedMascot = JSON.parse(uploadedMascotStr);
       uploadedMascot.selected = false;
-      sessionStorage.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
+      projectSession.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
     }
     
     // 상대 경로와 절대 경로 모두 저장
     const relativePath = detail.fileUrl; // /data/promotion/... 형태
     const fullImagePath = convertToFullPath(detail.fileUrl);
     
-    sessionStorage.setItem("selectedMascotImage", JSON.stringify({
+    projectSession.setItem("selectedMascotImage", JSON.stringify({
       fileUrl: relativePath,        // 상대 경로 (DB 저장용)
       fullPath: fullImagePath,      // 절대 경로 (표시용)
       filePathNo: detail.filePathNo,
@@ -157,8 +158,8 @@ export default function CreateMascortPromptPage() {
   // 파생 만들기 버튼 핸들러
   const handleCreateDerivative = async () => {
     // 선택된 이미지 확인
-    const selectedPosterStr = sessionStorage.getItem("selectedPosterImage");
-    const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+    const selectedPosterStr = projectSession.getItem("selectedPosterImage");
+    const selectedMascotStr = projectSession.getItem("selectedMascotImage");
     
     // 유효한 선택인지 확인
     let posterSelected = false;
@@ -190,7 +191,7 @@ export default function CreateMascortPromptPage() {
     }
 
     // sessionStorage에서 proposalData 가져오기
-    const proposalDataStr = sessionStorage.getItem("proposalData");
+    const proposalDataStr = projectSession.getItem("proposalData");
     if (!proposalDataStr) {
       alert("기획서 데이터를 찾을 수 없습니다.");
       return;
@@ -199,7 +200,7 @@ export default function CreateMascortPromptPage() {
     const proposalData = JSON.parse(proposalDataStr);
     
     // 원래 코드 (주석 처리 - 필요시 사용)
-    const typesStr = sessionStorage.getItem("types");
+    const typesStr = projectSession.getItem("types");
     const types = typesStr ? JSON.parse(typesStr) : [];
     
     // programName 처리 (배열 또는 문자열일 수 있음)
@@ -309,10 +310,10 @@ export default function CreateMascortPromptPage() {
       console.log("📦 [Payload 구성 완료]:", postersPayload);
 
       // 3️⃣ 세션 삭제 (payload 전송 전에 삭제)
-      sessionStorage.removeItem("uploadedPosterImage");
-      sessionStorage.removeItem("uploadedMascotImage");
-      sessionStorage.removeItem("selectedPosterImage");
-      sessionStorage.removeItem("selectedMascotImage");
+      projectSession.removeItem("uploadedPosterImage");
+      projectSession.removeItem("uploadedMascotImage");
+      projectSession.removeItem("selectedPosterImage");
+      projectSession.removeItem("selectedMascotImage");
       console.log("🗑️ [세션 삭제 완료] 선택된 이미지 정보 삭제됨");
 
       // 4️⃣ EditorLoadingPage로 이동 (파생물 생성)
