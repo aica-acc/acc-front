@@ -11,7 +11,7 @@ import EditorToolbar from "../components/editor/toolbar/EditorToolbar";
 // 분리된 훅들
 import useTextStyleControls from "../components/editor/hooks/useTextStyleControls";
 import useCanvasHistory from "../components/editor/hooks/useCanvasHistory";
-import useDesignManager from "../components/editor/hooks/useDesignManager";
+import useDesignManager, { EDITOR_EDITS_KEY } from "../components/editor/hooks/useDesignManager";
 import { Textbox } from "fabric";
 import { loadDesignToCanvas, convertToPublicPath } from "../utils/editor/canvasLoader";
 import { requestAIColorRecommendation, saveEditorImage } from "../utils/api/EditorAPI";
@@ -31,6 +31,14 @@ const EditorPage = () => {
     if (!itemsData || !Array.isArray(itemsData) || itemsData.length === 0) {
       return [];
     }
+
+    // 자동 저장된 편집 상태 (서버 진행 상태). 원본 템플릿이 같을 때만 복원한다
+    const savedEdits = JSON.parse(projectSession.getItem(EDITOR_EDITS_KEY) || "{}");
+    const restore = (design) => {
+      const saved = savedEdits[design.type || design.id];
+      if (!saved?.canvasJson || saved.source !== design.sourceKey) return design;
+      return { ...design, canvasJson: saved.canvasJson, edited: true };
+    };
 
     return itemsData.map((item, index) => {
       // 🔥 backgroundImageUrl이 있으면 public 기준 상대 경로로 변환하여 썸네일로 사용
@@ -52,9 +60,11 @@ const EditorPage = () => {
         backgroundImageUrl: item.backgroundImageUrl ? convertToPublicPath(item.backgroundImageUrl) : null,
         exportWidth: item.canvasData?.width || 800,
         exportHeight: item.canvasData?.height || 450,
+        // 원본 템플릿 식별값: 베이스를 바꿔 다시 만들면 달라져, 예전 편집 상태를 적용하지 않는다
+        sourceKey: item.backgroundImageUrl || firstImage?.url || firstImage?.src || null,
         canvasJson: item.canvasData,
       };
-    });
+    }).map(restore);
   }, []);
 
   const [initialDesigns, setInitialDesigns] = useState([]);
@@ -265,19 +275,59 @@ const EditorPage = () => {
     fetchTemplateData();
   }, [state, navigate, getInitialDesigns]);
 
-  // 🔥 작업물 관리 훅
+  // 현재 캔버스를 완성 이미지로 만들어 프로젝트에 저장 (자동 저장·저장 버튼 공용)
+  const saveDesignImage = useCallback(async (design) => {
+    const canvas = fabricRef.current;
+    const pNo = useProjectStore.getState().pNo;
+    if (!canvas || !design || !pNo) {
+      throw new Error("캔버스·디자인·프로젝트 번호가 없습니다.");
+    }
+    const currentWidth = design.canvasJson?.width || canvas.width;
+    const currentHeight = design.canvasJson?.height || canvas.height;
+    const multiplier = Math.min(
+      (design.exportWidth || currentWidth) / currentWidth,
+      (design.exportHeight || currentHeight) / currentHeight
+    );
+
+    // 뷰포트 초기화 후 캡처
+    const originalVpt = canvas.viewportTransform;
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    const dataUrl = canvas.toDataURL({
+      format: "png",
+      multiplier: multiplier > 0 ? multiplier : 1,
+      width: currentWidth,
+      height: currentHeight,
+      left: 0,
+      top: 0,
+    });
+    canvas.setViewportTransform(originalVpt);
+
+    // dbFileType: 영어 type 우선 (category 는 한글일 수 있음). 같은 유형은 교체 저장된다 (V5)
+    const dbFileType = design.type || design.category || "design";
+    const result = await saveEditorImage({ pNo, imageBase64: dataUrl, dbFileType });
+    if (!result?.success) {
+      throw new Error(result?.message || "저장 실패");
+    }
+    return result;
+  }, [fabricRef]);
+
+  // 🔥 작업물 관리 훅 (변경 후 2초 / 디자인 전환 시 자동 저장)
   const {
     designList,
     selectedDesign,
     handleSelectDesign,
-    snapshotCurrentDesign, // Save 버튼에서만 사용
+    snapshotCurrentDesign,
+    flushAutoSave,
+    markDirty,
+    autoSaveStatus,
     isLoadingRef,
   } = useDesignManager(
     initialDesigns,
     fabricRef,
     saveHistory,
     recalcCanvasViewport,
-    isCanvasReady // 🔥 준비 완료 신호 전달
+    isCanvasReady, // 🔥 준비 완료 신호 전달
+    saveDesignImage
   );
 
   // 🔥 텍스트 스타일 컨트롤
@@ -342,79 +392,19 @@ const EditorPage = () => {
 
   // 저장 - 현재 선택된 디자인을 서버에 저장하고 DB에 저장
   const handleDownloadCurrent = useCallback(async () => {
-    console.log("🔘 [저장 버튼] 클릭됨");
-    
-    const canvas = fabricRef.current;
-    if (!canvas) {
-      console.error("❌ 캔버스가 없습니다.");
-      alert("캔버스가 초기화되지 않았습니다.");
-      return;
-    }
-    
     if (!selectedDesign) {
-      console.error("❌ 선택된 디자인이 없습니다.");
       alert("저장할 디자인을 선택해주세요.");
       return;
     }
-
-    // pNo 가져오기 (현재 프로젝트)
-    const pNo = useProjectStore.getState().pNo;
-    if (!pNo) {
-      console.error("❌ pNo가 없습니다.");
-      alert("프로젝트 번호를 찾을 수 없습니다.");
-      return;
-    }
-    console.log("📌 pNo:", pNo);
-
     try {
-      console.log("💾 [저장] 시작:", selectedDesign.title);
-
-      const currentWidth = selectedDesign.canvasJson?.width || canvas.width;
-      const currentHeight = selectedDesign.canvasJson?.height || canvas.height;
-      const targetWidth = selectedDesign.exportWidth || currentWidth;
-      const targetHeight = selectedDesign.exportHeight || currentHeight;
-
-      const scaleX = targetWidth / currentWidth;
-      const scaleY = targetHeight / currentHeight;
-      const multiplier = Math.min(scaleX, scaleY);
-
-      // 뷰포트 초기화 후 캡처
-      const originalVpt = canvas.viewportTransform;
-      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-      
-      const dataUrl = canvas.toDataURL({
-        format: "png",
-        multiplier: multiplier > 0 ? multiplier : 1,
-        width: currentWidth,
-        height: currentHeight,
-        left: 0,
-        top: 0
-      });
-
-      // 뷰포트 복구
-      canvas.setViewportTransform(originalVpt);
-
-      // dbFileType 결정 (영어 type 우선, 없으면 category, 없으면 "design")
-      // category는 한글일 수 있으므로 영어 type을 우선 사용
-      const dbFileType = selectedDesign.type || selectedDesign.category || "design";
-      console.log("📌 dbFileType:", dbFileType, "category:", selectedDesign.category, "type:", selectedDesign.type);
-
-      // 서버에 저장하고 DB에 저장
-      const result = await saveEditorImage({
-        pNo,
-        imageBase64: dataUrl,
-        dbFileType,
-      });
-
-      if (result.success) {
-        alert("저장 완료");
-        console.log("✅ [저장] 완료:", result.savedPath);
-      }
+      snapshotCurrentDesign(); // 편집 상태도 함께 저장 (다시 열면 복원)
+      await saveDesignImage(selectedDesign);
+      alert("저장 완료");
     } catch (error) {
       console.error("❌ [저장] 실패:", error);
       alert(`저장 중 오류가 발생했습니다: ${error.message}`);
     }
-  }, [fabricRef, selectedDesign]);
+  }, [selectedDesign, snapshotCurrentDesign, saveDesignImage]);
 
   // 초기 캔버스 설정 (로딩 완료 후에만 실행)
   useEffect(() => {
@@ -607,6 +597,7 @@ const EditorPage = () => {
       // 🔥 히스토리만 저장 (Undo/Redo용, 스냅샷은 저장하지 않음)
       if (!isLoadingRef.current) {
         saveHistory();
+        markDirty(); // 2초 뒤 자동 저장 (편집 상태 + 완성 이미지)
       }
     };
 
@@ -709,7 +700,7 @@ const EditorPage = () => {
       fabricRef.current = null;
       delete window.checkCanvasObjects;
     };
-  }, [saveHistory, isLoadingRef, isLoading]); // 🔥 자동 저장 제거: snapshotCurrentDesignDebounced 사용 안함
+  }, [saveHistory, isLoadingRef, isLoading, markDirty]);
 
   // 🔥 Video element 가져오기
   const getVideoElement = useCallback(() => {
@@ -1343,6 +1334,13 @@ const EditorPage = () => {
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs">
+              <span className="text-gray-400 mr-1" aria-live="polite">
+                {autoSaveStatus.state === "saving" && "저장 중..."}
+                {autoSaveStatus.state === "pending" && "변경됨"}
+                {autoSaveStatus.state === "saved" &&
+                  `자동 저장됨 ${autoSaveStatus.at.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`}
+                {autoSaveStatus.state === "error" && <span className="text-red-400">자동 저장 실패 · 저장 버튼을 눌러 주세요</span>}
+              </span>
               <button
                 type="button"
                 onClick={handleDownloadCurrent}
@@ -1353,7 +1351,10 @@ const EditorPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/check")}
+                onClick={async () => {
+                  await flushAutoSave(); // 마지막 변경까지 저장한 뒤 이동
+                  navigate("/check");
+                }}
                 className="px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 font-semibold"
                 title="최종 완료"
               >
