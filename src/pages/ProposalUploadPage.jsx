@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
+import TestSamplePanel from "../components/auth/TestSamplePanel";
+import { useAuthStore } from "../store/authStore";
 
 const ProposalUploadPage = () => {
   const [festivalName, setFestivalName] = useState("");
@@ -11,6 +13,17 @@ const ProposalUploadPage = () => {
   const [file, setFile] = useState(null);
 
   const navigate = useNavigate();
+  const role = useAuthStore((s) => s.member?.role);
+  const canUseTestTools = role === "TEST" || role === "ADMIN";
+
+  // 테스트 계정: 샘플 기획서 자동 입력 (폼이 비어 있을 때만 첫 샘플을 자동 적용)
+  const formIsEmpty = festivalName === "" && keywords.length === 0 && theme === "" && !file;
+  const applySample = (v) => {
+    setFestivalName(v.festivalName);
+    setKeywords(v.keywords);
+    setTheme(v.theme);
+    setFile(v.file);
+  };
 
   // 저장된 데이터 복원
   useEffect(() => {
@@ -80,6 +93,8 @@ const ProposalUploadPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-32 bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-lg" style={{ marginTop: '128px' }}>
+      {canUseTestTools && <TestSamplePanel formIsEmpty={formIsEmpty} onApply={applySample} />}
+
       <h2 className="text-3xl font-semibold mb-3 text-center text-white">기획서 업로드</h2>
       <p className="text-gray-400 text-base text-center mb-8">
         축제 정보와 기획서를 업로드해주세요

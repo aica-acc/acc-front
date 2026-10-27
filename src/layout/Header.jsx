@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserCircle } from "lucide-react";
 import mainIcon from "../assets/icorn/main_icorn.png";
+import { useAuthStore } from "../store/authStore";
+
+const ROLE_LABEL = { USER: "", TEST: "TEST", ADMIN: "관리자" };
 
 const Header = forwardRef((props, ref) => {
   const navigate = useNavigate();
@@ -11,6 +14,15 @@ const Header = forwardRef((props, ref) => {
   const dropdownRef = useRef(null);
 
   const isMainPage = location.pathname === "/";
+  const member = useAuthStore((s) => s.member);
+  const loggedIn = useAuthStore((s) => !!s.token);
+  const clearSession = useAuthStore((s) => s.clearSession);
+
+  const logout = () => {
+    clearSession();
+    setOpen(false);
+    navigate("/");
+  };
 
   useEffect(() => {
     const handle = (e) => {
@@ -72,10 +84,33 @@ const Header = forwardRef((props, ref) => {
             크레딧: <span className="text-blue-100">10000</span>
           </div>
 
-          {/* 로그아웃 버튼 - 둥근 + 그림자 효과 */}
-          <button className="px-7 py-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transition-all font-semibold text-sm">
-            로그아웃
-          </button>
+          {loggedIn && (
+            <span className="text-sm text-gray-200 hidden sm:flex items-center gap-2">
+              {member?.name}
+              {ROLE_LABEL[member?.role] && (
+                <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-500 text-white">
+                  {ROLE_LABEL[member?.role]}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* 로그인 / 로그아웃 버튼 - 둥근 + 그림자 효과 */}
+          {loggedIn ? (
+            <button
+              onClick={logout}
+              className="px-7 py-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transition-all font-semibold text-sm"
+            >
+              로그아웃
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-7 py-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transition-all font-semibold text-sm"
+            >
+              로그인
+            </button>
+          )}
 
           {/* 프로필 아이콘 - 그라디언트 + 호버 확대 */}
           <button
@@ -85,7 +120,7 @@ const Header = forwardRef((props, ref) => {
             <UserCircle className="w-7 h-7" />
           </button>
 
-          {open && (
+          {open && loggedIn && (
             <div
               className="absolute right-0 top-full mt-2 w-44 border border-gray-700 rounded shadow-lg py-2 text-base"
               style={{ backgroundColor: "rgb(37, 37, 47)" }}
@@ -108,6 +143,14 @@ const Header = forwardRef((props, ref) => {
               >
                 마이프로필
               </button>
+              {member?.role === "ADMIN" && (
+                <button
+                  className="w-full px-4 py-2.5 text-left text-indigo-300 hover:bg-gray-700 transition-colors font-bold"
+                  onClick={() => navigate("/admin")}
+                >
+                  관리자
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -248,14 +248,9 @@ function convertToProxyUrl(url) {
     return convertToPublicPath(url);
   }
   
-  // http://127.0.0.1:5000/static/... 형태를 /static/... 로 변환
-  if (url.includes('http://127.0.0.1:5000/static')) {
-    return url.replace('http://127.0.0.1:5000', '');
-  }
-  
-  // http://localhost:5000/static/... 형태도 처리
-  if (url.includes('http://localhost:5000/static')) {
-    return url.replace('http://localhost:5000', '');
+  // http://<AI 서버 호스트>/static/... 형태를 /static/... 로 변환 (호스트/포트는 환경에 따라 달라짐)
+  if (/^https?:\/\/[^/]+\/static\//.test(url)) {
+    return url.replace(/^https?:\/\/[^/]+/, '');
   }
   
   return url;
@@ -447,8 +442,10 @@ export async function loadDesignToCanvas(canvas, design, _saveHistory, isLoading
     return Promise.resolve();
   }
 
-  // 배경 이미지는 backgroundImageUrl 우선, 없으면 thumbnailUrl 사용
-  const bgUrl = design.backgroundImageUrl || design.thumbnailUrl;
+  // 배경 이미지는 backgroundImageUrl 만 쓴다.
+  // (썸네일은 목록 표시용이다. 배경이 없는 파생물은 썸네일이 첫 이미지 객체라,
+  //  썸네일을 배경으로 쓰면 같은 그림이 배경과 객체로 두 번 그려진다)
+  const bgUrl = design.backgroundImageUrl;
 
   console.log("🎨 작업물 로딩 시작:", design.title, `(ID: ${design.id})`);
   console.log("📋 로드할 데이터 상세:", {

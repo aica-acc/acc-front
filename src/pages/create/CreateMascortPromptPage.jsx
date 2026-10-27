@@ -2,13 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { Image } from "../../utils/api/PosterAPI";
 import ImageViewer from "../../components/create/ImageViewer";
+import DerivativePicker from "../../components/create/DerivativePicker";
+import { JobAPI } from "../../utils/api/JobAPI";
+import { useProjectStore } from "../../store/projectStore";
 import BulletIndicator from "../../components/create/BulletIndicator";
 import NaviControls from "../../components/buttons/NavControls";
 import BaseSelectButton from "../../components/buttons/BaseSelectButton";
 import { convertToFullPath } from "../../config/appConfig";
 import { saveEditorImage } from "../../utils/api/EditorAPI";
 import { imageUrlToBase64 } from "../../utils/imageUtils";
+import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
+import projectSession from "../../utils/projectSession";
 export default function CreateMascortPromptPage() {
   const navigate = useNavigate();
 
@@ -24,13 +29,28 @@ export default function CreateMascortPromptPage() {
 
   const { filePathNo, promptNo } = useParams();
   const [detail, setDetail] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  // 만들 파생물 = 프로젝트의 types (유형 선택 화면에서 고른 값, 서버 진행 상태). 파생 만들기가 같은 값을 읽는다
+  const [derivativeTypes, setDerivativeTypes] = useState(() =>
+    JSON.parse(projectSession.getItem("types") || "[]")
+  );
+  const handleDerivativeTypesChange = (next) => {
+    setDerivativeTypes(next);
+    projectSession.setItem("types", JSON.stringify(next));
+  };
+
+  // 이미 만든 파생물 (같은 베이스면 다시 만들지 않음 → 패널에 "생성됨" 표시)
+  const [generated, setGenerated] = useState({});
+  useEffect(() => {
+    const pNo = useProjectStore.getState().pNo;
+    if (pNo) JobAPI.derivatives(pNo).then(setGenerated).catch(() => {});
+  }, []);
+  const selectedBase = JSON.parse(projectSession.getItem("selectedMascotImage") || "null")?.fileUrl;
   const [isSelected, setIsSelected] = useState(false);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
 
   /** 1) 세션 로딩 */
   useEffect(() => {
-    const saved = sessionStorage.getItem("mascotThumbnailList");
+    const saved = projectSession.getItem("mascotThumbnailList");
     if (!saved) return;
 
     const list = JSON.parse(saved);
@@ -71,7 +91,7 @@ export default function CreateMascortPromptPage() {
       setPromptNo(Number(promptNo));
       
       // 선택된 이미지 확인
-      const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+      const selectedMascotStr = projectSession.getItem("selectedMascotImage");
       const currentFilePathNo = Number(filePathNo);
       const currentPromptNo = Number(promptNo);
       
@@ -89,7 +109,7 @@ export default function CreateMascortPromptPage() {
       }
       
       // 업로드된 이미지 확인 (업로드된 이미지가 선택되어 있지 않은 경우에만 표시)
-      const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+      const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
       const hasUploaded = !!uploadedMascotStr;
       
       // 업로드된 이미지가 선택되어 있는지 확인
@@ -125,18 +145,18 @@ export default function CreateMascortPromptPage() {
     if (!detail) return;
     
     // 업로드 선택 해제 (생성된 이미지를 선택하면 업로드 선택이 해제됨)
-    const uploadedMascotStr = sessionStorage.getItem("uploadedMascotImage");
+    const uploadedMascotStr = projectSession.getItem("uploadedMascotImage");
     if (uploadedMascotStr) {
       const uploadedMascot = JSON.parse(uploadedMascotStr);
       uploadedMascot.selected = false;
-      sessionStorage.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
+      projectSession.setItem("uploadedMascotImage", JSON.stringify(uploadedMascot));
     }
     
     // 상대 경로와 절대 경로 모두 저장
     const relativePath = detail.fileUrl; // /data/promotion/... 형태
     const fullImagePath = convertToFullPath(detail.fileUrl);
     
-    sessionStorage.setItem("selectedMascotImage", JSON.stringify({
+    projectSession.setItem("selectedMascotImage", JSON.stringify({
       fileUrl: relativePath,        // 상대 경로 (DB 저장용)
       fullPath: fullImagePath,      // 절대 경로 (표시용)
       filePathNo: detail.filePathNo,
@@ -156,8 +176,8 @@ export default function CreateMascortPromptPage() {
   // 파생 만들기 버튼 핸들러
   const handleCreateDerivative = async () => {
     // 선택된 이미지 확인
-    const selectedPosterStr = sessionStorage.getItem("selectedPosterImage");
-    const selectedMascotStr = sessionStorage.getItem("selectedMascotImage");
+    const selectedPosterStr = projectSession.getItem("selectedPosterImage");
+    const selectedMascotStr = projectSession.getItem("selectedMascotImage");
     
     // 유효한 선택인지 확인
     let posterSelected = false;
@@ -189,7 +209,7 @@ export default function CreateMascortPromptPage() {
     }
 
     // sessionStorage에서 proposalData 가져오기
-    const proposalDataStr = sessionStorage.getItem("proposalData");
+    const proposalDataStr = projectSession.getItem("proposalData");
     if (!proposalDataStr) {
       alert("기획서 데이터를 찾을 수 없습니다.");
       return;
@@ -198,7 +218,7 @@ export default function CreateMascortPromptPage() {
     const proposalData = JSON.parse(proposalDataStr);
     
     // 원래 코드 (주석 처리 - 필요시 사용)
-    const typesStr = sessionStorage.getItem("types");
+    const typesStr = projectSession.getItem("types");
     const types = typesStr ? JSON.parse(typesStr) : [];
     
     // programName 처리 (배열 또는 문자열일 수 있음)
@@ -226,7 +246,11 @@ export default function CreateMascortPromptPage() {
     const selectedMascot = JSON.parse(selectedMascotStr);
     
     // pNo 가져오기 (proposalData에서 pNo 또는 projectNo 사용)
-    const pNo = proposalData.pNo || proposalData.projectNo || 1;
+    const pNo = await resolveProjectNo(proposalData);
+    if (!pNo) {
+      alert(PROJECT_NOT_FOUND_MESSAGE);
+      return;
+    }
 
     try {
       // 1️⃣ 베이스 이미지 2개를 먼저 promotion_path에 저장
@@ -304,10 +328,10 @@ export default function CreateMascortPromptPage() {
       console.log("📦 [Payload 구성 완료]:", postersPayload);
 
       // 3️⃣ 세션 삭제 (payload 전송 전에 삭제)
-      sessionStorage.removeItem("uploadedPosterImage");
-      sessionStorage.removeItem("uploadedMascotImage");
-      sessionStorage.removeItem("selectedPosterImage");
-      sessionStorage.removeItem("selectedMascotImage");
+      projectSession.removeItem("uploadedPosterImage");
+      projectSession.removeItem("uploadedMascotImage");
+      projectSession.removeItem("selectedPosterImage");
+      projectSession.removeItem("selectedMascotImage");
       console.log("🗑️ [세션 삭제 완료] 선택된 이미지 정보 삭제됨");
 
       // 4️⃣ EditorLoadingPage로 이동 (파생물 생성)
@@ -324,23 +348,19 @@ export default function CreateMascortPromptPage() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full w-full bg-neutral-900 overflow-hidden">
-      {/* 우측 상단 선택하기 버튼 및 체크 표시 */}
-      <BaseSelectButton
-        isSelected={isSelected}
-        hasUploadedImage={hasUploadedImage}
-        onSelect={handleSelectImage}
-      />
+    <div className="flex h-full w-full gap-6 bg-neutral-900 overflow-hidden">
+      {/* 왼쪽: 베이스 이미지 */}
+      <div className="relative flex-1 min-w-0 flex flex-col items-center justify-center h-full gap-4">
+        {/* 우측 상단 선택하기 버튼 및 체크 표시 */}
+        <BaseSelectButton
+          isSelected={isSelected}
+          hasUploadedImage={hasUploadedImage}
+          onSelect={handleSelectImage}
+        />
 
-      <div className="flex flex-col items-center justify-center h-full w-full gap-4">
         {/* 이미지 뷰어 - 남은 공간을 차지하도록 flex-1 사용 */}
         <div className="flex-1 flex items-center justify-center min-h-0 w-full px-4">
-          <ImageViewer 
-            url={detail.fileUrl} 
-            onClick={() => {}}
-            selectedTypes={selectedTypes}
-            onTypesChange={setSelectedTypes}
-          />
+          <ImageViewer url={detail.fileUrl} onClick={() => {}} />
         </div>
 
         {/* 하단 컨트롤 영역 - 고정 높이 */}
@@ -358,15 +378,18 @@ export default function CreateMascortPromptPage() {
             onSelect={(i) => goToIndex(i)}
           />
 
-          {/* 파생 만들기 버튼 */}
-          <button
-            onClick={handleCreateDerivative}
-            className="px-8 py-3 rounded-lg text-white font-semibold shadow-lg transition-all bg-yellow-500 hover:bg-yellow-600"
-          >
-            파생 만들기
-          </button>
         </div>
       </div>
+
+      {/* 오른쪽: 만들 파생물 (항상 보임) + 파생 만들기 */}
+      <DerivativePicker
+        category="mascot"
+        types={derivativeTypes}
+        onChange={handleDerivativeTypesChange}
+        onSubmit={handleCreateDerivative}
+        generated={generated}
+        currentBase={selectedBase || detail?.fileUrl}
+      />
     </div>
   );
 }

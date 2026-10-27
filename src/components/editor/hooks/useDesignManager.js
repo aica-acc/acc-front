@@ -3,13 +3,23 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { loadDesignToCanvas } from "../../../utils/editor/canvasLoader";
+import projectSession from "../../../utils/projectSession";
 
+// 편집 상태 저장 키 (서버 진행 상태): { [디자인 type]: { source, canvasJson } }
+export const EDITOR_EDITS_KEY = "editorEdits";
+const AUTO_SAVE_DELAY_MS = 2000;
+
+/**
+ * onAutoSave(design): 현재 캔버스를 완성 이미지로 프로젝트에 저장한다 (EditorPage 가 제공).
+ * 변경 후 2초가 지나거나 다른 디자인으로 바꿀 때 자동으로 부른다.
+ */
 export default function useDesignManager(
   initialDesigns,
   fabricRef,
   saveHistory,
   onDesignLoaded,
-  isCanvasReady
+  isCanvasReady,
+  onAutoSave
 ) {
   const [designList, setDesignList] = useState(initialDesigns);
   const [selectedDesignId, setSelectedDesignId] = useState(initialDesigns[0]?.id || null);
@@ -24,6 +34,11 @@ export default function useDesignManager(
   const autoSaveTimerRef = useRef(null);
   const selectedDesignIdRef = useRef(selectedDesignId);
   const isLoadingRef = useRef(false);
+  // 저장하지 않은 변경 여부와 자동 저장 상태 (화면 표시용)
+  const dirtyRef = useRef(false);
+  const onAutoSaveRef = useRef(onAutoSave);
+  onAutoSaveRef.current = onAutoSave;
+  const [autoSaveStatus, setAutoSaveStatus] = useState({ state: "idle", at: null });
 
   useEffect(() => {
     selectedDesignIdRef.current = selectedDesignId;
@@ -87,6 +102,8 @@ export default function useDesignManager(
       
       // 🔥 텍스트 객체 체크 제거: 모든 상태 저장 (텍스트가 없어도 저장)
       const currentId = selectedDesignIdRef.current;
+      const before = designListRef.current.find((d) => d.id === currentId);
+      const changed = JSON.stringify(before?.canvasJson?.objects || []) !== JSON.stringify(json.objects || []);
 
       // 🔥 함수형 업데이트로 최신 상태 기반 업데이트
       setDesignList((prevList) => {
@@ -111,16 +128,75 @@ export default function useDesignManager(
             return {
               ...item,
               canvasJson: updatedJson,
+              edited: item.edited || changed,
             };
           }
           return item;
         });
       });
 
+      return changed;
     } catch (error) {
       console.error("❌ [저장 실패]", error);
+      return false;
     }
   }, [fabricRef]);
+
+  // 편집 상태를 서버 진행 상태에 저장 → 새로고침·다시 열기에도 편집한 그대로 복원
+  useEffect(() => {
+    const edited = designList.filter((d) => d.edited && d.canvasJson);
+    if (edited.length === 0) return;
+    const saved = JSON.parse(projectSession.getItem(EDITOR_EDITS_KEY) || "{}");
+    edited.forEach((d) => {
+      saved[d.type || d.id] = { source: d.sourceKey || null, canvasJson: d.canvasJson };
+    });
+    projectSession.setItem(EDITOR_EDITS_KEY, JSON.stringify(saved));
+  }, [designList]);
+
+  // 현재 디자인 저장: 편집 상태 스냅샷 + (변경이 있으면) 완성 이미지 저장
+  const flushAutoSave = useCallback(async () => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+    if (isLoadingRef.current) return;
+    const current = designListRef.current.find((d) => d.id === selectedDesignIdRef.current);
+    const changed = snapshotCurrentDesign();
+    if (!(changed || dirtyRef.current) || !current || !onAutoSaveRef.current) return;
+    dirtyRef.current = false;
+    setAutoSaveStatus({ state: "saving", at: null });
+    try {
+      await onAutoSaveRef.current(current);
+      setAutoSaveStatus({ state: "saved", at: new Date() });
+    } catch (e) {
+      console.error("❌ [자동 저장 실패]", e);
+      dirtyRef.current = true;
+      setAutoSaveStatus({ state: "error", at: new Date() });
+    }
+  }, [snapshotCurrentDesign]);
+
+  // 캔버스가 바뀌었을 때 (EditorPage 의 object:modified/added/removed, text:changed)
+  const markDirty = useCallback(() => {
+    if (isLoadingRef.current) return;
+    dirtyRef.current = true;
+    setAutoSaveStatus((s) => (s.state === "saving" ? s : { state: "pending", at: null }));
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
+      flushAutoSave();
+    }, AUTO_SAVE_DELAY_MS);
+  }, [flushAutoSave]);
+
+  // 저장 전에 창을 닫으려 하면 경고
+  useEffect(() => {
+    const warn = (e) => {
+      if (!dirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
 
   // Debounced 저장 함수
   const snapshotCurrentDesignDebounced = useCallback(() => {
@@ -142,25 +218,15 @@ export default function useDesignManager(
   }, [snapshotCurrentDesign]);
 
   // 🔥 디자인 전환 시 자동 저장 추가
-  const handleSelectDesign = useCallback((design) => {
+  const handleSelectDesign = useCallback(async (design) => {
     if (design.id === selectedDesignId) return;
 
     console.log("🔄 작업물 전환:", selectedDesignId, "→", design.id);
 
-    // 🔥 전환 전에 현재 작업 저장
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = null;
-    }
-    
-    // 즉시 저장
-    snapshotCurrentDesign();
-    
-    // 약간의 딜레이 후 전환 (저장이 완료될 시간 확보)
-    setTimeout(() => {
-      setSelectedDesignId(design.id);
-    }, 100);
-  }, [selectedDesignId, snapshotCurrentDesign]);
+    // 🔥 전환 전에 현재 작업 저장 (편집 상태 + 변경이 있으면 완성 이미지까지, 캔버스가 아직 현재 디자인일 때)
+    await flushAutoSave();
+    setSelectedDesignId(design.id);
+  }, [selectedDesignId, flushAutoSave]);
 
   // 🔥 캔버스 로딩 (designListRef에서 최신 데이터 가져오기)
   useEffect(() => {
@@ -212,6 +278,9 @@ export default function useDesignManager(
     handleSelectDesign,
     snapshotCurrentDesignDebounced,
     snapshotCurrentDesign,
+    flushAutoSave,
+    markDirty,
+    autoSaveStatus,
     isLoadingRef,
   };
 }

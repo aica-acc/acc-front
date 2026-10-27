@@ -1,11 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle, ArrowLeft } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
 import StepProgressHorizontal from "../components/step/StepProgressHorizontal";
 
 const StepHeader = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const member = useAuthStore((s) => s.member);
+  const clearSession = useAuthStore((s) => s.clearSession);
+
+  const logout = () => {
+    clearSession();
+    setOpen(false);
+    navigate("/");
+  };
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -66,6 +75,16 @@ const StepHeader = () => {
                          backdrop-blur-sm"
               style={{ backgroundColor: "rgba(37, 37, 47, 0.95)" }}
             >
+              {member && (
+                <div className="px-4 py-2 mb-1 border-b border-gray-700 text-sm text-gray-300">
+                  {member.name}
+                  {member.role !== "USER" && (
+                    <span className="ml-2 px-2 py-0.5 text-xs font-bold rounded bg-indigo-500 text-white">
+                      {member.role === "ADMIN" ? "관리자" : "TEST"}
+                    </span>
+                  )}
+                </div>
+              )}
               <button
                 className="w-full px-4 py-2.5 text-left text-gray-200 
                            hover:bg-gray-700/70 transition-colors font-semibold"
@@ -97,6 +116,27 @@ const StepHeader = () => {
                 }}
               >
                 마이프로필
+              </button>
+
+              {member?.role === "ADMIN" && (
+                <button
+                  className="w-full px-4 py-2.5 text-left text-indigo-300
+                             hover:bg-gray-700/70 transition-colors font-semibold"
+                  onClick={() => {
+                    navigate("/admin");
+                    setOpen(false);
+                  }}
+                >
+                  관리자
+                </button>
+              )}
+
+              <button
+                className="w-full px-4 py-2.5 text-left text-red-300
+                           hover:bg-gray-700/70 transition-colors font-semibold"
+                onClick={logout}
+              >
+                로그아웃
               </button>
             </div>
           )}

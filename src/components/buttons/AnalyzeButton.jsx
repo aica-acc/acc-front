@@ -1,12 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+import projectSession from "../../utils/projectSession";
 const AnalyzeButton = ({ label = "각 홍보물 프롬프트 생성하기" }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    const proposalRaw = sessionStorage.getItem("proposalData");
-    const trendRaw = sessionStorage.getItem("trendData");
+    const proposalRaw = projectSession.getItem("proposalData");
+    const trendRaw = projectSession.getItem("trendData");
 
     if (!proposalRaw || !trendRaw) {
       alert("필요한 분석 데이터가 없습니다. proposalData 또는 trendData가 없습니다.");
