@@ -215,6 +215,23 @@ const AnalyzeRegionTrendPage = () => {
         ) : (
           regionData && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '60px' }} className="animate-fade-in">
+
+              {/* 분석 신뢰도 안내: 예시 데이터·조회 실패를 숨기지 않고 알린다 */}
+              {(regionData.notices?.length > 0 || regionData.region_name) && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
+                  {regionData.region_name && (
+                    <p className="mb-1">
+                      분석 지역: <strong>{regionData.region_name}</strong>
+                      {regionData.search_window && (
+                        <span className="text-amber-200/70"> · 조회 기간 {regionData.search_window[0]} ~ {regionData.search_window[1]}</span>
+                      )}
+                    </p>
+                  )}
+                  {regionData.notices?.map((n) => (
+                    <p key={n} className="flex gap-2"><span>⚠</span><span>{n}</span></p>
+                  ))}
+                </div>
+              )}
               
               {/* 2. 네이버 스타일 워드클라우드 & 순위표 */}
               <div className="grid grid-cols-[2fr_1fr] gap-8">
@@ -358,7 +375,8 @@ const AnalyzeRegionTrendPage = () => {
               </div>
 
               {/* 4. [맨 아래] 검색량 폭발력 인사이트 카드 */}
-              {regionData.growth_stats && (
+              {/* 예시 곡선이면 성장률을 계산하지 않는다(null) → 카드도 숨긴다 */}
+              {regionData.growth_stats && regionData.growth_stats.festival_growth != null && (
                 <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6 animate-fade-in">
                   <div style={{ 
                     display: 'flex', gap: '20px', 
@@ -398,9 +416,14 @@ const AnalyzeRegionTrendPage = () => {
                 <div className="mb-5 pl-4 border-l-4 border-blue-400">
                   <h3 className="text-2xl font-extrabold text-gray-100">
                     📉 축제 vs 지역 관심도 비교
+                    {regionData.region_trend_simulated && (
+                      <span className="ml-3 align-middle rounded-full border border-amber-400/60 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
+                        예시 데이터
+                      </span>
+                    )}
                   </h3>
                   <p className="text-base text-gray-300 mt-2">
-                    <strong className="text-blue-400">{regionData.host} 여행 수요(좌측)</strong> 대비 <strong className="text-pink-400">우리 축제(우측)</strong>의 관심도 흐름을 비교합니다.
+                    <strong className="text-blue-400">{regionData.region_name || regionData.host} 여행 수요(좌측)</strong> 대비 <strong className="text-pink-400">우리 축제(우측)</strong>의 관심도 흐름을 비교합니다.
                   </p>
                 </div>
 

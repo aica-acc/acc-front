@@ -113,6 +113,15 @@ const AnalyzeProposalThemePage = () => {
         `}
       </style>
 
+      {/* 데이터 수집 실패 안내 (예: 구글 트렌드 일시 조회 불가) */}
+      {trendData?.notices?.length > 0 && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm text-amber-100">
+          {trendData.notices.map((n) => (
+            <p key={n} className="flex gap-2"><span>⚠</span><span>{n}</span></p>
+          ))}
+        </div>
+      )}
+
       {/* 헤더 섹션 */}
       <div style={{ 
         position: 'relative', height: '300px', 
