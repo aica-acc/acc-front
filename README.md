@@ -158,7 +158,7 @@ Vite 는 `VITE_` 로 시작하는 값만 브라우저에 노출합니다. **빌�
 | `/static/` | AI 서버 정적 파일 |
 | `/data/` | 백엔드가 생성한 홍보물 (공유 볼륨 `/srv/public/data/`) |
 
-업스트림 주소는 환경변수(기본 `BACKEND_HOST=ai`, `BACKEND_PORT=8081`, `AI_HOST=ai`, `AI_PORT=5000`)로 바꿀 수 있습니다.
+업스트림 주소는 환경변수(기본 `BACKEND_HOST=backend`, `BACKEND_PORT=8081`, `AI_HOST=ai`, `AI_PORT=5000`)로 바꿀 수 있습니다.
 
 ```bash
 docker build -t scv3114/acc-front \

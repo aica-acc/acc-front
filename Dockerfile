@@ -31,6 +31,6 @@ RUN npm run build
 FROM nginx:1.28.1-alpine
 # 공식 nginx 이미지의 템플릿 기능: ${BACKEND_HOST} 등 환경변수만 envsubst 로 치환된다
 COPY nginx.conf /etc/nginx/templates/default.conf.template
-ENV BACKEND_HOST=ai BACKEND_PORT=8081 AI_HOST=ai AI_PORT=5000
+ENV BACKEND_HOST=backend BACKEND_PORT=8081 AI_HOST=ai AI_PORT=5000
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
