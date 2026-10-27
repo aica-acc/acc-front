@@ -86,7 +86,7 @@ const AdminPage = () => {
             </thead>
             <tbody>
               {members.map((m) => {
-                const self = m.mNo === me?.mNo;
+                const self = m.email === me?.email;
                 return (
                   <tr key={m.mNo} className="border-t border-gray-700">
                     <td className="px-4 py-3 font-mono text-sm">{m.mNo}</td>

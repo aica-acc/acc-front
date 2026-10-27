@@ -61,7 +61,8 @@ const Approuter = () => {
         </Route>  
         {/* 기획서 분석: 여기서 새 프로젝트가 만들어진다 (ProjectGate 밖) */}
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
-        <Route path="/testpage" element={<TestPage />} />
+        {/* 개발용 화면은 개발 서버에서만 */}
+        {import.meta.env.DEV && <Route path="/testpage" element={<TestPage />} />}
 
         {/* 이하 프로젝트 흐름 화면: 서버의 진행 상태를 불러온 뒤 그린다 ("이어서 하기") */}
         <Route element={<ProjectGate />}>

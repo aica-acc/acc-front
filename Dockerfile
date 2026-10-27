@@ -18,12 +18,9 @@ RUN set -e; d=src/assets/promotion; mkdir -p $d/poster $d/mascot; \
       [ -e $d/poster/$f ] || echo "$px" | base64 -d > $d/poster/$f; done; \
     for i in 1 2 3 4 5 6 7; do [ -e $d/mascot/mascot_$i.png ] || echo "$px" | base64 -d > $d/mascot/mascot_$i.png; done
 
-# 백엔드가 이해하는 public 폴더 절대경로 (compose 의 공유 볼륨 경로와 일치해야 함)
-ARG VITE_PUBLIC_FOLDER_PATH=/data/acc-front/public
-# 브라우저가 호출하는 백엔드 주소. 빈 값이면 같은 도메인 (nginx 가 /api/, /static/ 을 백엔드로 전달)
+# 브라우저가 호출하는 백엔드 주소. 빈 값이면 같은 도메인 (nginx 가 /api/, /files/ 를 백엔드로 전달)
 ARG VITE_API_BASE_URL=""
-ENV VITE_PUBLIC_FOLDER_PATH=$VITE_PUBLIC_FOLDER_PATH \
-    VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
 FROM nginx:1.28.1-alpine

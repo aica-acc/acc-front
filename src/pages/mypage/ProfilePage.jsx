@@ -122,8 +122,6 @@ const ProfilePage = () => {
       {/* 기본 정보 */}
       <form onSubmit={saveProfile} className="bg-[#1b1c25] rounded-2xl p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
-        <label className="block text-sm text-gray-300 mb-1">회원번호</label>
-        <input className={inputClass + " mb-4"} value={me.mNo} disabled />
         <label className="block text-sm text-gray-300 mb-1">이메일</label>
         <input className={inputClass + " mb-4"} value={me.email} disabled />
         <label className="block text-sm text-gray-300 mb-1">이름</label>

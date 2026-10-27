@@ -1,50 +1,15 @@
 /**
  * 전역 앱 설정 파일
- * 각자 컴퓨터의 환경에 맞게 경로를 설정하세요.
  */
 
-// ⚠️ 각자 컴퓨터의 public 폴더 절대 경로를 여기에 설정하세요
-// 예시: "C:\\final_project\\ACC\\acc-frontend\\public"
-// 또는: "C:/final_project/ACC/acc-frontend/public"
-export const PUBLIC_FOLDER_PATH = import.meta.env.VITE_PUBLIC_FOLDER_PATH;
-
 // 백엔드(Spring) URL (.env 의 VITE_API_BASE_URL, 없으면 로컬 기본값)
-// 프론트는 백엔드만 호출한다. AI 서버 정적 파일(/static/...)도 백엔드가 중계한다.
-// 빈 문자열("")이면 같은 도메인으로 요청한다 (nginx 가 /api/, /static/ 을 백엔드로 전달하는 배포 환경)
+// 프론트는 백엔드만 호출한다. 생성 이미지도 백엔드의 /files/... 주소로 받는다.
+// 빈 문자열("")이면 같은 도메인으로 요청한다 (nginx 가 /api/, /files/ 를 백엔드로 전달하는 배포 환경)
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081";
 
 /**
- * 상대 경로(data/...)를 전체 파일 시스템 경로로 변환
- * @param {string} relativePath - data/로 시작하는 상대 경로
- * @returns {string} 전체 파일 시스템 경로
+ * (예전) 웹 경로를 서버 public 폴더의 절대경로로 바꿔 보내던 함수.
+ * 서버 폴더 구조를 화면 코드에 두지 않도록, 이제 받은 파일 주소(/files/...)를 그대로 보낸다.
+ * 절대경로가 필요한 곳은 백엔드가 직접 만든다 (EditorBuildServiceImpl).
  */
-export const convertToFullPath = (relativePath) => {
-  if (!relativePath) return "";
-  
-  // 이미 전체 경로인 경우 그대로 반환 (C:\ 또는 C:/로 시작)
-  if (relativePath.startsWith("C:\\") || relativePath.startsWith("C:/")) {
-    return relativePath;
-  }
-  
-  // 상대 경로 정규화 (백슬래시를 슬래시로)
-  let normalized = relativePath.replace(/\\/g, "/");
-  
-  // :/data/... 형태 처리 (C:가 빠진 경우)
-  if (normalized.startsWith(":/data/")) {
-    normalized = normalized.substring(1); // 앞의 : 제거
-  }
-  
-  // /data/ 또는 data/로 시작하는지 확인
-  if (normalized.startsWith("/data/") || normalized.startsWith("data/")) {
-    // 앞의 / 제거
-    normalized = normalized.replace(/^\/+/, "");
-    
-    // PUBLIC_FOLDER_PATH와 결합
-    const publicPath = PUBLIC_FOLDER_PATH.replace(/\\/g, "/");
-    return `${publicPath}/${normalized}`;
-  }
-  
-  // data/로 시작하지 않으면 그대로 반환
-  return relativePath;
-};
-
+export const convertToFullPath = (path) => path || "";

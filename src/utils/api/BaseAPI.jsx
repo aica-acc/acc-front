@@ -1,6 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "../../config/appConfig";
-import { getToken, getMember, clearSession } from "../auth";
+import { getToken, clearSession } from "../auth";
 
 /**
  * 🧩 Base API 설정 (JSON + FormData 자동 인식 + 기본 m_no 주입)
@@ -14,29 +14,16 @@ const api = axios.create({
 // ✅ 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
-    // ✅ 로그인 토큰 첨부 (백엔드는 토큰의 회원만 신뢰한다. m_no 는 기존 API 호환용)
+    // ✅ 로그인 토큰 첨부. 회원은 백엔드가 토큰으로 알아내므로 회원번호(m_no)는 보내지 않는다
     const token = getToken();
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-    const mNo = getMember()?.mNo || "";
 
     // ✅ FormData면 Content-Type 자동 처리
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
-      // ✅ m_no 자동 추가
-      if (!config.data.has("m_no")) {
-        config.data.append("m_no", mNo);
-      }
     } else {
-      // JSON 요청이면 m_no 필드 추가
-      // 단, editor 관련 엔드포인트는 m_no 추가 안 함
-      const url = config.url || "";
-      const isEditorEndpoint = url.includes("/api/editor/");
-      
-      if (typeof config.data === "object" && config.data !== null && !isEditorEndpoint) {
-        config.data = { m_no: mNo, ...config.data };
-      }
       config.headers["Content-Type"] = "application/json";
     }
 
