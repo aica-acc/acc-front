@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../store/authStore";
+import { endDemoSession } from "../../utils/demo";
 
 /**
  * 데모 계정 제한(DEMO)·크레딧 부족(CREDIT) 안내. BaseAPI 응답 인터셉터가 acc:notice 이벤트로 알려 준다.
@@ -8,7 +8,6 @@ import { useAuthStore } from "../../store/authStore";
  */
 export default function ApiNotice() {
   const navigate = useNavigate();
-  const clearSession = useAuthStore((s) => s.clearSession);
   const [notice, setNotice] = useState(null);
   const timer = useRef(null);
 
@@ -33,7 +32,7 @@ export default function ApiNotice() {
     ? {
         label: "회원가입하고 직접 만들기",
         run: () => {
-          clearSession();
+          endDemoSession();
           navigate("/login");
         },
       }

@@ -29,7 +29,8 @@ export default function DerivativePicker({
   const group = promotionItems.find((p) => p.id === category);
   if (!group) return null;
 
-  const options = group.subOptions;
+  // 체험(test 계정)에서는 미리 만들어 둔 종류만 보여 준다
+  const options = allowed !== null ? group.subOptions.filter((o) => allowed.includes(o.value)) : group.subOptions;
   const selectedHere = options.filter((o) => types.includes(o.value)).length;
   const reusable = (value) => generated[value] && baseKey(generated[value]) === baseKey(currentBase);
 
@@ -72,7 +73,7 @@ export default function DerivativePicker({
                 />
                 <span className="flex-1">{o.label}</span>
                 {disabled && (
-                  <span className="text-[10px] text-gray-500">{demoBlocked(o.value) ? "데모 미제공" : "준비 중"}</span>
+                  <span className="text-[10px] text-gray-500">준비 중</span>
                 )}
                 {!disabled && generated[o.value] && (
                   reusable(o.value) ? (

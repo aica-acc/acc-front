@@ -4,7 +4,7 @@ import { JobAPI } from "../utils/api/JobAPI";
 import { useProjectStore } from "../store/projectStore";
 import JobProgressCard from "../components/job/JobProgressCard";
 import { promotionItems } from "../assets/promotionItems";
-import { isDemoUser, usePacedJob, demoNote } from "../utils/demo";
+import { isDemoUser, usePacedJob } from "../utils/demo";
 
 // 파생물 이름 (데모 진행 단계 표시용)
 const TYPE_LABEL = Object.fromEntries(
@@ -108,7 +108,7 @@ const EditorLoadingPage = () => {
         succeeded: "완료! 에디터를 여는 중...",
         failed: "파생물 생성에 실패했습니다",
       }}
-      note={demo ? demoNote(Math.max(2, Math.round(demoTypes.length * 0.7))) : "같은 베이스로 이미 만든 항목은 다시 만들지 않고 기존 결과를 사용합니다."}
+      note={"같은 베이스로 이미 만든 항목은 다시 만들지 않고 기존 결과를 사용합니다."}
       actions={
         failed ? (
           <>

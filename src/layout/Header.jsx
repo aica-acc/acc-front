@@ -5,7 +5,7 @@ import mainIcon from "../assets/icorn/main_icorn.png";
 import { useAuthStore } from "../store/authStore";
 import api from "../utils/api/BaseAPI";
 
-const ROLE_LABEL = { USER: "", TEST: "데모", ADMIN: "관리자" };
+const ROLE_LABEL = { USER: "", TEST: "", ADMIN: "관리자" };
 
 const Header = forwardRef((props, ref) => {
   const navigate = useNavigate();
@@ -182,22 +182,6 @@ const Header = forwardRef((props, ref) => {
           )}
         </div>
       </div>
-      {/* 데모(test) 계정 안내 띠 */}
-      {loggedIn && isDemo && (
-        <div className="bg-indigo-600/90 text-white text-sm px-4 py-2 text-center">
-          <span className="font-bold mr-2">체험 중</span>
-          미리 만들어 둔 축제 결과로 진행되며, 작업 내용은 저장되지 않습니다.
-          <button
-            onClick={() => {
-              clearSession();
-              navigate("/login");
-            }}
-            className="ml-3 underline underline-offset-4 font-semibold hover:text-indigo-100"
-          >
-            회원가입하고 직접 만들기
-          </button>
-        </div>
-      )}
     </header>
   );
 });

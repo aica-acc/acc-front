@@ -48,7 +48,7 @@ const ProposalLoadingPage = () => {
         if (isDemoUser()) {
           const pNo = await openDemoProject(state, setMessage);
           if (!pNo) {
-            alert("데모는 준비된 샘플 기획서로만 진행할 수 있습니다.");
+            alert("예시 기획서로만 진행할 수 있습니다.");
             navigate("/upload");
             return;
           }

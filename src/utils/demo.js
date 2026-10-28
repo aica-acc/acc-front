@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { getRole } from "./auth";
+import { getRole, clearSession } from "./auth";
+import { useProjectStore } from "../store/projectStore";
 import projectSession from "./projectSession";
 
 /**
@@ -9,6 +10,18 @@ import projectSession from "./projectSession";
  */
 
 export const isDemoUser = () => getRole() === "TEST";
+
+/** 체험 세션을 깨끗하게 끝낸다 (첫 화면 진입, 실제 사용으로 전환) */
+export const endDemoSession = () => {
+  clearSession();
+  useProjectStore.getState().reset();
+  try {
+    ["types", "acc_project"].forEach((k) => sessionStorage.removeItem(k));
+    localStorage.removeItem("festivalForm");
+  } catch {
+    /* ignore */
+  }
+};
 
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -83,6 +96,3 @@ export function usePacedJob(job, enabled, steps) {
   };
 }
 
-/** 데모 로딩 화면 아래 안내 문구 */
-export const demoNote = (realMinutes) =>
-  `데모: 실제로는 약 ${realMinutes}분 걸리는 작업입니다. 미리 만들어 둔 결과로 짧게 보여 드립니다.`;

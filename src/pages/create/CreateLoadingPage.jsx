@@ -6,7 +6,7 @@ import { useProjectStore } from "../../store/projectStore";
 import JobProgressCard from "../../components/job/JobProgressCard";
 
 import projectSession from "../../utils/projectSession";
-import { isDemoUser, usePacedJob, demoNote, getDemoBase } from "../../utils/demo";
+import { isDemoUser, usePacedJob, getDemoBase } from "../../utils/demo";
 
 const POLL_MS = 2000;
 
@@ -137,7 +137,7 @@ const CreateLoadingPage = () => {
         succeeded: "완료! 결과를 여는 중...",
         failed: "포스터·마스코트 생성에 실패했습니다",
       }}
-      note={demo ? demoNote(4) : "이미 만든 포스터·마스코트가 있으면 다시 만들지 않고 기존 결과를 사용합니다."}
+      note={"이미 만든 포스터·마스코트가 있으면 다시 만들지 않고 기존 결과를 사용합니다."}
       actions={
         failed ? (
           <>

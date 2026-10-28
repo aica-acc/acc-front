@@ -61,9 +61,9 @@ const TestSamplePanel = ({ formIsEmpty, onApply, demo = false }) => {
   return (
     <div className="mb-8 p-4 rounded-xl border border-indigo-500/50 bg-indigo-500/10">
       <div className="flex items-center gap-3 mb-2">
-        <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-500 text-white">{demo ? "체험" : "TEST"}</span>
+        {!demo && <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-500 text-white">TEST</span>}
         <span className="text-indigo-200 font-medium">
-          {demo ? "체험용 축제 기획서가 준비되어 있습니다" : "테스트 계정 – 샘플 기획서 자동 입력"}
+          {demo ? "예시 축제 기획서" : "테스트 계정 – 샘플 기획서 자동 입력"}
         </span>
       </div>
       {samples.length > 0 && (
@@ -88,7 +88,7 @@ const TestSamplePanel = ({ formIsEmpty, onApply, demo = false }) => {
       {status && <p className="text-sm text-indigo-200">{status}</p>}
       <p className="text-xs text-gray-400 mt-1">
         {demo
-          ? '다른 축제를 고를 수 있습니다. 아래 "분석 시작하기"를 누르면 이 기획서로 만든 결과를 단계별로 보여 드립니다.'
+          ? '다른 축제를 고를 수 있습니다. 아래 "분석 시작하기"를 눌러 진행하세요.'
           : '값은 자유롭게 수정할 수 있습니다. 아래 "분석 시작하기"를 눌러 다음 단계로 진행하세요.'}
       </p>
     </div>

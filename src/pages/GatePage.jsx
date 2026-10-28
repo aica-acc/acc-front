@@ -7,7 +7,7 @@ import mascotSample from "../assets/promotion/mascot/mascot_6.jpg";
 import bannerSample from "../assets/promotion/options/road_banner.jpg";
 import api from "../utils/api/BaseAPI";
 import { useAuthStore } from "../store/authStore";
-import { useProjectStore } from "../store/projectStore";
+import { endDemoSession } from "../utils/demo";
 
 /**
  * 첫 화면 (서비스 입구). 여기서 실제로 쓸지, 미리 만들어 둔 결과로 체험할지 나눈다.
@@ -20,10 +20,14 @@ export default function GatePage() {
   const role = useAuthStore((s) => s.member?.role);
   const loggedIn = useAuthStore((s) => !!s.token);
   const setSession = useAuthStore((s) => s.setSession);
-  const clearSession = useAuthStore((s) => s.clearSession);
   const [demoEnabled, setDemoEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  // 첫 화면으로 돌아오면(뒤로 가기 등) 체험 세션은 끝낸다
+  useEffect(() => {
+    if (useAuthStore.getState().member?.role === "TEST") endDemoSession();
+  }, []);
 
   useEffect(() => {
     api
@@ -36,8 +40,8 @@ export default function GatePage() {
   if (loggedIn && role && role !== "TEST") return <Navigate to="/home" replace />;
 
   const start = () => {
-    // 체험 중이던 데모 계정은 정리하고 실제 사용으로
-    if (role === "TEST") clearSession();
+    // 실제 사용: 체험 중이던 세션과 진행 상태를 모두 정리하고 시작
+    if (role === "TEST") endDemoSession();
     navigate("/home");
   };
 
@@ -46,7 +50,7 @@ export default function GatePage() {
     setBusy(true);
     try {
       const res = await api.post("/api/auth/test-login");
-      useProjectStore.getState().reset();
+      endDemoSession();
       setSession(res.data);
       navigate("/home");
     } catch {
