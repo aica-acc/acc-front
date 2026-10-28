@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import mainVideo from "../assets/sections/video/main_video_720.mp4";
+import { mainVideoUrl } from "../utils/mediaAssets";
 import api from "../utils/api/BaseAPI";
 import { useAuthStore } from "../store/authStore";
 import { openProject, stepLabel } from "../utils/project";
@@ -46,7 +46,7 @@ const IntroSection = () => {
         playsInline
         className="absolute top-0 left-0 w-full h-full object-cover"
       >
-        <source src={mainVideo} type="video/mp4" />
+        <source src={mainVideoUrl} type="video/mp4" />
       </video>
 
       <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center text-white">

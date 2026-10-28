@@ -9,6 +9,8 @@ COPY . .
 # 브라우저가 호출하는 백엔드 주소. 빈 값이면 같은 도메인 (nginx 가 /api/, /files/ 를 백엔드로 전달)
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_MEDIA_BASE_URL=""
+ENV VITE_MEDIA_BASE_URL=$VITE_MEDIA_BASE_URL
 RUN npm run build
 
 FROM nginx:1.28.1-alpine

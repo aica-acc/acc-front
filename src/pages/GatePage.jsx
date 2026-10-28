@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import mainVideo from "../assets/sections/video/main_video_720.mp4";
+import { mainVideoUrl } from "../utils/mediaAssets";
 import mainIcon from "../assets/icorn/main_icorn.webp";
 import posterSample from "../assets/promotion/poster/poster_6.jpg";
 import mascotSample from "../assets/promotion/mascot/mascot_6.jpg";
@@ -63,7 +63,7 @@ export default function GatePage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-neutral-950 text-white">
       <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover opacity-40">
-        <source src={mainVideo} type="video/mp4" />
+        <source src={mainVideoUrl} type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/50 to-indigo-950/70" />
 
