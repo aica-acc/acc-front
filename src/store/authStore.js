@@ -12,6 +12,53 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 const STORAGE_KEY = "acc_auth";
 
+// 체험(test) 계정 세션은 이 탭에서만 유지한다 (새 창·다른 탭에는 남지 않게 sessionStorage 에 둔다)
+const isTestSession = (value) => {
+  try {
+    return JSON.parse(value)?.state?.member?.role === "TEST";
+  } catch {
+    return false;
+  }
+};
+
+const authStorage = {
+  getItem: (name) => {
+    try {
+      return sessionStorage.getItem(name) ?? localStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name, value) => {
+    try {
+      if (isTestSession(value)) {
+        sessionStorage.setItem(name, value);
+        localStorage.removeItem(name);
+      } else {
+        localStorage.setItem(name, value);
+        sessionStorage.removeItem(name);
+      }
+    } catch {
+      /* 저장 불가: 새로고침하면 로그인이 풀린다 */
+    }
+  },
+  removeItem: (name) => {
+    try {
+      sessionStorage.removeItem(name);
+      localStorage.removeItem(name);
+    } catch {
+      /* ignore */
+    }
+  },
+};
+
+// 예전 버전이 localStorage 에 남긴 체험(test) 세션은 지운다 (새 창에서 체험 계정으로 열리지 않게)
+try {
+  if (isTestSession(localStorage.getItem(STORAGE_KEY))) localStorage.removeItem(STORAGE_KEY);
+} catch {
+  /* ignore */
+}
+
 // localStorage 접근이 throw 해도 앱이 죽지 않도록 감싼 저장소
 const safeStorage = {
   getItem: (name) => {
@@ -61,7 +108,7 @@ export const useAuthStore = create(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => safeStorage),
+      storage: createJSONStorage(() => authStorage),
       // 함수는 저장하지 않고 데이터만 저장
       partialize: (s) => ({ token: s.token, member: s.member }),
     }

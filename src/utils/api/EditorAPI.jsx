@@ -1,4 +1,5 @@
 import api from "./BaseAPI";
+import { isDemo } from "../auth";
 
 /**
  * AI 색상 추천 API (백엔드 /api/editor/ai-render를 통해 AI 서버로 전달)
@@ -65,6 +66,10 @@ export const saveEditorImage = async ({
   imagePath,
   dbFileType,
 }) => {
+  // 데모: 생성 결과를 베이스로 등록하는 단계는 건너뛴다 (미리 만든 프로젝트를 바꾸지 않는다)
+  if (isDemo() && imagePath && !imageBase64) {
+    return { success: true, savedPath: imagePath, demo: true };
+  }
   try {
     console.log("💾 [Editor Save] 이미지 저장 요청 시작:", {
       pNo,

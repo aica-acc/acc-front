@@ -1,53 +1,12 @@
 import React from "react";
 import { promotionItems } from "../../assets/promotionItems";
 
-// --- Poster 이미지 ---
-import poster_1 from "../../assets/promotion/poster/poster_1.jpg";
-import poster_2 from "../../assets/promotion/poster/poster_2.png";
-import poster_3 from "../../assets/promotion/poster/poster_3.PNG";
-import poster_4 from "../../assets/promotion/poster/poster_4.jpg";
-import poster_5 from "../../assets/promotion/poster/poster_5.jpg";
-import poster_6 from "../../assets/promotion/poster/poster_6.png";
-import poster_7 from "../../assets/promotion/poster/poster_7.png";
-import poster_8 from "../../assets/promotion/poster/poster_8.jpg";
-
-// --- Mascot 이미지 ---
-import mascot_1 from "../../assets/promotion/mascot/mascot_1.png";
-import mascot_2 from "../../assets/promotion/mascot/mascot_2.png";
-import mascot_3 from "../../assets/promotion/mascot/mascot_3.png";
-import mascot_4 from "../../assets/promotion/mascot/mascot_4.png";
-import mascot_5 from "../../assets/promotion/mascot/mascot_5.png";
-import mascot_6 from "../../assets/promotion/mascot/mascot_6.png";
-import mascot_7 from "../../assets/promotion/mascot/mascot_7.png";
-
-// OPTION value → 대표 이미지
-const THUMBNAIL_MAP = {
-  // poster
-  logo_illustration: poster_1,
-  logo_typography: poster_2,
-  poster_cardnews: poster_3,
-  poster_video: poster_4,
-  leaflet: poster_5,
-  road_banner: poster_6,
-  bus_shelter: poster_7,
-  subway_light: poster_8,
-  bus_road: poster_1,
-  streetlamp_banner: poster_2,
-  subway_inner: poster_3,
-
-  // mascot
-  sign_parking: mascot_1,
-  sign_welcome: mascot_2,
-  sign_toilet: mascot_3,
-  mascot_video: mascot_4,
-  goods_sticker: mascot_5,
-  goods_key_ring: mascot_6,
-  goods_emoticon: mascot_7,
-
-  // etc (임시)
-  news: poster_1,
-  etc_video: poster_2,
-};
+// 옵션별 예시 이미지: assets/promotion/options/{옵션 value}.jpg (실제 생성 결과를 줄인 것). 없으면 아이콘을 보여 준다
+const THUMBNAIL_MAP = Object.fromEntries(
+  Object.entries(
+    import.meta.glob("../../assets/promotion/options/*.jpg", { eager: true, import: "default" })
+  ).map(([path, url]) => [path.split("/").pop().replace(/\.jpg$/, ""), url])
+);
 
 // 아이콘 내부 정의 (import 없음)
 const ICON_MAP = {
@@ -116,12 +75,16 @@ export default function PromotionCard({ category, selected, onToggle }) {
                 </span>
               </div>
 
-              {thumbnail && (
+              {thumbnail ? (
                 <img
                   src={thumbnail}
                   alt={opt.label}
-                  className="w-24 h-24 rounded-lg object-cover"
+                  className="w-24 h-24 rounded-lg object-contain bg-black/20"
                 />
+              ) : (
+                <div className="w-24 h-24 rounded-lg bg-black/20 flex items-center justify-center">
+                  <Icon />
+                </div>
               )}
             </div>
           </button>

@@ -6,8 +6,17 @@ import { useProjectStore } from "../../store/projectStore";
 import JobProgressCard from "../../components/job/JobProgressCard";
 
 import projectSession from "../../utils/projectSession";
+import { isDemoUser, usePacedJob, getDemoBase } from "../../utils/demo";
 
 const POLL_MS = 2000;
+
+// 데모에서 보여 줄 단계 (실제로는 약 4분)
+const DEMO_STEPS = [
+  { type: "poster_prompt", label: "포스터 프롬프트 작성", seconds: 1.5 },
+  { type: "poster_images", label: "포스터 이미지 생성", seconds: 3 },
+  { type: "mascot_prompt", label: "마스코트 프롬프트 작성", seconds: 1.5 },
+  { type: "mascot_images", label: "마스코트 이미지 생성", seconds: 3 },
+];
 
 /**
  * 베이스 포스터·마스코트 생성 진행 화면.
@@ -23,6 +32,9 @@ const CreateLoadingPage = () => {
   const [job, setJob] = useState(null);
   const [error, setError] = useState("");
   const started = useRef(false);
+  const demo = isDemoUser();
+  // 데모: 서버 작업은 미리 만든 결과로 바로 끝나므로 단계 진행을 짧게 연출한다
+  const shown = usePacedJob(job, demo, DEMO_STEPS);
 
   const trendData = state || (() => {
     const raw = projectSession.getItem("trendData");
@@ -42,7 +54,21 @@ const CreateLoadingPage = () => {
         projectSession.setItem("mascotThumbnailList", JSON.stringify(mascotList));
         if (posterList.length === 0) throw new Error("생성된 포스터 이미지가 없습니다.");
 
-        const first = posterList[0];
+        let first = posterList[0];
+        // 데모: 베이스 포스터·마스코트는 미리 정해 두고 선택된 상태로 시작한다
+        const demoBase = demo ? getDemoBase() : null;
+        if (demoBase?.poster) {
+          first = posterList.find((p) => p.filePathNo === demoBase.poster.filePathNo) || first;
+          for (const kind of ["poster", "mascot"]) {
+            const b = demoBase[kind];
+            if (!b) continue;
+            const d = await Image.getDetail({ filePathNo: b.filePathNo, promptNo: b.promptNo });
+            projectSession.setItem(
+              kind === "poster" ? "selectedPosterImage" : "selectedMascotImage",
+              JSON.stringify({ fileUrl: d.fileUrl, filePathNo: b.filePathNo, promptNo: b.promptNo, source: "generated" })
+            );
+          }
+        }
         const detail = await Image.getDetail({ filePathNo: first.filePathNo, promptNo: first.promptNo });
         projectSession.setItem("currentDetail", JSON.stringify(detail));
         navigate(`/create/poster/detail/${first.filePathNo}/${first.promptNo}`, { replace: true });
@@ -51,7 +77,7 @@ const CreateLoadingPage = () => {
         setError("생성 결과를 불러오지 못했습니다: " + e.message);
       }
     },
-    [navigate]
+    [navigate, demo]
   );
 
   const start = useCallback(() => {
@@ -93,25 +119,25 @@ const CreateLoadingPage = () => {
 
   // 3) 끝나면 결과 화면으로
   useEffect(() => {
-    if (job?.status === "SUCCEEDED") {
+    if (shown?.status === "SUCCEEDED") {
       const t = setTimeout(() => openResult(job), 800);
       return () => clearTimeout(t);
     }
     return undefined;
-  }, [job, openResult]);
+  }, [shown?.status, job, openResult]);
 
-  const failed = job?.status === "FAILED" || !!error;
+  const failed = shown?.status === "FAILED" || !!error;
 
   return (
     <JobProgressCard
-      job={job}
+      job={shown}
       error={error}
       titles={{
         running: "포스터와 마스코트를 만들고 있습니다",
         succeeded: "완료! 결과를 여는 중...",
         failed: "포스터·마스코트 생성에 실패했습니다",
       }}
-      note="이미 만든 포스터·마스코트가 있으면 다시 만들지 않고 기존 결과를 사용합니다."
+      note={"이미 만든 포스터·마스코트가 있으면 다시 만들지 않고 기존 결과를 사용합니다."}
       actions={
         failed ? (
           <>
@@ -128,7 +154,7 @@ const CreateLoadingPage = () => {
             )}
           </>
         ) : (
-          job?.status !== "SUCCEEDED" && (
+          !demo && job?.status !== "SUCCEEDED" && (
             <button
               onClick={() => navigate("/mypage/project")}
               className="flex-1 rounded-lg border border-gray-600 py-2.5 text-sm hover:bg-gray-700"

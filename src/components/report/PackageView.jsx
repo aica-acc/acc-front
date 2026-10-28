@@ -7,6 +7,13 @@ const PackageView = ({ data, articleData }) => {
     // 🛠️ 1. 데이터가 없을 때 방어 (흰 화면 방지)
     if (!data) return <div className="p-10 text-center text-slate-500">패키지 정보를 불러오는 중입니다...</div>;
 
+    // 예전에 만든 리포트는 파일 이름 자리에 서버 경로(지금은 /files/... 주소)가 들어 있다 → 표시용 이름으로
+    const displayName = (name) => {
+        if (!name || !name.includes("/")) return name;
+        const ext = (name.match(/\.(png|jpe?g|webp)$/i) || [".png"])[0].toLowerCase();
+        return `메인포스터${ext}`;
+    };
+
     const handleFileClick = (file) => {
         if (file.name === '보도자료.pdf') {
             setIsModalOpen(true);
@@ -41,7 +48,7 @@ const PackageView = ({ data, articleData }) => {
                                         className={`font-bold text-slate-900 ${file.name === '보도자료.pdf' ? 'cursor-pointer hover:text-blue-600 hover:underline' : ''}`}
                                         onClick={() => handleFileClick(file)}
                                     >
-                                        {file.name}
+                                        {displayName(file.name)}
                                     </span>
                                     {file.name === '보도자료.pdf' && (
                                         <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200">미리보기</span>
@@ -64,7 +71,7 @@ const PackageView = ({ data, articleData }) => {
                     {/* 🛠️ 3. preview 데이터 안전하게 접근 */}
                     {data.preview?.map((item, idx) => (
                         <div key={idx} className="bg-white border-l-4 border-blue-900 p-4 shadow-sm">
-                            <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                            <h3 className="font-bold text-lg mb-2">{displayName(item.title)}</h3>
                             <p className="text-slate-600 bg-slate-50 p-3 rounded italic">
                                 "{item.desc}"
                             </p>

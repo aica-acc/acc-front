@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api/BaseAPI";
 import { useAuthStore } from "../../store/authStore";
+import CreditPanel from "../../components/credit/CreditPanel";
 
-const ROLE_LABEL = { USER: "일반 회원", TEST: "테스트 계정", ADMIN: "관리자" };
+const ROLE_LABEL = { USER: "일반 회원", TEST: "데모 계정", ADMIN: "관리자" };
 
 const inputClass =
   "w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60";
@@ -113,17 +114,17 @@ const ProfilePage = () => {
         </div>
       </div>
 
+      <CreditPanel />
+
       {isTest && (
         <p className="mb-6 p-4 rounded-xl border border-indigo-500/50 bg-indigo-500/10 text-indigo-200 text-sm">
-          테스트 계정은 여러 사람이 함께 쓰므로 정보와 비밀번호를 변경할 수 없습니다.
+          데모 계정은 여러 사람이 함께 쓰므로 정보와 비밀번호를 변경할 수 없습니다.
         </p>
       )}
 
       {/* 기본 정보 */}
       <form onSubmit={saveProfile} className="bg-[#1b1c25] rounded-2xl p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
-        <label className="block text-sm text-gray-300 mb-1">회원번호</label>
-        <input className={inputClass + " mb-4"} value={me.mNo} disabled />
         <label className="block text-sm text-gray-300 mb-1">이메일</label>
         <input className={inputClass + " mb-4"} value={me.email} disabled />
         <label className="block text-sm text-gray-300 mb-1">이름</label>
