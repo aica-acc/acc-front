@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import Header from "../layout/Header";
 import { useAuthStore } from "../store/authStore";
+import SocialLoginButtons from "../components/auth/SocialLoginButtons";
 
 const inputClass =
   "w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 mb-4 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500";
@@ -17,7 +18,6 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [testEnabled, setTestEnabled] = useState(false);
 
   const afterLogin = location.state?.from || "/select";
 
@@ -25,13 +25,6 @@ const LoginPage = () => {
   useEffect(() => {
     if (loggedIn) navigate(afterLogin, { replace: true });
   }, [loggedIn, afterLogin, navigate]);
-
-  useEffect(() => {
-    api
-      .get("/api/auth/config")
-      .then((res) => setTestEnabled(!!res.data?.testLoginEnabled))
-      .catch(() => setTestEnabled(false));
-  }, []);
 
   const change = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
@@ -59,19 +52,6 @@ const LoginPage = () => {
             ? "입력값을 확인해주세요. (이메일 형식, 비밀번호 8자 이상, 이름 필수)"
             : "요청에 실패했습니다. 잠시 후 다시 시도해주세요.")
       );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const testLogin = async () => {
-    setError("");
-    setBusy(true);
-    try {
-      const res = await api.post("/api/auth/test-login");
-      setSession(res.data);
-    } catch {
-      setError("테스트 로그인에 실패했습니다.");
     } finally {
       setBusy(false);
     }
@@ -126,6 +106,8 @@ const LoginPage = () => {
           </button>
         </form>
 
+        <SocialLoginButtons afterLogin={afterLogin} />
+
         <div className="text-center mt-4 text-gray-400 text-sm">
           {mode === "login" ? (
             <>
@@ -144,18 +126,7 @@ const LoginPage = () => {
           )}
         </div>
 
-        {testEnabled && (
-          <div className="mt-6 pt-6 border-t border-gray-700 text-center">
-            <p className="text-gray-400 text-sm mb-3">가입 없이 먼저 둘러보고 싶다면</p>
-            <button
-              onClick={testLogin}
-              disabled={busy}
-              className="px-6 py-2.5 rounded-full border border-indigo-400 text-indigo-300 hover:bg-indigo-500/20 transition"
-            >
-              test 계정으로 로그인하기
-            </button>
-          </div>
-        )}
+        
       </div>
     </div>
   );

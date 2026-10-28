@@ -161,10 +161,12 @@ const ArticleView = ({ data, images }) => {
                             <span className="w-24 font-semibold text-slate-500 shrink-0">장소</span>
                             <span className="text-slate-900">{data.info?.location}</span>
                         </div>
-                        <div className="flex items-baseline">
-                            <span className="w-24 font-semibold text-slate-500 shrink-0">문의처</span>
-                            <span className="text-slate-900">{data.info?.contact}</span>
-                        </div>
+                        {data.info?.contact && (
+                            <div className="flex items-baseline">
+                                <span className="w-24 font-semibold text-slate-500 shrink-0">문의처</span>
+                                <span className="text-slate-900">{data.info.contact}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

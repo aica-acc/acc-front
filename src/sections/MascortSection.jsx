@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AccStartButton from "../components/buttons/AccStartButton";
 
-import img1 from "../assets/sections/mascort/mud.png";
-import img2 from "../assets/sections/mascort/damdam.png";
-import img3 from "../assets/sections/mascort/flower.png";
-import img4 from "../assets/sections/mascort/tong.png";
-import img5 from "../assets/sections/mascort/gwang.png";
+import img1 from "../assets/sections/mascort/mud.webp";
+import img2 from "../assets/sections/mascort/damdam.webp";
+import img3 from "../assets/sections/mascort/flower.webp";
+import img4 from "../assets/sections/mascort/tong.webp";
+import img5 from "../assets/sections/mascort/gwang.webp";
 
 const FESTIVALS = ["보령머드축제","담양산타축제","광양매화축제","통영어부축제","광주 억새축제"];
 const POSTERS = [img1, img2, img3, img4, img5];
@@ -115,7 +115,7 @@ export default function MascortSection() {
                 }`}
                 style={{ width: CARD_W, height: CARD_H, flex: "0 0 auto" }}
               >
-                <img src={src} alt={`poster-${realIdx}`} className="w-full h-full object-cover" />
+                <img src={src} alt={`poster-${realIdx}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
             );
           })}

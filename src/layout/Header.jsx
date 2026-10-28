@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserCircle } from "lucide-react";
-import mainIcon from "../assets/icorn/main_icorn.png";
+import mainIcon from "../assets/icorn/main_icorn.webp";
 import { useAuthStore } from "../store/authStore";
+import api from "../utils/api/BaseAPI";
 
-const ROLE_LABEL = { USER: "", TEST: "TEST", ADMIN: "관리자" };
+const ROLE_LABEL = { USER: "", TEST: "", ADMIN: "관리자" };
 
 const Header = forwardRef((props, ref) => {
   const navigate = useNavigate();
@@ -13,10 +14,28 @@ const Header = forwardRef((props, ref) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef(null);
 
-  const isMainPage = location.pathname === "/";
+  const isMainPage = location.pathname === "/home";
   const member = useAuthStore((s) => s.member);
   const loggedIn = useAuthStore((s) => !!s.token);
   const clearSession = useAuthStore((s) => s.clearSession);
+
+  const isDemo = member?.role === "TEST";
+  // 남은 크레딧: 화면을 옮길 때마다 다시 읽는다 (생성으로 차감·환불된 값 반영)
+  const [credit, setCredit] = useState(null);
+  useEffect(() => {
+    if (!loggedIn) {
+      setCredit(null);
+      return;
+    }
+    let alive = true;
+    api
+      .get("/api/credits/me")
+      .then((res) => alive && setCredit(res.data))
+      .catch(() => alive && setCredit(null));
+    return () => {
+      alive = false;
+    };
+  }, [loggedIn, location.pathname]);
 
   const logout = () => {
     clearSession();
@@ -66,7 +85,7 @@ const Header = forwardRef((props, ref) => {
         {/* 로고 */}
         <div
           className="flex items-center gap-4 cursor-pointer group"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(loggedIn ? "/home" : "/")}
         >
           <img
             src={mainIcon}
@@ -79,10 +98,18 @@ const Header = forwardRef((props, ref) => {
 
         {/* 유저 */}
         <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-          {/* 크레딧 - 그라디언트 + 둥근 알약 모양 */}
-          <div className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full text-sm font-bold text-white shadow-lg">
-            크레딧: <span className="text-blue-100">10000</span>
-          </div>
+          {/* 크레딧 - 그라디언트 + 둥근 알약 모양 (누르면 마이프로필의 크레딧 내역) */}
+          {loggedIn && credit && !isDemo && (
+            <button
+              onClick={() => navigate("/mypage/profile")}
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full text-sm font-bold text-white shadow-lg hover:brightness-110"
+            >
+              크레딧:{" "}
+              <span className="text-blue-100">
+                {credit.unlimited ? "무제한" : credit.balance.toLocaleString()}
+              </span>
+            </button>
+          )}
 
           {loggedIn && (
             <span className="text-sm text-gray-200 hidden sm:flex items-center gap-2">

@@ -6,6 +6,8 @@ import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
 import MainPage from "../pages/MainPage";
+import GatePage from "../pages/GatePage";
+import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 import ProfilePage from "../pages/mypage/ProfilePage";
 // import SelectPromoitonPage from "../pages/SelectPromoitonPage";
 import SelectPromotionPage_New from "../components/select_promotion/SelectPromotionPage";
@@ -47,9 +49,12 @@ const Approuter = () => {
   return (
     <Routes>
         {/* 메인 페이지 */}
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<GatePage />} />
+        <Route path="/home" element={<MainPage />} />
         {/* 로그인 / 회원가입 / test 로그인 */}
         <Route path="/login" element={<LoginPage />} />
+        {/* 카카오·구글 로그인 창에서 돌아오는 주소 */}
+        <Route path="/auth/:provider/callback" element={<OAuthCallbackPage />} />
 
         {/* 이하 모든 화면은 로그인 필요 */}
         <Route element={<RequireAuth />}>
@@ -61,7 +66,8 @@ const Approuter = () => {
         </Route>  
         {/* 기획서 분석: 여기서 새 프로젝트가 만들어진다 (ProjectGate 밖) */}
         <Route path="/proposalloading" element={<ProposalLoadingPage />} />
-        <Route path="/testpage" element={<TestPage />} />
+        {/* 개발용 화면은 개발 서버에서만 */}
+        {import.meta.env.DEV && <Route path="/testpage" element={<TestPage />} />}
 
         {/* 이하 프로젝트 흐름 화면: 서버의 진행 상태를 불러온 뒤 그린다 ("이어서 하기") */}
         <Route element={<ProjectGate />}>

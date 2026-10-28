@@ -5,16 +5,17 @@ import React from "react";
  * @param {boolean} isSelected - 현재 이미지가 선택되었는지 여부
  * @param {boolean} hasUploadedImage - 업로드된 이미지가 있고 선택되지 않은 경우
  * @param {function} onSelect - 선택하기 버튼 클릭 핸들러
+ * @param {boolean} locked - 데모: 베이스가 미리 정해져 있어 바꿀 수 없음
  */
-const BaseSelectButton = ({ isSelected, hasUploadedImage, onSelect }) => {
+const BaseSelectButton = ({ isSelected, hasUploadedImage, onSelect, locked = false }) => {
   return (
     <div className="absolute top-4 right-4 z-10 flex gap-3">
       {isSelected ? (
-        // 현재 페이지가 선택된 경우: 초록색 체크만
+        // 현재 페이지가 선택된 경우: 초록색 체크만 (데모는 고정 베이스라고 함께 표시)
         <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
           <i className="bi bi-check text-white text-xl"></i>
         </div>
-      ) : hasUploadedImage ? (
+      ) : locked ? null : hasUploadedImage ? (
         // 업로드된 이미지가 있지만 현재 페이지가 선택되지 않은 경우: 회색 체크만
         <div className="w-10 h-10 rounded-full border-2 border-gray-400 flex items-center justify-center bg-gray-700">
           <i className="bi bi-circle text-gray-400 text-sm"></i>

@@ -4,6 +4,7 @@ import Approuter from "./utils/routes";
 import './App.css'
 import MainLayout from "./layout/MainLayout";
 import JobNotifier from "./components/job/JobNotifier";
+import ApiNotice from "./components/notice/ApiNotice";
 
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
       <Approuter />
       {/* 백그라운드 생성 작업 알림 (어느 화면에서든) */}
       <JobNotifier />
+      {/* 데모 계정 제한 / 크레딧 부족 안내 */}
+      <ApiNotice />
       </>
   )
 }

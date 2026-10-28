@@ -79,6 +79,7 @@ export default function SelectPromotionPage() {
     }));
   };
 
+
   return (
     <div className="min-h-screen bg-[#0f1117] text-white px-10 py-6">
 

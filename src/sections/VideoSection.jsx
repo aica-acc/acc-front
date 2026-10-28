@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import video1 from "../assets/sections/video/sample1.mp4";
-import video2 from "../assets/sections/video/sample2.mp4";
-import video3 from "../assets/sections/video/sample3.mp4";
+// 세 칸 모두 같은 샘플 영상 (원본 sample1~3 이 같은 파일이었다). 결과물을 보여 주는 영상이라 1080p 고화질 유지, 무음
+import { sampleVideoUrl } from "../utils/mediaAssets";
+const sampleVideo = sampleVideoUrl;
+const video1 = sampleVideo;
+const video2 = sampleVideo;
+const video3 = sampleVideo;
 
 const videos = [video1, video2, video3];
 

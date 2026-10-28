@@ -3,20 +3,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import AccStartButton from "../components/buttons/AccStartButton";
 
 // 🎨 카드뉴스용 이미지 묶음 (4컷씩 구성)
-import set1_1 from "../assets/sections/cardnews/1.1.png";
-import set1_2 from "../assets/sections/cardnews/1.2.png";
-import set1_3 from "../assets/sections/cardnews/1.3.png";
-import set1_4 from "../assets/sections/cardnews/1.4.png";
+import set1_1 from "../assets/sections/cardnews/1.1.webp";
+import set1_2 from "../assets/sections/cardnews/1.2.webp";
+import set1_3 from "../assets/sections/cardnews/1.3.webp";
+import set1_4 from "../assets/sections/cardnews/1.4.webp";
 
-import set2_1 from "../assets/sections/cardnews/2.1.png";
-import set2_2 from "../assets/sections/cardnews/2.2.png";
-import set2_3 from "../assets/sections/cardnews/2.3.png";
-import set2_4 from "../assets/sections/cardnews/2.4.png";
+import set2_1 from "../assets/sections/cardnews/2.1.webp";
+import set2_2 from "../assets/sections/cardnews/2.2.webp";
+import set2_3 from "../assets/sections/cardnews/2.3.webp";
+import set2_4 from "../assets/sections/cardnews/2.4.webp";
 
-import set3_1 from "../assets/sections/cardnews/3.1.png";
-import set3_2 from "../assets/sections/cardnews/3.2.png";
-import set3_3 from "../assets/sections/cardnews/3.3.png";
-import set3_4 from "../assets/sections/cardnews/3.4.png";
+import set3_1 from "../assets/sections/cardnews/3.1.webp";
+import set3_2 from "../assets/sections/cardnews/3.2.webp";
+import set3_3 from "../assets/sections/cardnews/3.3.webp";
+import set3_4 from "../assets/sections/cardnews/3.4.webp";
 
 const FESTIVALS = [
   "보령머드축제",
@@ -127,6 +127,8 @@ export default function CardnewsSection() {
               >
                 {set.map((img, idx) => (
                   <img
+                    loading="lazy"
+                    decoding="async"
                     key={idx}
                     src={img}
                     alt={`card-${realIdx}-${idx}`}

@@ -21,19 +21,22 @@ const baseKey = (path) => {
  * generated   : 이미 만든 파생물 { 유형: 만든 베이스 경로 } (서버 기록)
  * currentBase : 지금 고른(또는 보고 있는) 베이스 이미지 경로
  *   같은 베이스로 만든 유형은 다시 만들지 않고 재사용되므로 "생성됨" 으로 표시한다.
+ * allowed     : 데모에서 고를 수 있는 유형 (미리 만들어 둔 것). null 이면 제한 없음
  */
 export default function DerivativePicker({
-  category, types, onChange, onSubmit, submitting = false, generated = {}, currentBase = "",
+  category, types, onChange, onSubmit, submitting = false, generated = {}, currentBase = "", allowed = null,
 }) {
   const group = promotionItems.find((p) => p.id === category);
   if (!group) return null;
 
-  const options = group.subOptions;
+  // 체험(test 계정)에서는 미리 만들어 둔 종류만 보여 준다
+  const options = allowed !== null ? group.subOptions.filter((o) => allowed.includes(o.value)) : group.subOptions;
   const selectedHere = options.filter((o) => types.includes(o.value)).length;
   const reusable = (value) => generated[value] && baseKey(generated[value]) === baseKey(currentBase);
 
+  const demoBlocked = (value) => allowed !== null && !allowed.includes(value);
   const toggle = (value) => {
-    if (DISABLED_TYPES.has(value)) return;
+    if (DISABLED_TYPES.has(value) || demoBlocked(value)) return;
     onChange(types.includes(value) ? types.filter((t) => t !== value) : [...types, value]);
   };
 
@@ -48,7 +51,7 @@ export default function DerivativePicker({
 
       <ul className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1">
         {options.map((o) => {
-          const disabled = DISABLED_TYPES.has(o.value);
+          const disabled = DISABLED_TYPES.has(o.value) || demoBlocked(o.value);
           const checked = types.includes(o.value);
           return (
             <li key={o.value}>
@@ -69,7 +72,9 @@ export default function DerivativePicker({
                   onChange={() => toggle(o.value)}
                 />
                 <span className="flex-1">{o.label}</span>
-                {disabled && <span className="text-[10px] text-gray-500">준비 중</span>}
+                {disabled && (
+                  <span className="text-[10px] text-gray-500">준비 중</span>
+                )}
                 {!disabled && generated[o.value] && (
                   reusable(o.value) ? (
                     <span className="text-[10px] text-emerald-400" title="같은 베이스로 이미 만들어 다시 만들지 않습니다">
