@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import TestSamplePanel from "../components/auth/TestSamplePanel";
-import DemoProjectPicker from "../components/demo/DemoProjectPicker";
 import { useAuthStore } from "../store/authStore";
 
 const ProposalUploadPage = () => {
@@ -15,8 +14,9 @@ const ProposalUploadPage = () => {
 
   const navigate = useNavigate();
   const role = useAuthStore((s) => s.member?.role);
-  // 샘플 기획서 자동 입력은 관리자 테스트용 (test 계정은 아래 데모 화면)
-  const canUseTestTools = role === "ADMIN";
+  const canUseTestTools = role === "TEST" || role === "ADMIN";
+  // 데모(test 계정): 미리 만들어 둔 축제의 기획서만 자동으로 채우고 입력은 바꾸지 못하게 한다
+  const demo = role === "TEST";
 
   // 테스트 계정: 샘플 기획서 자동 입력 (폼이 비어 있을 때만 첫 샘플을 자동 적용)
   const formIsEmpty = festivalName === "" && keywords.length === 0 && theme === "" && !file;
@@ -29,6 +29,7 @@ const ProposalUploadPage = () => {
 
   // 저장된 데이터 복원
   useEffect(() => {
+    if (demo) return;
     const saved = JSON.parse(localStorage.getItem("festivalForm") || "{}");
     if (saved) {
       setFestivalName(saved.festivalName || "");
@@ -48,6 +49,7 @@ const ProposalUploadPage = () => {
 
   // 키워드 추가
   const handleAddKeyword = () => {
+    if (demo) return;
     if (keywordInput.trim() === "" || keywords.length >= 5) return;
     if (!keywords.includes(keywordInput.trim())) {
       setKeywords([...keywords, keywordInput.trim()]);
@@ -57,6 +59,7 @@ const ProposalUploadPage = () => {
 
   // 키워드 삭제
   const handleRemoveKeyword = (word) => {
+    if (demo) return;
     setKeywords(keywords.filter((k) => k !== word));
   };
 
@@ -87,9 +90,6 @@ const ProposalUploadPage = () => {
     });
   };
 
-  // 데모(test) 계정은 새 기획서를 분석하지 않고 미리 만든 프로젝트를 고른다
-  if (role === "TEST") return <DemoProjectPicker />;
-
   const isFormValid =
     festivalName.trim() !== "" &&
     keywords.length > 0 &&
@@ -98,7 +98,7 @@ const ProposalUploadPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-32 bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-lg" style={{ marginTop: '128px' }}>
-      {canUseTestTools && <TestSamplePanel formIsEmpty={formIsEmpty} onApply={applySample} />}
+      {canUseTestTools && <TestSamplePanel formIsEmpty={formIsEmpty} onApply={applySample} demo={demo} />}
 
       <h2 className="text-3xl font-semibold mb-3 text-center text-white">기획서 업로드</h2>
       <p className="text-gray-400 text-base text-center mb-8">
@@ -108,6 +108,7 @@ const ProposalUploadPage = () => {
       {/* 축제명 */}
       <label className="block mb-2 text-base font-medium text-gray-300">축제명 *</label>
       <input
+        disabled={demo}
         type="text"
         placeholder="예: 제28회 보령머드축제"
         value={festivalName}
@@ -121,6 +122,7 @@ const ProposalUploadPage = () => {
       </label>
       <div className="flex gap-2 mb-4">
         <input
+          disabled={demo}
           type="text"
           placeholder="보령, 머드, 축제"
           value={keywordInput}
@@ -197,6 +199,7 @@ const ProposalUploadPage = () => {
             <label className="px-5 py-2.5 text-base border border-gray-600 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 cursor-pointer transition">
               파일 선택
               <input
+                disabled={demo}
                 type="file"
                 accept=".pdf,.doc,.docx,.hwp"
                 onChange={handleFileChange}

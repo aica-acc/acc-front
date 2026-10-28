@@ -9,20 +9,9 @@ import { openProject, stepLabel } from "../utils/project";
 const IntroSection = () => {
   const navigate = useNavigate();
   const loggedIn = useAuthStore((s) => !!s.token);
-  const setSession = useAuthStore((s) => s.setSession);
-  const [testBusy, setTestBusy] = React.useState(false);
-  const [testError, setTestError] = React.useState("");
-  // 서버에서 test 로그인을 껐으면 버튼을 숨긴다
-  const [testEnabled, setTestEnabled] = React.useState(false);
+  const [error, setError] = React.useState("");
   // 가장 최근에 진행한 프로젝트 ("이어서 하기")
   const [recent, setRecent] = React.useState(null);
-
-  React.useEffect(() => {
-    api
-      .get("/api/auth/config")
-      .then((res) => setTestEnabled(!!res.data?.testLoginEnabled))
-      .catch(() => setTestEnabled(false));
-  }, []);
 
   React.useEffect(() => {
     if (!loggedIn) {
@@ -44,22 +33,7 @@ const IntroSection = () => {
       const route = await openProject();
       navigate(route || "/select");
     } catch {
-      setTestError("프로젝트를 불러오지 못했습니다.");
-    }
-  };
-
-  // test 계정으로 로그인 → 샘플 데이터가 자동 입력되는 흐름으로 바로 진입
-  const startAsTest = async () => {
-    setTestError("");
-    setTestBusy(true);
-    try {
-      const res = await api.post("/api/auth/test-login");
-      setSession(res.data);
-      navigate("/select");
-    } catch {
-      setTestError("테스트 로그인을 사용할 수 없습니다.");
-    } finally {
-      setTestBusy(false);
+      setError("프로젝트를 불러오지 못했습니다.");
     }
   };
 
@@ -87,24 +61,13 @@ const IntroSection = () => {
        
           {/* 버튼 */}
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            {testEnabled && (
-              <button
-                onClick={startAsTest}
-                disabled={testBusy}
-                className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition
-                           border border-white/70 bg-white/10 backdrop-blur
-                           hover:bg-white/20 hover:scale-105 disabled:opacity-60"
-              >
-                데모 둘러보기
-              </button>
-            )}
             <button
               onClick={() => navigate(loggedIn ? "/select" : "/login")}
               className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 
                          bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 
                          hover:brightness-110 hover:scale-105"
             >
-              실제 이용하기
+              시작하기
             </button>
           </div>
           {recent && (
@@ -115,7 +78,7 @@ const IntroSection = () => {
               이어서 하기 · {recent.title || `프로젝트 ${recent.pNo}`} ({stepLabel(recent.route)})
             </button>
           )}
-          {testError && <p className="mt-3 text-sm text-red-300">{testError}</p>}
+          {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
       </div>
     </section>
   );

@@ -14,7 +14,7 @@ const Header = forwardRef((props, ref) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef(null);
 
-  const isMainPage = location.pathname === "/";
+  const isMainPage = location.pathname === "/home";
   const member = useAuthStore((s) => s.member);
   const loggedIn = useAuthStore((s) => !!s.token);
   const clearSession = useAuthStore((s) => s.clearSession);
@@ -85,7 +85,7 @@ const Header = forwardRef((props, ref) => {
         {/* 로고 */}
         <div
           className="flex items-center gap-4 cursor-pointer group"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(loggedIn ? "/home" : "/")}
         >
           <img
             src={mainIcon}
@@ -185,8 +185,8 @@ const Header = forwardRef((props, ref) => {
       {/* 데모(test) 계정 안내 띠 */}
       {loggedIn && isDemo && (
         <div className="bg-indigo-600/90 text-white text-sm px-4 py-2 text-center">
-          <span className="font-bold mr-2">데모 모드</span>
-          미리 만들어 둔 결과를 보여 드립니다. 새로 만들기·저장은 되지 않습니다.
+          <span className="font-bold mr-2">체험 중</span>
+          미리 만들어 둔 축제 결과로 진행되며, 작업 내용은 저장되지 않습니다.
           <button
             onClick={() => {
               clearSession();

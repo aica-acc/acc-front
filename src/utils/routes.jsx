@@ -6,6 +6,7 @@ import ProjectDetailPage from "../pages/mypage/ProjectDetailPage";
 import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
 import MainPage from "../pages/MainPage";
+import GatePage from "../pages/GatePage";
 import ProfilePage from "../pages/mypage/ProfilePage";
 // import SelectPromoitonPage from "../pages/SelectPromoitonPage";
 import SelectPromotionPage_New from "../components/select_promotion/SelectPromotionPage";
@@ -47,7 +48,8 @@ const Approuter = () => {
   return (
     <Routes>
         {/* 메인 페이지 */}
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<GatePage />} />
+        <Route path="/home" element={<MainPage />} />
         {/* 로그인 / 회원가입 / test 로그인 */}
         <Route path="/login" element={<LoginPage />} />
 

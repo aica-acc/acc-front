@@ -14,6 +14,7 @@ import { imageUrlToBase64 } from "../../utils/imageUtils";
 import { resolveProjectNo, PROJECT_NOT_FOUND_MESSAGE } from "../../utils/project";
 
 import projectSession from "../../utils/projectSession";
+import { isDemoUser, getDemoBase } from "../../utils/demo";
 export default function CreatePosterPromptPage() {
   const navigate = useNavigate();
 
@@ -128,7 +129,12 @@ export default function CreatePosterPromptPage() {
   };
 
   // 선택하기 버튼 핸들러
+  // 데모: 베이스는 미리 정해 둔 것으로 고정 (다른 후보는 둘러보기만), 파생물은 미리 만든 종류만
+  const demo = isDemoUser();
+  const demoTypes = demo ? getDemoBase()?.types || [] : null;
+
   const handleSelectImage = () => {
+    if (demo) return;
     if (!detail) return;
     
     // 업로드 선택 해제 (생성된 이미지를 선택하면 업로드 선택이 해제됨)
@@ -343,6 +349,7 @@ export default function CreatePosterPromptPage() {
           isSelected={isSelected}
           hasUploadedImage={hasUploadedImage}
           onSelect={handleSelectImage}
+          locked={demo}
         />
 
         {/* 이미지 뷰어 - 남은 공간을 차지하도록 flex-1 사용 */}
@@ -374,7 +381,8 @@ export default function CreatePosterPromptPage() {
         types={derivativeTypes}
         onChange={handleDerivativeTypesChange}
         onSubmit={handleCreateDerivative}
-        generated={generated}
+        generated={demo ? {} : generated}
+        allowed={demoTypes}
         currentBase={selectedBase || detail?.fileUrl}
       />
     </div>
