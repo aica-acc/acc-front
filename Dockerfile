@@ -9,15 +9,6 @@ COPY . .
 # Linux 는 파일명 대소문자를 구분한다: 레포에는 1.1.PNG 로 커밋되어 있으나 코드는 1.1.png 를 import 한다.
 RUN cd src/assets/sections/cardnews && for f in *.PNG; do [ -e "$f" ] && mv "$f" "${f%.PNG}.png"; done || true
 
-# src/assets/promotion/{poster,mascot} 이미지는 .gitignore 되어 레포에 없다.
-# 실제 파일은 팀 원본 자료에서 받아 acc-front/src/assets/promotion 에 넣어 빌드하고,
-# 없을 때만 빌드가 깨지지 않도록 1x1 임시 이미지로 채운다.
-RUN set -e; d=src/assets/promotion; mkdir -p $d/poster $d/mascot; \
-    px='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=='; \
-    for f in poster_1.jpg poster_2.png poster_3.PNG poster_4.jpg poster_5.jpg poster_6.png poster_7.png poster_8.jpg; do \
-      [ -e $d/poster/$f ] || echo "$px" | base64 -d > $d/poster/$f; done; \
-    for i in 1 2 3 4 5 6 7; do [ -e $d/mascot/mascot_$i.png ] || echo "$px" | base64 -d > $d/mascot/mascot_$i.png; done
-
 # 브라우저가 호출하는 백엔드 주소. 빈 값이면 같은 도메인 (nginx 가 /api/, /files/ 를 백엔드로 전달)
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
