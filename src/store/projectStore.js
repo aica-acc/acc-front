@@ -128,6 +128,8 @@ export const useProjectStore = create(
         const pNo = get().pNo;
         if (!pNo || !hasPending()) return;
         const body = takePending();
+        // 데모(test) 계정은 모두가 같이 보는 미리 만든 프로젝트라 서버에 저장하지 않는다 (이 탭 안에서만 유지)
+        if (useAuthStore.getState().member?.role === "TEST") return;
         try {
           await api.put(`/api/progress/${pNo}`, body);
         } catch (e) {
@@ -179,6 +181,7 @@ if (typeof window !== "undefined") {
     const { pNo } = useProjectStore.getState();
     const token = getToken();
     if (!pNo || !token || !hasPending()) return;
+    if (useAuthStore.getState().member?.role === "TEST") return;
     clearTimeout(flushTimer);
     fetch(`${API_BASE_URL}/api/progress/${pNo}`, {
       method: "PUT",

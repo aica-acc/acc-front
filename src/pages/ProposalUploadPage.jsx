@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import TestSamplePanel from "../components/auth/TestSamplePanel";
+import DemoProjectPicker from "../components/demo/DemoProjectPicker";
 import { useAuthStore } from "../store/authStore";
 
 const ProposalUploadPage = () => {
@@ -14,7 +15,8 @@ const ProposalUploadPage = () => {
 
   const navigate = useNavigate();
   const role = useAuthStore((s) => s.member?.role);
-  const canUseTestTools = role === "TEST" || role === "ADMIN";
+  // 샘플 기획서 자동 입력은 관리자 테스트용 (test 계정은 아래 데모 화면)
+  const canUseTestTools = role === "ADMIN";
 
   // 테스트 계정: 샘플 기획서 자동 입력 (폼이 비어 있을 때만 첫 샘플을 자동 적용)
   const formIsEmpty = festivalName === "" && keywords.length === 0 && theme === "" && !file;
@@ -84,6 +86,9 @@ const ProposalUploadPage = () => {
       },
     });
   };
+
+  // 데모(test) 계정은 새 기획서를 분석하지 않고 미리 만든 프로젝트를 고른다
+  if (role === "TEST") return <DemoProjectPicker />;
 
   const isFormValid =
     festivalName.trim() !== "" &&

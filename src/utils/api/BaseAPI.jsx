@@ -43,6 +43,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error(`[Axios Error] ${error.response.status}:`, error.response.data);
+      // 데모 계정 제한(DEMO) / 크레딧 부족(CREDIT)은 어느 화면에서든 같은 안내를 띄운다 (ApiNotice)
+      const code = error.response.data?.code;
+      if (code === "DEMO" || code === "CREDIT") {
+        window.dispatchEvent(
+          new CustomEvent("acc:notice", { detail: { code, message: error.response.data?.message } })
+        );
+      }
       // 토큰이 만료/무효이면 로그인 화면으로 (로그인·가입 요청 자체의 401 은 화면에서 메시지로 처리)
       const url = error.config?.url || "";
       if (error.response.status === 401 && getToken() && !url.startsWith("/api/auth/")) {

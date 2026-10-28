@@ -7,9 +7,12 @@ import PromotionCard from "../../components/select_promotion/PromotionCard";
 import SelectInspirationViewer from "../../components/select_promotion/SelectInspirationViewer";
 
 import { promotionItems } from "../../assets/promotionItems";
+import { useAuthStore } from "../../store/authStore";
+import DemoProjectPicker from "../demo/DemoProjectPicker";
 
 export default function SelectPromotionPage() {
   const navigate = useNavigate();
+  const isDemo = useAuthStore((s) => s.member?.role === "TEST");
 
   const [activeCategory, setActiveCategory] = useState("poster");
   const [selectedMap, setSelectedMap] = useState({});
@@ -78,6 +81,9 @@ export default function SelectPromotionPage() {
       [activeCategory]: [],
     }));
   };
+
+  // 데모(test) 계정은 새 프로젝트를 시작하지 않고 미리 만든 프로젝트를 고른다
+  if (isDemo) return <DemoProjectPicker />;
 
   return (
     <div className="min-h-screen bg-[#0f1117] text-white px-10 py-6">

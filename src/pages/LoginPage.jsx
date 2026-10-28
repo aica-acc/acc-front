@@ -152,7 +152,7 @@ const LoginPage = () => {
               disabled={busy}
               className="px-6 py-2.5 rounded-full border border-indigo-400 text-indigo-300 hover:bg-indigo-500/20 transition"
             >
-              test 계정으로 로그인하기
+              데모 둘러보기 (미리 만든 결과)
             </button>
           </div>
         )}

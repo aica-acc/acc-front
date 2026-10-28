@@ -13,6 +13,8 @@ export const getMember = () => state().member;
 export const isLoggedIn = () => !!state().token;
 export const getRole = () => state().member?.role || null;
 export const hasRole = (...roles) => roles.includes(getRole());
+/** 데모(test) 계정: 새로 만들거나 저장하지 않고 미리 만들어 둔 결과만 보여 준다 */
+export const isDemo = () => hasRole("TEST");
 /** 테스트 계정 / 관리자만 샘플 데이터 자동 입력 기능을 쓴다 */
 export const canUseTestTools = () => hasRole("TEST", "ADMIN");
 

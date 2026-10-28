@@ -4,7 +4,7 @@ import Header from "../layout/Header";
 import { useAuthStore } from "../store/authStore";
 
 const ROLES = ["USER", "TEST", "ADMIN"];
-const ROLE_LABEL = { USER: "일반", TEST: "테스트", ADMIN: "관리자" };
+const ROLE_LABEL = { USER: "일반", TEST: "데모", ADMIN: "관리자" };
 
 /** 관리자 화면: 회원 목록, 권한 변경, 계정 정지/해제, 회원 데이터 초기화(test 계정 되돌리기) */
 const AdminPage = () => {
@@ -50,6 +50,20 @@ const AdminPage = () => {
     );
   };
 
+  const grantCredits = (m) => {
+    const input = window.prompt(`${m.email} 에게 지급할 크레딧 (회수는 음수, 예: 100 / -50)`, "100");
+    if (input === null) return;
+    const amount = Number(input);
+    if (!Number.isInteger(amount) || amount === 0) {
+      setError("크레딧은 0이 아닌 정수로 입력해주세요.");
+      return;
+    }
+    return run(
+      () => api.post(`/api/admin/members/${m.mNo}/credits`, { amount, memo: "관리자 지급" }),
+      `${m.email} 에게 ${amount} 크레딧을 ${amount > 0 ? "지급" : "회수"}했습니다.`
+    );
+  };
+
   const resetData = (m) => {
     if (!window.confirm(`${m.email} 의 프로젝트와 생성 기록을 모두 삭제할까요? (되돌릴 수 없음)`)) return;
     return run(
@@ -66,7 +80,7 @@ const AdminPage = () => {
       <Header />
       <div className="max-w-6xl mx-auto px-6 pb-16" style={{ paddingTop: "120px" }}>
         <h2 className="text-3xl font-semibold text-white mb-2">관리자</h2>
-        <p className="text-gray-400 mb-6">회원 권한을 바꾸거나 테스트 데이터를 초기화할 수 있습니다. 변경은 즉시 적용됩니다.</p>
+        <p className="text-gray-400 mb-6">회원 권한·크레딧을 바꾸거나 회원 데이터를 초기화할 수 있습니다. 변경은 즉시 적용됩니다.</p>
 
         {message && <p className="text-green-400 mb-3">{message}</p>}
         {error && <p className="text-red-400 mb-3">{error}</p>}
@@ -80,6 +94,7 @@ const AdminPage = () => {
                 <th className="px-4 py-3">이름</th>
                 <th className="px-4 py-3">권한</th>
                 <th className="px-4 py-3">상태</th>
+                <th className="px-4 py-3">크레딧</th>
                 <th className="px-4 py-3">가입일</th>
                 <th className="px-4 py-3">관리</th>
               </tr>
@@ -107,6 +122,7 @@ const AdminPage = () => {
                       </select>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{m.state === "SUSPENDED" ? "정지" : "정상"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{m.role === "ADMIN" ? "무제한" : (m.credit ?? 0).toLocaleString()}</td>
                     <td className="px-4 py-3 text-sm whitespace-nowrap">{m.createAt}</td>
                     <td className="px-4 py-3 space-x-2 whitespace-nowrap">
                       <button
@@ -116,9 +132,19 @@ const AdminPage = () => {
                       >
                         {m.state === "SUSPENDED" ? "정지 해제" : "정지"}
                       </button>
+                      {m.role === "USER" && (
+                        <button
+                          onClick={() => grantCredits(m)}
+                          className="px-3 py-1 text-sm rounded border border-indigo-400 text-indigo-300 hover:bg-indigo-500/20"
+                        >
+                          크레딧 지급
+                        </button>
+                      )}
                       <button
+                        disabled={m.role === "TEST"}
+                        title={m.role === "TEST" ? "데모 계정의 미리 만든 프로젝트는 초기화할 수 없습니다" : undefined}
                         onClick={() => resetData(m)}
-                        className="px-3 py-1 text-sm rounded border border-red-400 text-red-300 hover:bg-red-500/20"
+                        className="px-3 py-1 text-sm rounded border border-red-400 text-red-300 hover:bg-red-500/20 disabled:opacity-40"
                       >
                         데이터 초기화
                       </button>
@@ -128,7 +154,7 @@ const AdminPage = () => {
               })}
               {members.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-gray-400">
+                  <td colSpan={8} className="px-4 py-6 text-center text-gray-400">
                     회원이 없습니다.
                   </td>
                 </tr>

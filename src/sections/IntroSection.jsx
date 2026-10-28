@@ -95,7 +95,7 @@ const IntroSection = () => {
                            border border-white/70 bg-white/10 backdrop-blur
                            hover:bg-white/20 hover:scale-105 disabled:opacity-60"
               >
-                test 계정으로 로그인하기
+                데모 둘러보기
               </button>
             )}
             <button
