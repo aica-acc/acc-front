@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/api/BaseAPI";
 import Header from "../layout/Header";
 import { useAuthStore } from "../store/authStore";
+import SocialLoginButtons from "../components/auth/SocialLoginButtons";
 
 const inputClass =
   "w-full border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 mb-4 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500";
@@ -104,6 +105,8 @@ const LoginPage = () => {
             {mode === "login" ? "로그인" : "가입하고 시작하기"}
           </button>
         </form>
+
+        <SocialLoginButtons afterLogin={afterLogin} />
 
         <div className="text-center mt-4 text-gray-400 text-sm">
           {mode === "login" ? (

@@ -7,6 +7,7 @@ import DrivePage from "../pages/mypage/DrivePage";
 import MyPageLayout from "../layout/MyPageLayout";
 import MainPage from "../pages/MainPage";
 import GatePage from "../pages/GatePage";
+import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 import ProfilePage from "../pages/mypage/ProfilePage";
 // import SelectPromoitonPage from "../pages/SelectPromoitonPage";
 import SelectPromotionPage_New from "../components/select_promotion/SelectPromotionPage";
@@ -52,6 +53,8 @@ const Approuter = () => {
         <Route path="/home" element={<MainPage />} />
         {/* 로그인 / 회원가입 / test 로그인 */}
         <Route path="/login" element={<LoginPage />} />
+        {/* 카카오·구글 로그인 창에서 돌아오는 주소 */}
+        <Route path="/auth/:provider/callback" element={<OAuthCallbackPage />} />
 
         {/* 이하 모든 화면은 로그인 필요 */}
         <Route element={<RequireAuth />}>
