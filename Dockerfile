@@ -6,9 +6,6 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 
-# Linux 는 파일명 대소문자를 구분한다: 레포에는 1.1.PNG 로 커밋되어 있으나 코드는 1.1.png 를 import 한다.
-RUN cd src/assets/sections/cardnews && for f in *.PNG; do [ -e "$f" ] && mv "$f" "${f%.PNG}.png"; done || true
-
 # 브라우저가 호출하는 백엔드 주소. 빈 값이면 같은 도메인 (nginx 가 /api/, /files/ 를 백엔드로 전달)
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL

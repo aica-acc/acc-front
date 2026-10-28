@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserCircle } from "lucide-react";
-import mainIcon from "../assets/icorn/main_icorn.png";
+import mainIcon from "../assets/icorn/main_icorn.webp";
 import { useAuthStore } from "../store/authStore";
 import api from "../utils/api/BaseAPI";
 

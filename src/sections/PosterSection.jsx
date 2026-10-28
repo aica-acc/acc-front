@@ -115,7 +115,7 @@ export default function PosterSection() {
                 }`}
                 style={{ width: CARD_W, height: CARD_H, flex: "0 0 auto" }}
               >
-                <img src={src} alt={`poster-${realIdx}`} className="w-full h-full object-cover" />
+                <img src={src} alt={`poster-${realIdx}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
             );
           })}

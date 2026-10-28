@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import mainVideo from "../assets/sections/video/main_video.mp4";
+import mainVideo from "../assets/sections/video/main_video_720.mp4";
 import api from "../utils/api/BaseAPI";
 import { useAuthStore } from "../store/authStore";
 import { openProject, stepLabel } from "../utils/project";

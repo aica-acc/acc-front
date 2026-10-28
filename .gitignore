@@ -28,6 +28,8 @@ dist-ssr
 *.jpg
 # 홍보물 선택 화면 예시 이미지는 레포에 둔다 (없으면 빌드 이미지에 빠진다)
 !src/assets/promotion/**/*.jpg
+# 메인 화면 영상 (720p·무음으로 줄인 것만)
+!src/assets/sections/video/*_720.mp4
 .env
 
 /public/data/*

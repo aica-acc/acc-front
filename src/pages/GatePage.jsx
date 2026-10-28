@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import mainVideo from "../assets/sections/video/main_video.mp4";
-import mainIcon from "../assets/icorn/main_icorn.png";
+import mainVideo from "../assets/sections/video/main_video_720.mp4";
+import mainIcon from "../assets/icorn/main_icorn.webp";
 import posterSample from "../assets/promotion/poster/poster_6.jpg";
 import mascotSample from "../assets/promotion/mascot/mascot_6.jpg";
 import bannerSample from "../assets/promotion/options/road_banner.jpg";
