@@ -12,8 +12,17 @@ const IntroSection = () => {
   const setSession = useAuthStore((s) => s.setSession);
   const [testBusy, setTestBusy] = React.useState(false);
   const [testError, setTestError] = React.useState("");
+  // 서버에서 test 로그인을 껐으면 버튼을 숨긴다
+  const [testEnabled, setTestEnabled] = React.useState(false);
   // 가장 최근에 진행한 프로젝트 ("이어서 하기")
   const [recent, setRecent] = React.useState(null);
+
+  React.useEffect(() => {
+    api
+      .get("/api/auth/config")
+      .then((res) => setTestEnabled(!!res.data?.testLoginEnabled))
+      .catch(() => setTestEnabled(false));
+  }, []);
 
   React.useEffect(() => {
     if (!loggedIn) {
@@ -78,15 +87,17 @@ const IntroSection = () => {
        
           {/* 버튼 */}
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <button
-              onClick={startAsTest}
-              disabled={testBusy}
-              className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition
-                         border border-white/70 bg-white/10 backdrop-blur
-                         hover:bg-white/20 hover:scale-105 disabled:opacity-60"
-            >
-              test 계정으로 로그인하기
-            </button>
+            {testEnabled && (
+              <button
+                onClick={startAsTest}
+                disabled={testBusy}
+                className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition
+                           border border-white/70 bg-white/10 backdrop-blur
+                           hover:bg-white/20 hover:scale-105 disabled:opacity-60"
+              >
+                test 계정으로 로그인하기
+              </button>
+            )}
             <button
               onClick={() => navigate(loggedIn ? "/select" : "/login")}
               className="px-8 py-3 rounded-full text-white font-semibold shadow-lg transition 

@@ -161,26 +161,22 @@ const PressReleaseModal = ({ isOpen, onClose, data }) => {
                             <div dangerouslySetInnerHTML={{ __html: data.body2 }} />
                         </div>
 
-                        {/* 하단 담당자 정보 */}
-                        <div className="mt-16 pt-6 border-t-2 border-slate-500 font-sans page-break-inside-avoid">
-                            <table className="w-full text-sm border-collapse border border-slate-300">
-                                <tbody>
-                                    <tr>
-                                        <td className="w-24 bg-slate-100 font-bold text-center p-3 border border-slate-300">담당부서</td>
-                                        <td className="p-3 border border-slate-300">국립아시아문화전당 홍보협력과</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="w-24 bg-slate-100 font-bold text-center p-3 border border-slate-300">책임자</td>
-                                        <td className="p-3 border border-slate-300">
-                                            {data.info?.contact || '김홍보 주무관 (062-601-0000)'}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div className="mt-3 text-center text-xs text-slate-400">
-                                이 자료에 대하여 더욱 자세한 내용을 원하시면 위 담당자에게 연락주시기 바랍니다.
+                        {/* 하단 문의처 (기획서에 적힌 연락처가 있을 때만) */}
+                        {data.info?.contact && (
+                            <div className="mt-16 pt-6 border-t-2 border-slate-500 font-sans page-break-inside-avoid">
+                                <table className="w-full text-sm border-collapse border border-slate-300">
+                                    <tbody>
+                                        <tr>
+                                            <td className="w-24 bg-slate-100 font-bold text-center p-3 border border-slate-300">문의처</td>
+                                            <td className="p-3 border border-slate-300">{data.info.contact}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div className="mt-3 text-center text-xs text-slate-400">
+                                    이 자료에 대하여 더욱 자세한 내용을 원하시면 위 문의처로 연락주시기 바랍니다.
+                                </div>
                             </div>
-                        </div>
+                        )}
                         
                         {/* --- 문서 내용 끝 --- */}
 
