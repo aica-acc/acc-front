@@ -26,6 +26,8 @@ dist-ssr
 *.png
 *.mp4
 *.jpg
+# 홍보물 선택 화면 예시 이미지는 레포에 둔다 (없으면 빌드 이미지에 빠진다)
+!src/assets/promotion/**/*.jpg
 .env
 
 /public/data/*
