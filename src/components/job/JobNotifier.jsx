@@ -4,9 +4,9 @@ import { useAuthStore } from "../../store/authStore";
 import { JobAPI, summarizeBuild } from "../../utils/api/JobAPI";
 
 const POLL_MS = 5000;
-const KIND_LABEL = { EDITOR_BUILD: "파생물 생성", CREATE_IMAGES: "포스터·마스코트 생성" };
+const KIND_LABEL = { EDITOR_BUILD: "파생물 생성", CREATE_IMAGES: "포스터·마스코트 생성", ANALYZE_PROPOSAL: "기획서 분석" };
 // 작업 종류별 진행 화면 (같은 정보가 이미 보이므로 그 화면에서는 알림을 숨긴다)
-const PROGRESS_PAGE = { EDITOR_BUILD: "/testlodingpage", CREATE_IMAGES: "/generate-prompt/loading" };
+const PROGRESS_PAGE = { EDITOR_BUILD: "/testlodingpage", CREATE_IMAGES: "/generate-prompt/loading", ANALYZE_PROPOSAL: "/proposalloading" };
 
 /**
  * 화면 오른쪽 아래 생성 작업 알림.
@@ -49,6 +49,9 @@ export default function JobNotifier() {
     if (job.status === "SUCCEEDED" && job.kind === "EDITOR_BUILD") {
       dismiss(job);
       navigate(`/editorpage?p=${job.pNo}`, { state: { pNo: job.pNo, runId: job.result?.runId } });
+    } else if (job.kind === "ANALYZE_PROPOSAL") {
+      // 진행 중이면 이어서 보고, 끝났으면 그 화면이 결과를 받아 분석 화면으로 넘긴다
+      navigate(`/proposalloading?job=${job.jobId}`);
     } else {
       // 포스터·마스코트는 완료 후에도 진행 화면이 결과 화면으로 넘겨 준다
       navigate(`${PROGRESS_PAGE[job.kind] || "/testlodingpage"}?p=${job.pNo}`);
