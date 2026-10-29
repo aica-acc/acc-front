@@ -30,7 +30,8 @@ const AnalyzeRegionTrendPage = () => {
     if (data) {
       setRegionData(data);
     } else {
-      setError("지역 트렌드 분석 데이터가 없습니다.");
+      // 분석 작업에서 지역 트렌드만 실패한 경우 그 사유 (#32)
+      setError(projectSession.getItem('regionTrendError') || "지역 트렌드 분석 데이터가 없습니다.");
     }
   }, [regionTrend]);
 
