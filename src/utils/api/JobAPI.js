@@ -32,6 +32,9 @@ export const JobAPI = {
   latestCreateImages: (pNo) =>
     api.get("/api/create-jobs/latest", { params: { pNo } }).then((res) => (res.status === 204 ? null : res.data)),
 
+  /** 기획서 분석 → 트렌드 → 지역 트렌드 작업 시작 (새 프로젝트를 만든다). formData: file, theme, keywords, title */
+  startAnalyze: (formData) => api.post("/api/project/analyze/jobs", formData).then((res) => res.data),
+
   /** 이미 만든 파생물: { 유형: 만든 베이스 경로 } */
   derivatives: (pNo) => api.get(`/api/editor/project/${pNo}/derivatives`).then((res) => res.data || {}),
 };
