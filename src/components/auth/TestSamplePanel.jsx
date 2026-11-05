@@ -39,15 +39,10 @@ const TestSamplePanel = ({ formIsEmpty, onApply, demo = false }) => {
   );
 
   useEffect(() => {
-    const load = demo
-      ? // 데모: 같은 축제로 미리 만들어 둔 프로젝트가 있는 샘플만 (그 결과를 보여 준다)
-        Promise.all([api.get("/api/test/samples"), api.get("/api/mypage/projects")]).then(([s, p]) => {
-          const titles = new Set((p.data || []).map((x) => x.festivalName));
-          return (s.data || []).filter((x) => titles.has(x.title));
-        })
-      : api.get("/api/test/samples").then((res) => res.data || []);
+    // 데모 계정은 프로젝트 DB가 비어 있어도 준비된 기획서 샘플을 선택해 폼을 채울 수 있다.
+    const load = api.get("/api/test/samples").then((res) => res.data || []);
     load.then(setSamples).catch(() => setStatus("샘플 목록을 불러오지 못했습니다."));
-  }, [demo]);
+  }, []);
 
   useEffect(() => {
     if (samples.length > 0 && formIsEmpty && !autoApplied.current) {
